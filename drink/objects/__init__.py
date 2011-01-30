@@ -34,7 +34,7 @@ for obj in objects_to_load:
         exec('from .%s import exported'%obj)
         classes.update(exported)
     except Exception:
-        print "Unable to load %s, remove it from config file in [objects] section."
+        print "Unable to load %s, remove it from config file in [objects] section."%obj
         raise
 
 
