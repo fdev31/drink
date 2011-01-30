@@ -1,0 +1,53 @@
+body{
+	padding:50px;
+	background-color: #F0F0F0;
+	font-family:Georgia,"Times New Roman","Bitstream Charter",Times,serif;
+	color:#093E56;
+    }
+
+
+h1{
+	font-style:italic;
+	text-shadow: 1px 2px 2px #aaa;
+	font-weight:normal;
+}
+
+.entry a {
+	outline:none;
+    text-decoration: none;
+    font-size: 21pt;
+}
+
+.entry {
+padding-left: 2em;
+    margin: 1ex;
+}
+a {
+    text-decoration: none;
+   padding: 0 1ex 0 1ex;
+}
+a:hover {
+
+    text-decoration: underline;
+   background: #778;
+    text-decoration: none;
+   color: white;
+    -moz-box-shadow: 10px 10px 5px #888;
+    -webkit-box-shadow: 3px 1px 5px #888;
+    box-shadow: 10px 10px 5px #888;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+}
+
+.icon {
+    width: 32px;
+    margin-right: 1ex;
+    margin-bottom: -8px;
+}
+
+fieldset {    margin-top: 1em;
+}
+
+#login_form {
+    margin-bottom: 2em;
+}

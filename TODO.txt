@@ -1,0 +1,19 @@
+- refactor Database (rewrite, only keep useful parts)
+- rewrite & improve task list
+- D&D sortable folders
+- File upload
+- "background processes" for each user / sessions
+- theme support (config entry + template & static path)
+- finish default edition method (add form)
+- add more types to default form edition
+   - editable_types = {
+        'name': TypeObj,
+         ...
+        }
+   - types:
+        * date
+        * caption
+        * text
+        * integer
+        * object_path (later)
+

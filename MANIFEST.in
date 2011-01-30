@@ -1,0 +1,3 @@
+recursive-include flaskbox/static *.css *.js
+recursive-include flaskbox/templates *.html
+

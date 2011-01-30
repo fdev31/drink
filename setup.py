@@ -1,0 +1,24 @@
+import setuptools
+from setuptools import setup, find_packages
+
+setup(
+    name="drink",
+    version="0.1.0",
+    author="Fabien Devaux",
+    author_email="fdev31@gmail.com",
+    license="BSD",
+    platform="all",
+    description="my web sandbox",
+    include_package_data=True,
+    zip_safe=False,
+    entry_points = {
+        "console_scripts": [
+            'drink = drink:main',
+            ],
+        "setuptools.installation" : [
+            'eggsecutable = drink:main'
+            ]
+        },
+    packages=find_packages(),
+)
+

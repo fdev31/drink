@@ -1,0 +1,104 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr" lang="fr">
+    <head>
+        <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon">
+        <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <!-- Cascading Style Sheets -->
+        <link href="/static/page.css" rel="stylesheet" type="text/css" />
+        {% for url in css %}
+        <link href="{{url}}" rel="stylesheet" type="text/css" />
+        {% endfor %}
+        <!-- Javascript -->
+        <script type="text/javascript" src="/static/jquery-1.4.4.js"></script>
+        <script type="text/javascript" src="/static/jquery-ui-1.8.custom.min.js"></script>
+        <script type="text/javascript" src="/static/jquery.validate.min.js"></script>
+        <script type="text/javascript">
+            jQuery.validator.addMethod("identifier", function(value, element) {
+	            return this.optional(element) || /^[A-Za-z0-9_-]+$/i.test(value);
+            }, "Letters, numbers, spaces or underscores only please");  
+
+          $(document).ready(function(){
+                $("#add_form").validate();
+                $("#rm_form").validate();
+                $("#selected_edit_key").change(function() {
+                    var action = $(this).val();
+                    $("#edit_form").attr("action", action+"/edit");
+                });
+            });
+        </script>
+
+
+        {% for url in js %}
+        <script type="text/javascript" src="{{url}}"></script>
+        {% endfor %}
+        {% block head %}
+        <title>Flaskbox</title>
+        {% endblock %}
+
+    <body>
+    </head>
+    {% if not authenticated and not obj.path %}
+    <form id="login_form" action="/login" method="POST">
+        <label for="ilogin">Authenticate as:</label>
+        <input type="text" name="login_name" id="ilogin" />
+        <label for="ipasswd">Password:</label>
+        <input type="password" name="login_password" id="ipassword" />
+        <input class="submit" type="submit" value="Log in!"/>
+    </form>
+    {% elif authenticated and not no_admin %}
+    <fieldset>
+        <legend>Administrator commands</legend>
+        <a href="/logout">[Log out]</a>
+        {% if obj.path %}
+            <a href="./edit">[Edit]</a>
+            <a href="../">[Parent folder]</a>
+            {% if classes %}
+            <form id="add_form" action="add" method="get">
+                <label for="selected_class">Add new</label>
+                <select id="selected_class" name="class" size="0">
+                {% for k in classes.iterkeys() %}
+                    <option value="{{k}}" label="{{k}}"></option>
+                {% endfor %}
+                </select>
+                <label for="obj_name">as</label>
+                <input id="obj_name" type="text" name="name" class="required identifier" minlength="2" />
+                <input class="submit" type="submit" value="Create!"/>
+            </form>
+            {% endif %}
+            {% if obj %}
+            <form id="rm_form" action="rm" method="get" enctype="text/plain">
+                <label for="selected_rm_key">Remove</label>
+                <select id="selected_rm_key" name="name" size="0" class="required">
+                    <option value="" label="-nothing-"></option>
+                {% for k in obj.iterkeys() %}
+                    <option value="{{k}}" label="{{k}}"></option>
+                {% endfor %}
+                </select>
+                <input class="submit" type="submit" value="Delete!"/>
+            </form>
+
+            <form id="edit_form" action="edit" method="get" enctype="text/plain">
+                <label for="selected_edit_key">Edit</label>
+                <select id="selected_edit_key" size="0" class="required">
+                    <option value="" label="-none-"></option>
+                {% for k in obj.iterkeys() %}
+                    <option value="{{k}}" label="{{k}}"></option>
+                {% endfor %}
+                </select>
+                <input class="submit" type="submit" value="Go!!"/>
+            </form>
+            {% endif %}
+        {% endif %}
+    </fieldset>
+    {% endif %}
+    {% block body %}
+        {% if html %}
+            {{ html|safe }}
+        {% else %}
+            Please, add some body block or html content...
+        {% endif %}
+    {% endblock %}
+    </body>
+</html>
