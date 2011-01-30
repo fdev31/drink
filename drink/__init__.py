@@ -70,6 +70,7 @@ def glob_index(objpath="/"):
         return o.view()
 
 def __init_():
+    db.open_db()
     root = db.data
     from drink.config import config
     root.clear()
