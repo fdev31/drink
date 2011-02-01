@@ -11,13 +11,13 @@
     <div><a href="../"><img class="icon" src="/static/back.png" />Back Up!</a></div>
 {% endif %}
 
-    {% for name in obj.iterkeys() %}
-    <div class="entry"><a title="{{obj[name].doc}}" href="{{obj.path}}{{name}}/"><img class="icon" src="/static/mime/{{ obj[name].mime }}.png"/>{{ obj[name].title }}</a>
-    {% if obj[name].__len__() %}
-    ({{ obj[name].__len__() }} item{% if obj[name].__len__() > 1 %}s{% endif %})
-    {% endif %}
-    </div>
-    {% endfor %}
+{% for name in obj.iterkeys() %}
+<div class="entry"><a title="{{obj[name].doc}}" href="{{obj.path}}{{name}}/"><img class="icon" src="/static/mime/{{ obj[name].mime }}.png"/>{{ obj[name].title }}</a>
+{% if obj[name].__len__() %}
+({{ obj[name].__len__() }} item{% if obj[name].__len__() > 1 %}s{% endif %})
+{% endif %}
+</div>
+{% endfor %}
 
 
 {% endblock %}
