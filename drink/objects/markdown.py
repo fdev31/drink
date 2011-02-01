@@ -1,11 +1,10 @@
 from __future__ import absolute_import
 import transaction
-from .generic import Page, TextArea, Text
-from drink import request, template, authenticated
+import drink
 
 from markdown import markdown
 
-class MarkdownPage(Page):
+class MarkdownPage(drink.Page):
     content = "[Edit me](edit)"
 
     mime = "markdown"
@@ -13,14 +12,16 @@ class MarkdownPage(Page):
     doc = "A markdown rendered page"
 
     editable_fields = {
-        'content': TextArea(),
-        'mime': Text(),
+        'content': drink.TextArea(),
+        'mime': drink.Text(),
     }
 
     def view(self):
+
         html = markdown(self.content)
-        return template('main.html', obj=self,
-             html=html, authenticated=authenticated(),
+
+        return drink.template('main.html', obj=self,
+             html=html, authenticated=drink.authenticated(),
              classes=exported,
              )
 

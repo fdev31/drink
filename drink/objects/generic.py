@@ -1,5 +1,6 @@
 from __future__ import absolute_import
-__all__ = ['rdr', 'Page']
+__all__ = ['Page', 'ListPage', 'Model',
+    'Text', 'TextArea', 'Id' ]
 
 from bottle import request
 from persistent.dict import PersistentDict

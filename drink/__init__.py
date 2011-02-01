@@ -27,8 +27,9 @@ def authenticated():
 # Finally load the objects
 
 
-from .objects import classes, get_object
-from .objects.generic import ListPage
+from .objects import classes, get_object, init as init_objects
+from .objects.generic import Page, ListPage, Model, Text, TextArea, Id, Password
+init_objects()
 
 # ZODB3
 from .zdb import Database

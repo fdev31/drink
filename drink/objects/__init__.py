@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from drink.config import config
 
-__all__ = ['classes', 'get_object']
+__all__ = ['classes', 'get_object', 'init']
 
 classes = {}
 
@@ -29,13 +29,14 @@ def get_object(current, objpath):
                 raise AttributeError(elt)
     return current
 
-for obj in objects_to_load:
-    try:
-        exec('from .%s import exported'%obj)
-        classes.update(exported)
-    except Exception:
-        print "Unable to load %s, remove it from config file in [objects] section."%obj
-        raise
+def init():
+    for obj in objects_to_load:
+        try:
+            exec('from .%s import exported'%obj)
+            classes.update(exported)
+        except Exception:
+            print "Unable to load %s, remove it from config file in [objects] section."%obj
+            raise
 
 
-del exported
+    del exported

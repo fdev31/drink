@@ -1,16 +1,15 @@
-from drink.objects.generic import Page, Text, Model, Id, Password
-from drink import authenticated, template
+import drink
 from . import classes
 
-class UserList(Page):
+class UserList(drink.Page):
     doc = "Users folder"
     mime = "group"
 
     def view(self):
-        return template('list.html', obj=self, classes=classes, authenticated=authenticated())
+        return drink.template('list.html', obj=self, classes=classes, authenticated=drink.authenticated())
 
 
-class User(Model):
+class User(drink.Model):
 
     mime = "user"
 
@@ -19,12 +18,12 @@ class User(Model):
     password = ''
 
     editable_fields = {
-        'id': Id(),
-        'age': Text(),
-        'doc': Text(),
-        'name': Text(),
-        'surname': Text(),
-        'password': Password(),
+        'id': drink.Id(),
+        'age': drink.Text(),
+        'doc': drink.Text(),
+        'name': drink.Text(),
+        'surname': drink.Text(),
+        'password': drink.Password(),
     }
 
     def __init__(self):

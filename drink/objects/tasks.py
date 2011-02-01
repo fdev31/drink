@@ -1,11 +1,10 @@
 from __future__ import absolute_import
 import transaction
 import time
-from .generic import Page, Text, Model
-from drink import request, template, authenticated, rdr
 from hashlib import sha1
+import drink
 
-class TasksPage(Page):
+class TasksPage(drink.Page):
 
     mime = "tasks"
 
@@ -35,42 +34,42 @@ class TasksPage(Page):
         self.name = None
         self.rootpath = None
         self.id = None
-        Page.__init__(self, *args, **kw)
+        drink.Page.__init__(self, *args, **kw)
 
     def struct(self):
         return [t.get() for t in self.itervalues()]
 
     def view(self):
-        fmt  = request.GET.get('format', 'html')
+        fmt  = drink.request.GET.get('format', 'html')
         if fmt == 'json':
             return dict(tasks=self.struct())
-        return template('main.html', obj=self, no_admin=True,
-             js=self.js, css=self.css, html=self.html, authenticated=authenticated())
+        return drink.template('main.html', obj=self, no_admin=True,
+             js=self.js, css=self.css, html=self.html, authenticated=drink.authenticated())
 
     def add(self):
-        t = Task(request.GET.get('text'), rootpath=self.path)
+        t = Task(drink.request.GET.get('text'), rootpath=self.path)
         self[t.id] = t
         transaction.commit()
         return t.id
 
     def rm(self):
-        tid = request.GET.get('id')
+        tid = drink.request.GET.get('id')
         del self[tid]
         transaction.commit()
         return 'ok'
 
     def edit(self):
-        tid = request.GET.get('id')
-        content = request.GET.get('text')
+        tid = drink.request.GET.get('id')
+        content = drink.request.GET.get('text')
         self[tid].content = content
         transaction.commit()
         return 'ok'
 
 
-class Task(Model):
+class Task(drink.Model):
 
     editable_fields = {
-        'content': Text(),
+        'content': drink.Text(),
     }
 
     @property
@@ -82,7 +81,7 @@ class Task(Model):
         self.content = content
         self.rootpath = rootpath
         self.created_on = time.time()
-        Model.__init__(self)
+        drink.Model.__init__(self)
 
     def view(self):
         return '<div id="%(id)s">%(text)s</div>'%self.get()
