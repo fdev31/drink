@@ -17,6 +17,17 @@
 ({{ obj[name].__len__() }} item{% if obj[name].__len__() > 1 %}s{% endif %})
 {% endif %}
 </div>
+{% else %}
+    {% if obj.path %}
+        No content here...
+        {%if not authenticated %}
+        Log in to add a new object !
+        {% else %}
+        you may want to add some object...
+        {% endif %}
+    {% else %}
+        No content! did you run "init" ?
+    {% endif %}
 {% endfor %}
 
 

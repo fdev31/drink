@@ -36,4 +36,4 @@ class User(drink.Model):
     def title(self):
         return self.id
 
-exported = {'User folder': UserList, "User": User}
+exported = {'Users folder': UserList, "User": User}

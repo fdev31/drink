@@ -14,11 +14,11 @@ if __name__ == "__main__":
     sys.path.insert(0, os.path.curdir)
     import bottle
     app = bottle.app()
-    from drink import __init_, db
+    from drink import init, db
     from drink.config import config
 
     if len(sys.argv) == 2 and sys.argv[1] == "init":
-        __init_()
+        init()
         db.db.pack()
     # TODO: rename __init_
     # TODO: create "update" command
