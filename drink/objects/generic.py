@@ -166,4 +166,4 @@ class ListPage(Page):
         return template('list.html', obj=self, classes=classes, authenticated=authenticated())
 
 
-exported = {'Folder Index': ListPage}
+exported = {'Folder index': ListPage}
