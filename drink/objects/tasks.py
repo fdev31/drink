@@ -1,9 +1,8 @@
 from __future__ import absolute_import
 import transaction
 import time
-from .generic import Page, Text
+from .generic import Page, Text, Model
 from drink import request, template, authenticated, rdr
-from drink.zdb import Model
 from hashlib import sha1
 
 class TasksPage(Page):
@@ -38,13 +37,13 @@ class TasksPage(Page):
         self.id = None
         Page.__init__(self, *args, **kw)
 
-    def get(self):
+    def struct(self):
         return [t.get() for t in self.itervalues()]
 
     def view(self):
         fmt  = request.GET.get('format', 'html')
         if fmt == 'json':
-            return dict(tasks=self.get())
+            return dict(tasks=self.struct())
         return template('main.html', obj=self, no_admin=True,
              js=self.js, css=self.css, html=self.html, authenticated=authenticated())
 
@@ -88,11 +87,10 @@ class Task(Model):
     def view(self):
         return '<div id="%(id)s">%(text)s</div>'%self.get()
 
-    def get(self):
+    def struct(self):
         return {
             'id': self.id,
             'text': self.content,
         }
-
 
 exported = {'Task list': TasksPage}

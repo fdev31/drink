@@ -18,7 +18,6 @@ bottle.TEMPLATE_PATH.append(os.path.join(BASE_DIR,'templates'))
 STATIC_PATH = os.path.abspath(os.path.join(BASE_DIR, "static"))
 DB_PATH = os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, "database", "generic"))
 
-
 def authenticated():
     login = request.get_cookie('login', 'drink')
     passwd = request.get_cookie('password', 'drink')

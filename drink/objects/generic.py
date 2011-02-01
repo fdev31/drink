@@ -2,10 +2,10 @@ from __future__ import absolute_import
 __all__ = ['rdr', 'Page']
 
 from bottle import request
-
+from persistent.dict import PersistentDict
 import transaction
 from drink import template, rdr, authenticated
-from drink.zdb import Model
+import drink
 from . import classes
 
 class _Editable(object):
@@ -15,15 +15,24 @@ class _Editable(object):
         d.update({'name': name, 'value': value})
         return self._template%d
 
+    set = setattr
+    #def set(self, obj, name, val):
+        #setattr(obj, name, val)
+
+
 class Text(_Editable):
 
-    _template = r'<label for="%(name)s_class">%(name)s</label><input type="text" size="%(size)d" id="%(name)s_class" value="%(value)s" name="%(name)s" />'
+    _template = r'''<label for="%(name)s_class">%(name)s</label>
+    <input type="text" size="%(size)d" id="%(name)s_class" value="%(value)s" name="%(name)s" />'''
 
     def __init__(self, size=40):
         self.size = 40
 
+
 class TextArea(_Editable):
-    _template = '<label for="%(name)s_class">%(name)s</label><textarea rows="%(rows)s" cols="%(cols)s" id="%(name)s_class" name="%(name)s">%(value)s</textarea>'
+    _template = '''<label for="%(name)s_class">%(name)s</label>
+    <textarea rows="%(rows)s" cols="%(cols)s" id="%(name)s_class" name="%(name)s">%(value)s</textarea>'''
+
     def __init__(self, rows=None, cols=None):
         self._rows = rows
         self._cols = cols
@@ -42,6 +51,65 @@ class TextArea(_Editable):
             self.rows = r
 
         return _Editable.html(self, name, value)
+
+
+class Id(Text):
+    def set(self, obj, name, val):
+        parent = drink.get_object(drink.db, obj.rootpath)
+        del parent[getattr(obj, name)]
+        setattr(obj, name, val)
+        parent[val] = obj
+
+
+class Password(Text):
+    _template = r'''<label for="passwd%(name)s">%(name)s:</label>
+        <input type="password" size="%(size)d" id="%(name)s_class" name="%(name)s" value="%(value)s" />'''
+
+
+class Model(PersistentDict):
+    editable_fields = {}
+
+    css = None
+
+    js = None
+
+    html = None
+
+    data = {}
+
+    def view(self):
+        return "Not viewable"
+
+    def struct(self):
+        return dict(self)
+
+    @property
+    def path(self):
+        return self.rootpath + self.id + '/'
+
+    def edit(self):
+        if drink.request.GET:
+            get = drink.request.GET.get
+        elif drink.request.POST:
+            get = drink.request.POST.get
+        else:
+            get = None
+
+        if get:
+            for attr, caster in self.editable_fields.iteritems():
+                v = get(attr)
+                if v:
+                    caster.set(self, attr, v)
+            transaction.commit()
+            return drink.rdr(self.path)
+        else:
+            form = ['<form class="form" id="edit_form" action="edit" method="get">']
+            for field, factory in self.editable_fields.iteritems():
+                val = getattr(self, field)
+                if isinstance(val, basestring):
+                    form.append("<div>%s</div>"%factory.html(field, val))
+            form.append('<div><input class="submit" type="submit" value="Ok"/></div></form>')
+            return drink.template('main.html', obj=self, html='\n'.join(form), classes=drink.classes, authenticated=drink.authenticated())
 
 
 class Page(Model):
