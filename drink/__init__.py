@@ -39,7 +39,7 @@ class authenticated(object):
 
 
 from .objects import classes, get_object, init as init_objects
-from .objects.generic import Page, ListPage, Model, Text, TextArea, Id, Password
+from .objects.generic import Page, ListPage, Model, Text, TextArea, Id, Int, Password
 init_objects()
 
 # ZODB3
@@ -90,12 +90,30 @@ def init():
         elt.id = pagename
         elt.rootpath = '/'
         root[pagename] = elt
+
     from .objects import users
+
+    ul = users.UserList()
+    ul.id = "users"
+    ul.rootpath = "/"
+    root['users'] = ul
+
     admin = users.User()
     admin.password = 'admin'
     admin.id = 'admin'
-    admin.rootpath = '/users'
+    admin.rootpath = '/users/'
     admin.surname = "BOFH"
     admin.name = "Mr Admin"
     root['users']['admin'] = admin
+
+    groups = users.GroupList()
+    groups.id = "groups"
+    groups.rootpath = "/"
+    root['groups'] = groups
+
+    group = users.Group()
+    group.id  = 'admin'
+    group.rootpath = '/groups/'
+    root['groups']['admin'] = group
+
     transaction.commit()

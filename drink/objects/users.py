@@ -8,6 +8,13 @@ class UserList(drink.Page):
     def view(self):
         return drink.template('list.html', obj=self, classes=classes, authenticated=drink.authenticated())
 
+class GroupList(drink.Page):
+    doc = "Groups"
+    mime = "group"
+
+    def view(self):
+        return drink.template('list.html', obj=self, classes=classes, authenticated=drink.authenticated())
+
 
 class User(drink.Model):
 
@@ -36,15 +43,23 @@ class User(drink.Model):
     def title(self):
         return self.id
 
-class Group(drink.Model):
+    def view(self):
+        drink.rdr(self.path+'edit')
+
+class Group(drink.Page):
 
     mime = "group"
 
     doc = "A group"
 
+    name = "unnamed group"
+
     gid = 0
 
-    editable_fields = ['gid', 'id']
+    editable_fields = {'gid': drink.Int(), 'id': drink.Id()}
+
+    def view(self):
+        drink.rdr(self.path+'edit')
 
 # Model.owner = User
 # Model.anonymous = 'ro' or 'rw' or None
