@@ -16,8 +16,8 @@
         <script type="text/javascript" src="/static/jquery.validate.min.js"></script>
         <script type="text/javascript">
             jQuery.validator.addMethod("identifier", function(value, element) {
-	            return this.optional(element) || /^[A-Za-z0-9_-]+$/i.test(value);
-            }, "Letters, numbers, spaces or underscores only please");  
+	            return this.optional(element) || !/[.$%/][$%/]*/i.test(value);
+            }, 'No "$", "%" or "/" and don\' start with a dot, please :)');  
 
           $(document).ready(function(){
                 $("#add_form").validate();
