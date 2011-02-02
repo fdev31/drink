@@ -81,6 +81,8 @@ class Model(PersistentDict):
 
     data = {}
 
+    classes = drink.classes
+
     def view(self):
         return "Not viewable"
 
@@ -112,7 +114,7 @@ class Model(PersistentDict):
                 val = getattr(self, field)
                 form.append("<div>%s</div>"%factory.html(field, val))
             form.append('<div><input class="submit" type="submit" value="Ok"/></div></form>')
-            return drink.template('main.html', obj=self, html='\n'.join(form), classes=drink.classes, authenticated=drink.authenticated())
+            return drink.template('main.html', obj=self, html='\n'.join(form), classes=self.classes, authenticated=drink.authenticated())
 
 
 class Page(Model):
