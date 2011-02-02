@@ -61,6 +61,9 @@ class Id(Text):
         setattr(obj, name, val)
         parent[val] = obj
 
+class Int(Text):
+    def set(self, obj, name, val):
+        setattr(obj, name, int(val))
 
 class Password(Text):
     _template = r'''<label for="passwd%(name)s">%(name)s:</label>
@@ -104,11 +107,10 @@ class Model(PersistentDict):
             transaction.commit()
             return drink.rdr(self.path)
         else:
-            form = ['<form class="form" id="edit_form" action="edit" method="get">']
+            form = ['<form class="edit_form" id="edit_form" action="edit" method="get">']
             for field, factory in self.editable_fields.iteritems():
                 val = getattr(self, field)
-                if isinstance(val, basestring):
-                    form.append("<div>%s</div>"%factory.html(field, val))
+                form.append("<div>%s</div>"%factory.html(field, val))
             form.append('<div><input class="submit" type="submit" value="Ok"/></div></form>')
             return drink.template('main.html', obj=self, html='\n'.join(form), classes=drink.classes, authenticated=drink.authenticated())
 

@@ -18,17 +18,28 @@ bottle.TEMPLATE_PATH.append(os.path.join(BASE_DIR,'templates'))
 STATIC_PATH = os.path.abspath(os.path.join(BASE_DIR, "static"))
 DB_PATH = os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, "database", "generic"))
 
-def authenticated():
-    login = request.get_cookie('login', 'drink')
-    passwd = request.get_cookie('password', 'drink')
+class authenticated(object):
 
-    return  login == passwd == 'admin'
+    __slots__ = ['user', 'success']
+
+    def __init__(self):
+        login = request.get_cookie('login', 'drink')
+        try:
+            self.user = db['users'][login]
+        except KeyError:
+            self.success = False
+        else:
+            password = request.get_cookie('password', 'drink')
+            self.success = self.user.password == password
+
+    def __nonzero__(self):
+        return self.success
 
 # Finally load the objects
 
 
 from .objects import classes, get_object, init as init_objects
-from .objects.generic import Page, ListPage, Model, Text, TextArea, Id, Password
+from .objects.generic import Page, ListPage, Model, Text, TextArea, Id, Int, Password
 init_objects()
 
 # ZODB3
@@ -52,7 +63,7 @@ def log_in():
 
 @route("/logout", method=['GET', 'POST'])
 def log_out():
-    response.set_cookie('password', '')
+    response.set_cookie('password', '', 'drink')
     rdr('/')
 
 @route("/:objpath#.+#")
@@ -79,4 +90,30 @@ def init():
         elt.id = pagename
         elt.rootpath = '/'
         root[pagename] = elt
+
+    from .objects import users
+
+    ul = users.UserList()
+    ul.id = "users"
+    ul.rootpath = "/"
+    root['users'] = ul
+
+    admin = users.User()
+    admin.password = 'admin'
+    admin.id = 'admin'
+    admin.rootpath = '/users/'
+    admin.surname = "BOFH"
+    admin.name = "Mr Admin"
+    root['users']['admin'] = admin
+
+    groups = users.GroupList()
+    groups.id = "groups"
+    groups.rootpath = "/"
+    root['groups'] = groups
+
+    group = users.Group()
+    group.id  = 'admin'
+    group.rootpath = '/groups/'
+    root['groups']['admin'] = group
+
     transaction.commit()
