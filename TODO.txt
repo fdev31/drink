@@ -1,4 +1,5 @@
-- refactor Database (rewrite, only keep useful parts)
+- finish authentication
+- add proper checks at server side too (in add  & edit methods mostly)
 - rewrite & improve task list
 - D&D sortable folders
 - File upload
