@@ -36,4 +36,19 @@ class User(drink.Model):
     def title(self):
         return self.id
 
+class Group(drink.Model):
+
+    mime = "group"
+
+    doc = "A group"
+
+    gid = 0
+
+    editable_fields = ['gid', 'id']
+
+# Model.owner = User
+# Model.anonymous = 'ro' or 'rw' or None
+# Model.ro_groups = set(gid1, gid2, gid3, ...)
+# Model.rw_groups = set(gid1, gid2, gid3, ...)
+
 exported = {'Users folder': UserList, "User": User}
