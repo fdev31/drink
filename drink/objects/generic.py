@@ -5,7 +5,7 @@ __all__ = ['Page', 'ListPage', 'Model',
 from bottle import request, abort
 from persistent.dict import PersistentDict
 import transaction
-from drink import template, authenticated
+from drink import template
 import drink
 from . import classes
 
@@ -87,7 +87,11 @@ class Password(Text):
 
 
 class Model(PersistentDict):
-    editable_fields = {'read_groups': GroupListArea(), 'write_groups': GroupListArea()}
+
+    editable_fields = {
+        'read_groups': GroupListArea(),
+        'write_groups': GroupListArea()
+    }
 
     css = None
 
@@ -98,7 +102,6 @@ class Model(PersistentDict):
     data = {}
 
     classes = drink.classes
-
 
     def __init__(self, name, rootpath=None):
         self.read_groups = set()
@@ -117,6 +120,9 @@ class Model(PersistentDict):
             self.owner
         except AttributeError:
             self.owner = request.identity.user
+
+    def __hash__(self):
+        return hash(self.id)
 
     def view(self):
         return "Not viewable"
@@ -177,13 +183,7 @@ class Page(Model):
         transaction.commit()
         return drink.rdr(parent_path)
 
-    def add(self, name=None, cls=None):
-        if 'w' not in request.identity.access(self):
-            return abort(401, "Not authorized")
-        name = name or request.GET.get('name')
-        if None == cls:
-            cls = request.GET.get('class')
-
+    def _add(self, name, cls):
         if isinstance(cls, basestring):
             klass = classes[cls]
         else:
@@ -191,10 +191,20 @@ class Page(Model):
         new_obj = klass(name, self.path)
         self[name] = new_obj
         transaction.commit()
-        return drink.rdr(new_obj.rootpath)
+        return new_obj
+
+    def add(self, name=None, cls=None):
+        if 'w' not in request.identity.access(self):
+            return abort(401, "Not authorized")
+        name = name or request.GET.get('name')
+        if None == cls:
+            cls = request.GET.get('class')
+
+        return drink.rdr(self._add(name, cls).rootpath)
 
     def view(self):
         return 'Please, inherit...'
+
 
 class ListPage(Page):
     doc = "An ordered folder display"

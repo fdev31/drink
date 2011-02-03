@@ -49,9 +49,10 @@ class User(drink.Model):
         self.name = "no name"
         self.surname = "no surname"
         group_list = drink.get_object(drink.db, 'groups')
-        group_list.add(name=name, cls=Group)
+        group_list._add(name=name, cls=Group)
         self.groups.add(group_list[name])
         transaction.commit()
+
     @property
     def title(self):
         return self.id
@@ -73,7 +74,6 @@ class Group(drink.Page):
 
     def view(self):
         return 'keep out'
-
 
 # Model.owner = User
 # Model.anonymous = 'ro' or 'rw' or None

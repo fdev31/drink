@@ -18,7 +18,7 @@ bottle.TEMPLATE_PATH.append(os.path.join(BASE_DIR,'templates'))
 STATIC_PATH = os.path.abspath(os.path.join(BASE_DIR, "static"))
 DB_PATH = os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, "database", "generic"))
 
-class authenticated(object):
+class Authenticator(object):
 
     __slots__ = ['user', 'success']
 
@@ -28,26 +28,28 @@ class authenticated(object):
             self.user = db['users'][login]
         except KeyError:
             self.success = False
-            self.user = None
         else:
             password = request.get_cookie('password', 'drink')
             self.success = self.user.password == password
 
+        if not self.success:
+            self.user = db['users']['anonymous']
+
+
     def access(self, obj):
+
         usr = self.user
 
-        if usr == None:
-            groups = [get_object(db, 'groups')['anonymous']]
-        else:
-            if usr.id == "admin":
-                return 'rw'
-            groups = usr.groups
-
-        if usr == obj.owner:
+        if usr.id == "admin":
             return 'rw'
-        elif any(grp in groups for grp in obj.read_groups):
+
+        groups = [g.id for g in usr.groups]
+
+        if usr.id == obj.owner.id:
+            return 'rw'
+        elif any(grp.id in groups for grp in obj.read_groups):
             return 'r'
-        elif any(grp in groups for grp in obj.write_groups):
+        elif any(grp.id in groups for grp in obj.write_groups):
             return 'rw'
         return ''
 
@@ -55,7 +57,6 @@ class authenticated(object):
         return self.success
 
 # Finally load the objects
-
 
 from .objects import classes, get_object, init as init_objects
 from .objects.generic import Page, ListPage, Model, Text, TextArea
@@ -69,7 +70,7 @@ db = Database(bottle.app(), DB_PATH)
 
 @route('/')
 def main_index():
-    request.identity = authenticated()
+    request.identity = Authenticator()
     return ListPage(db.data).view()
 
 @route('/static/:filename#.*#')
@@ -89,9 +90,9 @@ def log_out():
 
 @route("/:objpath#.+#")
 def glob_index(objpath="/"):
-    request.identity = authenticated()
+    request.identity = Authenticator()
     try:
-        o = get_object(db.data, objpath)
+        o = get_object(db, objpath)
     except AttributeError, e:
         abort(404, "%s not found"%e.args[0])
 
@@ -116,17 +117,16 @@ def init():
         def access(self, obj):
             return 'rw'
 
-    globals()['rdr'] = lambda *args: None
-
     request.identity = FakeId()
     root['groups'] = users.GroupList('groups', '/')
     transaction.commit()
     admin = users.User('admin', '/users/')
     request.identity.user = admin
     root['groups'].owner = admin
+    root['groups'].write_groups = admin.groups.copy()
     root['users'] = users.UserList('users', '/')
-    root['groups'].owner = admin
     root['users'].owner = admin
+    root['users'].write_groups = admin.groups.copy()
 
     root['users']['anonymous'] = users.User('anonymous', '/users/')
 

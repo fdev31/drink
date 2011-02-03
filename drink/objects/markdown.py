@@ -11,10 +11,11 @@ class MarkdownPage(drink.Page):
 
     doc = "A markdown rendered page"
 
-    editable_fields = {
+    editable_fields = drink.Page.editable_fields.copy()
+    editable_fields.update({
         'content': drink.TextArea(),
         'mime': drink.Text(),
-    }
+    })
 
     def view(self):
 
