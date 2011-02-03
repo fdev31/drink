@@ -47,7 +47,7 @@
         <input type="password" name="login_password" id="ipassword" />
         <input class="submit" type="submit" value="Log in!"/>
     </form>
-    {% elif authenticated and not no_admin %}
+    {% elif 'w' in authenticated.access(obj) and not no_admin %}
     <fieldset class="toggler" id="commands">
         <legend onclick="$('.togglable').slideToggle('slow');">{{authenticated.user.id}} commands</legend>
         <div class="togglable" >
