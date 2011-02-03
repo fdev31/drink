@@ -12,23 +12,22 @@
 {% endif %}
 
 {% for name in obj.iterkeys() %}
-<div class="entry"><a title="{{obj[name].doc}}" href="{{obj.path}}{{name}}/"><img class="icon" src="/static/mime/{{ obj[name].mime }}.png"/>{{ obj[name].title }}</a>
-{% if obj[name].__len__() %}
-({{ obj[name].__len__() }} item{% if obj[name].__len__() > 1 %}s{% endif %})
-{% endif %}
-</div>
-{% else %}
-    {% if obj.path == '/' %}
-        No content! did you run "init" ?
-    {% else %}
-        No content here...
-        {%if not authenticated %}
-        Log in to add a new object !
-        {% else %}
-        you may want to add some object...
-        {% endif %}
+    <div class="entry"><a title="{{obj[name].doc}}" href="{{obj.path}}{{name}}/"><img class="icon" src="/static/mime/{{ obj[name].mime }}.png"/>{{ obj[name].title }}</a>
+    {% if obj[name].__len__() %}
+    ({{ obj[name].__len__() }} item{% if obj[name].__len__() > 1 %}s{% endif %})
     {% endif %}
+    </div>
+    {% else %}
+        {% if obj.path == '/' %}
+            No content! did you run "init" ?
+        {% else %}
+            No content here...
+            {%if not authenticated %}
+            Log in to add a new object !
+            {% else %}
+            you may want to add some object...
+            {% endif %}
+        {% endif %}
 {% endfor %}
-
 
 {% endblock %}

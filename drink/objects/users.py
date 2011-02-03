@@ -74,10 +74,4 @@ class Group(drink.Page):
 
     def view(self):
         return 'keep out'
-
-# Model.owner = User
-# Model.anonymous = 'ro' or 'rw' or None
-# Model.ro_groups = set(gid1, gid2, gid3, ...)
-# Model.rw_groups = set(gid1, gid2, gid3, ...)
-
-exported = {"User": User, "Group": Group}
+exported = {}
