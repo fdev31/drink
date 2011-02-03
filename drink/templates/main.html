@@ -26,6 +26,7 @@
                     var action = $(this).val();
                     $("#edit_form").attr("action", action+"/edit");
                 });
+
             });
         </script>
 
@@ -74,7 +75,9 @@
                 <select id="selected_rm_key" name="name" size="0" class="required">
                     <option value="" label="-nothing-"></option>
                 {% for k in obj.iterkeys() %}
+                    {% if authenticated.access(obj[k]) %}
                     <option value="{{k}}" label="{{k}}"></option>
+                    {% endif %}
                 {% endfor %}
                 </select>
                 <input class="submit" type="submit" value="Delete!"/>
@@ -85,7 +88,9 @@
                 <select id="selected_edit_key" size="0" class="required">
                     <option value="" label="-none-"></option>
                 {% for k in obj.iterkeys() %}
+                    {% if authenticated.access(obj[k]) %}
                     <option value="{{k}}" label="{{k}}"></option>
+                    {% endif %}
                 {% endfor %}
                 </select>
                 <input class="submit" type="submit" value="Go!!"/>
