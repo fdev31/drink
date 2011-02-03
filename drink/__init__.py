@@ -47,10 +47,10 @@ class Authenticator(object):
 
         if usr.id == obj.owner.id:
             return 'rw'
-        elif any(grp.id in groups for grp in obj.read_groups):
-            return 'r'
         elif any(grp.id in groups for grp in obj.write_groups):
             return 'rw'
+        elif any(grp.id in groups for grp in obj.read_groups):
+            return 'r'
         return ''
 
     def __nonzero__(self):

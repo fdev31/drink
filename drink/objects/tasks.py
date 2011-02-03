@@ -90,6 +90,10 @@ class Task(drink.Model):
         self.content = content
         self.created_on = time.time()
 
+    def edit(self):
+        import pdb; pdb.set_trace()
+        return drink.Model.edit(self)
+
     def view(self):
         return '<div id="%(id)s">%(text)s</div>'%self.get()
 

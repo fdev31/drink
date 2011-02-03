@@ -10,24 +10,25 @@
  <h1>{{ obj.path }} content:</h1>
     <div><a href="../"><img class="icon" src="/static/back.png" />Back Up!</a></div>
 {% endif %}
-
 {% for name in obj.iterkeys() %}
+    {% if 'r' in authenticated.access(obj[name]) %}
     <div class="entry"><a title="{{obj[name].doc}}" href="{{obj.path}}{{name}}/"><img class="icon" src="/static/mime/{{ obj[name].mime }}.png"/>{{ obj[name].title }}</a>
-    {% if obj[name].__len__() %}
-    ({{ obj[name].__len__() }} item{% if obj[name].__len__() > 1 %}s{% endif %})
+    {% if authenticated and obj[name].__len__() %} ({{ obj[name].__len__() }} item{% if obj[name].__len__() > 1 %}s{% endif %})
     {% endif %}
     </div>
+    {% endif %}
+{% else %}
+    {% if obj.path == '/' %}
+        No content! did you run "init" ?
     {% else %}
-        {% if obj.path == '/' %}
-            No content! did you run "init" ?
+        No content here...
+        {%if not authenticated %}
+        Log in to add a new object !
         {% else %}
-            No content here...
-            {%if not authenticated %}
-            Log in to add a new object !
-            {% else %}
-            you may want to add some object...
-            {% endif %}
+        you may want to add some object...
         {% endif %}
+    {% endif %}
+
 {% endfor %}
 
 {% endblock %}
