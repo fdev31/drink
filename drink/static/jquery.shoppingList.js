@@ -12,8 +12,10 @@
 			var obj = $(this);
 			
 			// Empêcher la sélection des éléments à la sourirs (meilleure gestion du drag & drop)
-			var _preventDefault = function(evt) { evt.preventDefault(); };
-			$("li").bind("dragstart", _preventDefault).bind("selectstart", _preventDefault);
+			//var _preventDefault = function(evt) { evt.preventDefault(); };
+			//$("li").bind("dragstart", _preventDefault).bind("selectstart", _preventDefault);
+
+			$("li").disableSelection();
 
 			// Initialisation du composant "sortable"
 			$(obj).sortable({
