@@ -1,7 +1,4 @@
-- split things like add into:
-  - do_add (real implementation)
-  - add (web wrapper)
-- finish authentication
+- test if groups are really shared or if it's better to keep them strings
 - add proper checks at server side too (in add  & edit methods mostly)
 - rewrite & improve task list
 - D&D sortable folders
