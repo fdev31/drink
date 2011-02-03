@@ -26,4 +26,4 @@ class MarkdownPage(drink.Page):
              classes=exported,
              )
 
-exported = {'Markdown Page': MarkdownPage}
+exported = {'Markdown page': MarkdownPage}
