@@ -1,16 +1,16 @@
- 
+
 (function($){
 	$.fn.shoppingList = function(options) {
 
 		// Options par defaut
 		var defaults = {};
-				
+
 		var options = $.extend(defaults, options);
-		
+
 		this.each(function(){
-				
+
 			var obj = $(this);
-			
+
 			// Empêcher la sélection des éléments à la sourirs (meilleure gestion du drag & drop)
 			//var _preventDefault = function(evt) { evt.preventDefault(); };
 			//$("li").bind("dragstart", _preventDefault).bind("selectstart", _preventDefault);
@@ -34,12 +34,12 @@
 					});
 				}
 			});
-			
+
 			// On ajoute l'élément Poubelle à notre liste
 			$(obj).after("<div class='trash'>Trash</div>");
 			// On ajoute un petit formulaire pour ajouter des items
 			$(obj).after("<div class='add'><input class='addValue' /> <input type='button' value='+' class='addBtn' /></div>");
-					
+
 			// Action de la poubelle
 			// Initialisation du composant Droppable
 			$(".trash").droppable({
@@ -57,7 +57,7 @@
 					$(this).text(ui.draggable.find(".item").text()+" removed !");
 					// On supprimer l'élément de la page, le setTimeout est un fix pour IE (http://dev.jqueryui.com/ticket/4088)
 					setTimeout(function() { ui.draggable.remove(); }, 1);
-					
+
 					// On retourne à l'état originel de la poubelle après 2000 ms soit 2 secondes
 					elt = $(this);
 					setTimeout(function(){ elt.removeClass("deleted"); elt.text("Trash"); }, 2000);
@@ -85,13 +85,13 @@
 					$(this).css("cursor", "normal");
 				}
 			})
-						
+
 			/*
 			* Ajouter les controles sur le bouton "ajouter"
 			*
 			* @Return void
 			*/
-			
+
 			// Bouton ajouter
 			$(".addBtn").click(function(){
 				// Si le texte n'est pas vide
@@ -120,7 +120,7 @@
 					$(".addBtn").trigger("click");
 				}
 			});
-			
+
 			// Pour chaque élément trouvé dans la liste de départ
 			$(obj).find("li").each(function(){
 				// On ajoute les contrôles
@@ -128,7 +128,7 @@
 			});
 
 		});
-				
+
 		/*
 		* Fonction qui ajoute les contrôles aux items
 		* @Paramètres
@@ -136,21 +136,22 @@
 		*
 		* @Return void
 		*/
-		
+
 		function addControls(elt)
 		{
+            $(elt).disableSelection();
 			// On ajoute en premier l'élément textuel
 			$(elt).html("<span class='item'>"+$(elt).text()+"</span>");
 			// Puis l'élément de position
 			$(elt).prepend('<span class="count">'+parseInt($(elt).index()+1)+'</span>');
 			// Puis l'élément d'action (élément acheté)
 			$(elt).prepend('<span class="check unchecked"></span>');
-			
+
 			// Au clic sur cet élément
 			$(elt).find(".check").click(function(){
 				// On alterne la classe de l'item (le <li>), le CSS associé fera que l'élément sera barré
 				$(this).parent().toggleClass("bought");
-				
+
 				// Si cet élément est acheté
 				if($(this).parent().hasClass("bought"))
 					// On modifie la classe en ajoutant la classe "checked"
@@ -160,7 +161,7 @@
 					// On modifie la classe en retirant la classe "checked"
 					$(this).removeClass("checked").addClass("unchecked");
 			})
-			
+
 			// Au double clic sur le texte
 			$(elt).find(".item").dblclick(function(){
 				// On récupère sa valeur
@@ -170,7 +171,7 @@
 				// On la sélectionne par défaut
 				$(this).find("input").select();
 			})
-			
+
 			// Lorsque l'on quitte la zone de saisie du texte
 			$(elt).find(".item input").live("blur", function(){
 				// On récupère la valeur du champ de saisie
@@ -182,7 +183,7 @@
 				});
 				$(this).parent().html(txt);
 			})
-			
+
 			// On autorise la même action lorsque l'on valide par la touche entrée
 			$(elt).find(".item input").live("keyup", function(e) {
 				if(e.keyCode == 13) {
@@ -190,7 +191,7 @@
 				}
 			});
 		}
-		
+
 		// On continue le chainage JQuery
 		return this;
 	};
