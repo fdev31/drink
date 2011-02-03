@@ -91,7 +91,6 @@ class Task(drink.Model):
         self.created_on = time.time()
 
     def edit(self):
-        import pdb; pdb.set_trace()
         return drink.Model.edit(self)
 
     def view(self):
