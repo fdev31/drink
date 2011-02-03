@@ -63,9 +63,8 @@ from .objects.generic import Page, ListPage, Model, Text, TextArea
 from .objects.generic import Id, Int, Password, GroupListArea
 init_objects()
 
-# ZODB3
-from .zdb import Database
 # init db
+from .zdb import Database
 db = Database(bottle.app(), DB_PATH)
 
 @route('/')
