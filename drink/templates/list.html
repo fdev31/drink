@@ -6,7 +6,7 @@
 
 {% block body %}
 
-{% if obj.path %}
+{% if obj.path != '/' %}
  <h1>{{ obj.path }} content:</h1>
     <div><a href="../"><img class="icon" src="/static/back.png" />Back Up!</a></div>
 {% endif %}
