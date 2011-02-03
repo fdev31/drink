@@ -55,3 +55,8 @@ fieldset {    margin-top: 1em;
 #login_form {
     margin-bottom: 2em;
 }
+
+fieldset {
+    border-radius: 3em 10em 10em 3em;
+    -moz-border-radius: 3em 10em 10em 3em;
+}
