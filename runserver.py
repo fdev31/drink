@@ -34,30 +34,43 @@ if __name__ == "__main__":
         if 'DEBUG' in os.environ:
             mode = 'debug'
             debug = True
-
             # trick to allow debug-wrapping
             app.catchall = False
-            # debug middleware loading
-            try:
+
+            def dbg_repoze(app):
                 from repoze.debug.pdbpm import PostMortemDebug
-            except ImportError:
-                try:
-                    from werkzeug.debug import DebuggedApplication
-                except ImportError:
-                    try:
-                        from weberror.evalexception import EvalException
-                    except ImportError:
-                        print "Unable to install the debugging middleware, consider installing werkzeug or weberror."
-                        debug = False
-                    else:
-                        app = EvalException(app)
-                        print "Installed weberror debugging middleware"
-                else:
-                    app = DebuggedApplication(app, evalex=True)
-                    print "Installed werkzeug debugging middleware"
-            else:
                 app = PostMortemDebug(app)
                 print "Installed repoze.debug's debugging middleware"
+                return app
+
+            def dbg_werkzeug(app):
+                from werkzeug.debug import DebuggedApplication
+                app = DebuggedApplication(app, evalex=True)
+                print "Installed werkzeug debugging middleware"
+                return app
+
+            def dbg_weberror(app):
+                from weberror.evalexception import EvalException
+                app = EvalException(app)
+                print "Installed weberror debugging middleware"
+                return app
+
+            dbg_backend = config.get('server', 'debug')
+
+            if dbg_backend == 'auto':
+                backends = [dbg_werkzeug, dbg_repoze, dbg_weberror]
+            else:
+                backends = [locals()['dbg_%s'%dbg_backend]]
+
+            # debug middleware loading
+            for loader in backends:
+                try:
+                    app = loader(app)
+                    break
+                except ImportError:
+                    continue
+            else:
+                print "Unable to install the debugging middleware, current setting: %s"%dbg_backend
 
         #from wsgiauth.ip import ip
         #@ip
