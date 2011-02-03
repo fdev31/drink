@@ -30,11 +30,9 @@ class TasksPage(drink.Page):
     </div>
     """
 
-    def __init__(self, *args, **kw):
-        self.name = None
-        self.rootpath = None
-        self.id = None
-        drink.Page.__init__(self, *args, **kw)
+    def __init__(self, name, rootpath):
+        drink.Page.__init__(self, name, rootpath)
+        self.name = name
 
     def struct(self):
         return [t.get() for t in self.itervalues()]
@@ -44,21 +42,32 @@ class TasksPage(drink.Page):
         if fmt == 'json':
             return dict(tasks=self.struct())
         return drink.template('main.html', obj=self, no_admin=True,
-             js=self.js, css=self.css, html=self.html, authenticated=drink.authenticated())
+             js=self.js, css=self.css, html=self.html, authenticated=drink.request.identity)
 
     def add(self):
-        t = Task(drink.request.GET.get('text'), rootpath=self.path)
+        if 'w' not in drink.request.identity.access(self):
+            return drink.abort(401, "Not authorized")
+
+        content = drink.request.GET.get('text')
+        t = Task(sha1(content or str(time.time())).hexdigest(), self.path, content)
         self[t.id] = t
         transaction.commit()
         return t.id
 
     def rm(self):
+        if 'w' not in drink.request.identity.access(self):
+            return drink.abort(401, "Not authorized")
+
         tid = drink.request.GET.get('id')
         del self[tid]
         transaction.commit()
         return 'ok'
 
+    # FIXME: rewrite, this should be default "add" method
     def edit(self):
+        if 'w' not in drink.request.identity.access(self):
+            return drink.abort(401, "Not authorized")
+
         tid = drink.request.GET.get('id')
         content = drink.request.GET.get('text')
         self[tid].content = content
@@ -76,12 +85,10 @@ class Task(drink.Model):
     def path(self):
         return self.rootpath + self.id
 
-    def __init__(self, content='', rootpath=''):
-        self.id = sha1(content or str(time.time())).hexdigest()
+    def __init__(self, name, rootpath, content=''):
+        drink.Model.__init__(self, name, rootpath)
         self.content = content
-        self.rootpath = rootpath
         self.created_on = time.time()
-        drink.Model.__init__(self)
 
     def view(self):
         return '<div id="%(id)s">%(text)s</div>'%self.get()

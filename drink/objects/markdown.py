@@ -21,7 +21,7 @@ class MarkdownPage(drink.Page):
         html = markdown(self.content)
 
         return drink.template('main.html', obj=self,
-             html=html, authenticated=drink.authenticated(),
+             html=html, authenticated=drink.request.identity,
              classes=exported,
              )
 

@@ -39,7 +39,7 @@
 
     <body>
     </head>
-    {% if not authenticated and not obj.path %}
+    {% if not authenticated and obj.path == '/' %}
     <form id="login_form" action="/login" method="POST">
         <label for="ilogin">Authenticate as:</label>
         <input type="text" name="login_name" id="ilogin" />
@@ -49,9 +49,9 @@
     </form>
     {% elif authenticated and not no_admin %}
     <fieldset>
-        <legend>Administrator commands</legend>
+        <legend>{{authenticated.user.id}} commands</legend>
         <a href="/logout">[Log out]</a>
-        {% if obj.path %}
+        {% if obj.path != '/' %}
             <a href="./edit">[Edit]</a>
             <a href="../">[Parent folder]</a>
             {% if classes %}

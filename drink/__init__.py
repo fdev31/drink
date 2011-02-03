@@ -28,9 +28,28 @@ class authenticated(object):
             self.user = db['users'][login]
         except KeyError:
             self.success = False
+            self.user = None
         else:
             password = request.get_cookie('password', 'drink')
             self.success = self.user.password == password
+
+    def access(self, obj):
+        usr = self.user
+
+        if usr == None:
+            groups = [get_object(db, 'groups')['anonymous']]
+        else:
+            if usr.id == "admin":
+                return 'rw'
+            groups = usr.groups
+
+        if usr == obj.owner:
+            return 'rw'
+        elif any(grp in groups for grp in obj.read_groups):
+            return 'r'
+        elif any(grp in groups for grp in obj.write_groups):
+            return 'rw'
+        return ''
 
     def __nonzero__(self):
         return self.success
@@ -39,7 +58,8 @@ class authenticated(object):
 
 
 from .objects import classes, get_object, init as init_objects
-from .objects.generic import Page, ListPage, Model, Text, TextArea, Id, Int, Password
+from .objects.generic import Page, ListPage, Model, Text, TextArea
+from .objects.generic import Id, Int, Password, GroupListArea
 init_objects()
 
 # ZODB3
@@ -49,6 +69,7 @@ db = Database(bottle.app(), DB_PATH)
 
 @route('/')
 def main_index():
+    request.identity = authenticated()
     return ListPage(db.data).view()
 
 @route('/static/:filename#.*#')
@@ -68,6 +89,7 @@ def log_out():
 
 @route("/:objpath#.+#")
 def glob_index(objpath="/"):
+    request.identity = authenticated()
     try:
         o = get_object(db.data, objpath)
     except AttributeError, e:
@@ -85,35 +107,35 @@ def init():
     root = db.data
     from drink.config import config
     root.clear()
-    for pagename, name in config.items('layout'):
-        elt = classes[ name ]()
-        elt.id = pagename
-        elt.rootpath = '/'
-        root[pagename] = elt
 
     from .objects import users
 
-    ul = users.UserList()
-    ul.id = "users"
-    ul.rootpath = "/"
-    root['users'] = ul
+    class FakeId(object):
+        user = None
 
-    admin = users.User()
+        def access(self, obj):
+            return 'rw'
+
+    globals()['rdr'] = lambda *args: None
+
+    request.identity = FakeId()
+    root['groups'] = users.GroupList('groups', '/')
+    transaction.commit()
+    admin = users.User('admin', '/users/')
+    request.identity.user = admin
+    root['groups'].owner = admin
+    root['users'] = users.UserList('users', '/')
+    root['groups'].owner = admin
+    root['users'].owner = admin
+
+    root['users']['anonymous'] = users.User('anonymous', '/users/')
+
     admin.password = 'admin'
-    admin.id = 'admin'
-    admin.rootpath = '/users/'
     admin.surname = "BOFH"
     admin.name = "Mr Admin"
     root['users']['admin'] = admin
 
-    groups = users.GroupList()
-    groups.id = "groups"
-    groups.rootpath = "/"
-    root['groups'] = groups
-
-    group = users.Group()
-    group.id  = 'admin'
-    group.rootpath = '/groups/'
-    root['groups']['admin'] = group
-
+    for pagename, name in config.items('layout'):
+        elt = classes[ name ](pagename, '/')
+        root[pagename] = elt
     transaction.commit()

@@ -2,10 +2,10 @@ from __future__ import absolute_import
 __all__ = ['Page', 'ListPage', 'Model',
     'Text', 'TextArea', 'Id' ]
 
-from bottle import request
+from bottle import request, abort
 from persistent.dict import PersistentDict
 import transaction
-from drink import template, rdr, authenticated
+from drink import template, authenticated
 import drink
 from . import classes
 
@@ -53,6 +53,22 @@ class TextArea(_Editable):
 
         return _Editable.html(self, name, value)
 
+#class MultilineList(TextArea):
+#    def html(self, name, value):
+#        return TextArea.html(self, name, '\n'.join(value))
+#
+#    def set(self, obj, name, val):
+#        setattr(obj, name, [line.strip() for line in val.split('\n') if line.strip()])
+
+class GroupListArea(TextArea):
+    def html(self, name, value):
+        self._cols = 30
+        return TextArea.html(self, name, '\n'.join(group.id for group in value))
+
+    def set(self, obj, name, val):
+        groups = drink.get_object(drink.db, 'groups')
+        setattr(obj, name, set(groups[line.strip()] for line in val.split('\n') if line.strip() in groups))
+
 
 class Id(Text):
     def set(self, obj, name, val):
@@ -71,7 +87,7 @@ class Password(Text):
 
 
 class Model(PersistentDict):
-    editable_fields = {}
+    editable_fields = {'read_groups': GroupListArea(), 'write_groups': GroupListArea()}
 
     css = None
 
@@ -82,6 +98,25 @@ class Model(PersistentDict):
     data = {}
 
     classes = drink.classes
+
+
+    def __init__(self, name, rootpath=None):
+        self.read_groups = set()
+        self.write_groups = set()
+
+        if rootpath is None:
+            PersistentDict.__init__(self, name)
+            self.id = getattr(name, 'id', '')
+            self.rootpath = getattr(name, 'rootpath', '')
+        else:
+            PersistentDict.__init__(self)
+            self.id = name
+            self.rootpath = rootpath
+
+        try:
+            self.owner
+        except AttributeError:
+            self.owner = request.identity.user
 
     def view(self):
         return "Not viewable"
@@ -94,10 +129,13 @@ class Model(PersistentDict):
         return self.rootpath + self.id + '/'
 
     def edit(self):
-        if drink.request.GET:
-            get = drink.request.GET.get
-        elif drink.request.POST:
-            get = drink.request.POST.get
+        if 'w' not in request.identity.access(self):
+            return abort(401, "Not authorized")
+
+        if request.GET:
+            get = request.GET.get
+        elif request.POST:
+            get = request.POST.get
         else:
             get = None
 
@@ -109,12 +147,15 @@ class Model(PersistentDict):
             transaction.commit()
             return drink.rdr(self.path)
         else:
-            form = ['<form class="edit_form" id="edit_form" action="edit" method="get">']
-            for field, factory in self.editable_fields.iteritems():
-                val = getattr(self, field)
-                form.append("<div>%s</div>"%factory.html(field, val))
-            form.append('<div><input class="submit" type="submit" value="Ok"/></div></form>')
-            return drink.template('main.html', obj=self, html='\n'.join(form), classes=self.classes, authenticated=drink.authenticated())
+            if not self.editable_fields:
+                form = ['<div>Not editable, sorry...</div>']
+            else:
+                form = ['<form class="edit_form" id="edit_form" action="edit" method="get">']
+                for field, factory in self.editable_fields.iteritems():
+                    val = getattr(self, field)
+                    form.append("<div>%s</div>"%factory.html(field, val))
+                form.append('<div><input class="submit" type="submit" value="Ok"/></div></form>')
+            return drink.template('main.html', obj=self, html='\n'.join(form), classes=self.classes, authenticated=request.identity)
 
 
 class Page(Model):
@@ -128,21 +169,29 @@ class Page(Model):
         return self.id.replace('_', ' ').replace('-', ' ')
 
     def rm(self):
+        if 'w' not in request.identity.access(self):
+            return abort(401, "Not authorized")
         name = request.GET.get('name')
         parent_path = self[name].path+".."
         del self[name]
         transaction.commit()
-        return rdr(parent_path)
+        return drink.rdr(parent_path)
 
-    def add(self):
-        name = request.GET.get('name')
-        cls = request.GET.get('class')
-        new_obj = classes[cls]()
+    def add(self, name=None, cls=None):
+        if 'w' not in request.identity.access(self):
+            return abort(401, "Not authorized")
+        name = name or request.GET.get('name')
+        if None == cls:
+            cls = request.GET.get('class')
+
+        if isinstance(cls, basestring):
+            klass = classes[cls]
+        else:
+            klass = cls
+        new_obj = klass(name, self.path)
         self[name] = new_obj
-        new_obj.rootpath = self.path
-        new_obj.id = name
         transaction.commit()
-        return rdr(new_obj.rootpath)
+        return drink.rdr(new_obj.rootpath)
 
     def view(self):
         return 'Please, inherit...'
@@ -160,6 +209,8 @@ class ListPage(Page):
         return self.forced_order
 
     def __setitem__(self, name, val):
+        if name in self.forced_order:
+            self.forced_order.remove(name)
         self.forced_order.append(name)
         return Page.__setitem__(self, name, val)
 
@@ -168,7 +219,7 @@ class ListPage(Page):
         return Page.__delitem__(self, name)
 
     def view(self):
-        return template('list.html', obj=self, classes=classes, authenticated=authenticated())
+        return template('list.html', obj=self, classes=classes, authenticated=request.identity)
 
 
 exported = {'Folder index': ListPage}

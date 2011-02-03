@@ -1,3 +1,6 @@
+- split things like add into:
+  - do_add (real implementation)
+  - add (web wrapper)
 - finish authentication
 - add proper checks at server side too (in add  & edit methods mostly)
 - rewrite & improve task list

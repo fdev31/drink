@@ -1,19 +1,20 @@
 import drink
 from . import classes
+import transaction
 
 class UserList(drink.Page):
     doc = "Users folder"
     mime = "group"
 
     def view(self):
-        return drink.template('list.html', obj=self, classes={'User': User}, authenticated=drink.authenticated())
+        return drink.template('list.html', obj=self, classes={'User': User}, authenticated=drink.request.identity)
 
 class GroupList(drink.Page):
     doc = "Groups"
     mime = "group"
 
     def view(self):
-        return drink.template('list.html', obj=self, classes={'Group': Group}, authenticated=drink.authenticated())
+        return drink.template('list.html', obj=self, classes={'Group': Group}, authenticated=drink.request.identity)
 
 
 class User(drink.Model):
@@ -26,21 +27,31 @@ class User(drink.Model):
 
     classes = {}
 
+    groups = set()
+
     editable_fields = {
         'id': drink.Id(),
-        'age': drink.Text(),
         'doc': drink.Text(),
         'name': drink.Text(),
         'surname': drink.Text(),
         'password': drink.Password(),
+        'groups': drink.GroupListArea(),
     }
 
-    def __init__(self):
-        self.age = None
+    @property
+    def owner(self):
+        return self
+
+    def __init__(self, name, rootpath):
+        drink.Model.__init__(self, name, rootpath)
         self.phones = {}
+        self.groups = set()
         self.name = "no name"
         self.surname = "no surname"
-
+        group_list = drink.get_object(drink.db, 'groups')
+        group_list.add(name=name, cls=Group)
+        self.groups.add(group_list[name])
+        transaction.commit()
     @property
     def title(self):
         return self.id
@@ -56,18 +67,17 @@ class Group(drink.Page):
 
     name = "unnamed group"
 
-    gid = 0
-
     classes = {}
 
-    editable_fields = {'gid': drink.Int(), 'id': drink.Id()}
+    editable_fields = {}
 
     def view(self):
-        drink.rdr(self.path+'edit')
+        return 'keep out'
+
 
 # Model.owner = User
 # Model.anonymous = 'ro' or 'rw' or None
 # Model.ro_groups = set(gid1, gid2, gid3, ...)
 # Model.rw_groups = set(gid1, gid2, gid3, ...)
 
-exported = {'Users folder': UserList, "User": User}
+exported = {"User": User, "Group": Group}
