@@ -35,7 +35,7 @@ class TasksPage(drink.Page):
         self.name = name
 
     def struct(self):
-        return [t.get() for t in self.itervalues()]
+        return [t.struct() for t in self.itervalues()]
 
     def view(self):
         fmt  = drink.request.GET.get('format', 'html')
