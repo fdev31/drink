@@ -66,7 +66,7 @@ class GroupListArea(TextArea):
         return TextArea.html(self, name, '\n'.join(group.id for group in value))
 
     def set(self, obj, name, val):
-        groups = drink.get_object(drink.db, 'groups')
+        groups = drink.db['groups']
         setattr(obj, name, set(groups[line.strip()] for line in val.split('\n') if line.strip() in groups))
 
 
