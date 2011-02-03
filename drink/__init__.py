@@ -71,7 +71,7 @@ db = Database(bottle.app(), DB_PATH)
 @route('/')
 def main_index():
     request.identity = Authenticator()
-    return ListPage(db.data).view()
+    return classes[config.config.get('server', 'index')](db.data).view()
 
 @route('/static/:filename#.*#')
 def server_static(filename):
