@@ -48,8 +48,9 @@
         <input class="submit" type="submit" value="Log in!"/>
     </form>
     {% elif authenticated and not no_admin %}
-    <fieldset>
-        <legend>{{authenticated.user.id}} commands</legend>
+    <fieldset class="toggler" id="commands">
+        <legend onclick="$('.togglable').slideToggle('slow');">{{authenticated.user.id}} commands</legend>
+        <div class="togglable" >
         <a href="/logout">[Log out]</a>
         {% if obj.path != '/' %}
             <a href="./edit">[Edit]</a>
@@ -90,6 +91,7 @@
                 <input class="submit" type="submit" value="Go!!"/>
             </form>
             {% endif %}
+            </div>
         {% endif %}
     </fieldset>
     {% endif %}
