@@ -1,9 +1,10 @@
+- login += anonymous group
+- File upload
 - improve init so it can set default groups ('open' or 'admin')
 - fix, rewrite & improve task list
 - test if groups are really shared or if it's better to keep them strings
 - add proper checks at server side too (in add  & edit methods mostly)
 - D&D sortable folders
-- File upload
 - "background processes" for each user / sessions
 - theme support (config entry + template & static path)
 - finish default edition method (add form)

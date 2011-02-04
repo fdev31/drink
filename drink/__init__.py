@@ -9,14 +9,26 @@ import transaction
 
 from bottle import route, static_file, request, response, redirect, abort
 from bottle import jinja2_view as view, jinja2_template as template
-# set convenient alias (historical, compatibility with Flask)
 rdr = redirect
-
+# set convenient alias (historical, compatibility with Flask)
+from . import config
 from .config import BASE_DIR
 
 bottle.TEMPLATE_PATH.append(os.path.join(BASE_DIR,'templates'))
 STATIC_PATH = os.path.abspath(os.path.join(BASE_DIR, "static"))
-DB_CONFIG = os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, "database", "zodb.conf"))
+DB_PATH = config.config.get('server', 'database') or os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, "database"))
+DB_CONFIG = os.path.join(DB_PATH, "zodb.conf")
+
+lines = open(DB_CONFIG).readlines()
+pattern = '%define DATADIR database\n'
+try:
+    i = lines.index(pattern)
+except ValueError:
+    i = -1
+
+if i >= 0:
+    lines[i] = '%%define DATADIR %s\n'%DB_PATH
+    open(DB_CONFIG, 'w').writelines(lines)
 
 class Authenticator(object):
 
@@ -45,9 +57,7 @@ class Authenticator(object):
 
         groups = [g.id for g in usr.groups]
 
-        if usr.id == obj.owner.id:
-            return 'rw'
-        elif any(grp.id in groups for grp in obj.write_groups):
+        if usr.id == obj.owner.id or any(grp.id in groups for grp in obj.write_groups):
             return 'rw'
         elif any(grp.id in groups for grp in obj.read_groups):
             return 'r'
