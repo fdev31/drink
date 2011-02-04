@@ -16,7 +16,7 @@ from .config import BASE_DIR
 
 bottle.TEMPLATE_PATH.append(os.path.join(BASE_DIR,'templates'))
 STATIC_PATH = os.path.abspath(os.path.join(BASE_DIR, "static"))
-DB_PATH = os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, "database", "generic"))
+DB_CONFIG = os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, "database", "zodb.conf"))
 
 class Authenticator(object):
 
@@ -65,7 +65,7 @@ init_objects()
 
 # init db
 from .zdb import Database
-db = Database(bottle.app(), DB_PATH)
+db = Database(bottle.app(), DB_CONFIG)
 
 @route('/')
 def main_index():
