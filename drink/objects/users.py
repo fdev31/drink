@@ -75,4 +75,4 @@ class Group(drink.Page):
     def view(self):
         return 'keep out'
 
-exported = {"User": User, "Group": Group}
+exported = {}

@@ -46,7 +46,7 @@ class TasksPage(drink.Page):
 
     def add(self):
         if 'w' not in drink.request.identity.access(self):
-            return drink.abort(401, "Not authorized")
+            return drink.abort(401, "Additions Not authorized")
 
         content = drink.request.GET.get('text')
         t = Task(sha1(content or str(time.time())).hexdigest(), self.path, content)
@@ -56,7 +56,7 @@ class TasksPage(drink.Page):
 
     def rm(self):
         if 'w' not in drink.request.identity.access(self):
-            return drink.abort(401, "Not authorized")
+            return drink.abort(401, "Deletion Not authorized")
 
         tid = drink.request.GET.get('id')
         del self[tid]
@@ -66,7 +66,7 @@ class TasksPage(drink.Page):
     # FIXME: rewrite, this should be default "add" method
     def edit(self):
         if 'w' not in drink.request.identity.access(self):
-            return drink.abort(401, "Not authorized")
+            return drink.abort(401, "Edition Not authorized")
 
         tid = drink.request.GET.get('id')
         content = drink.request.GET.get('text')
@@ -89,9 +89,6 @@ class Task(drink.Model):
         drink.Model.__init__(self, name, rootpath)
         self.content = content
         self.created_on = time.time()
-
-    def edit(self):
-        return drink.Model.edit(self)
 
     def view(self):
         return '<div id="%(id)s">%(text)s</div>'%self.get()
