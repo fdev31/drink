@@ -1,8 +1,9 @@
 before 0.1:
 
+- fix, rewrite & improve task list
+- integrate showdown
 - File upload + test blob
 - improve init so it can set default groups ('open' or 'admin')
-- fix, rewrite & improve task list
 - test if groups are really shared or if it's better to keep them strings
 - add proper checks at server side too (in add  & edit methods mostly)
 - D&D sortable folders

@@ -25,7 +25,6 @@ try:
     i = lines.index(pattern)
 except ValueError:
     i = -1
-
 if i >= 0:
     lines[i] = '%%define DATADIR %s\n'%DB_PATH
     open(DB_CONFIG, 'w').writelines(lines)

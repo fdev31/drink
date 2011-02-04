@@ -1,1 +1,3 @@
+- revoir le get_object => inclue le /view 
+
 - bjoern is not un-escaping %20 & so... 
