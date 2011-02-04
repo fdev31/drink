@@ -13,7 +13,7 @@ class MarkdownPage(drink.Page):
 
     editable_fields = drink.Page.editable_fields.copy()
     editable_fields.update({
-        'content': drink.TextArea(),
+        'content': drink.TextArea("Content"),
         'mime': drink.Text(),
     })
 

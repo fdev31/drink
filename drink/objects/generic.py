@@ -11,30 +11,32 @@ from . import classes
 
 class _Editable(object):
 
+    def __init__(self, caption=None):
+        self.caption = caption
+        self.id = str(id(self))
+
     def html(self, name, value):
         d = self.__dict__.copy()
-        d.update({'name': name, 'value': value})
-        return self._template%d
+        d.update({'id': self.id, 'name': name, 'caption': self.caption or name, 'value': value})
+        return ('<label for="%(id)s">%(caption)s</label>'+self._template)%d
 
     set = setattr
-    #def set(self, obj, name, val):
-        #setattr(obj, name, val)
 
 
 class Text(_Editable):
 
-    _template = r'''<label for="%(name)s_class">%(name)s</label>
-    <input type="text" size="%(size)d" id="%(name)s_class" value="%(value)s" name="%(name)s" />'''
+    _template = r'''<input type="text" size="%(size)d" id="%(name)s" value="%(value)s" name="%(name)s" />'''
 
-    def __init__(self, size=40):
+    def __init__(self, caption=None, size=40):
+        _Editable.__init__(self, caption)
         self.size = 40
 
 
 class TextArea(_Editable):
-    _template = '''<label for="%(name)s_class">%(name)s</label>
-    <textarea rows="%(rows)s" cols="%(cols)s" id="%(name)s_class" name="%(name)s">%(value)s</textarea>'''
+    _template = '''<textarea rows="%(rows)s" cols="%(cols)s" id="%(id)s" name="%(name)s">%(value)s</textarea>'''
 
-    def __init__(self, rows=None, cols=None):
+    def __init__(self, caption=None, rows=None, cols=None):
+        _Editable.__init__(self, caption)
         self._rows = rows
         self._cols = cols
 
@@ -82,15 +84,14 @@ class Int(Text):
         setattr(obj, name, int(val))
 
 class Password(Text):
-    _template = r'''<label for="passwd%(name)s">%(name)s:</label>
-        <input type="password" size="%(size)d" id="%(name)s_class" name="%(name)s" value="%(value)s" />'''
+    _template = r'''<input type="password" size="%(size)d" id="%(id)s" name="%(name)s" value="%(value)s" />'''
 
 
 class Model(PersistentDict):
 
     editable_fields = {
-        'read_groups': GroupListArea(),
-        'write_groups': GroupListArea()
+        'read_groups': GroupListArea("Read-enabled groups"),
+        'write_groups': GroupListArea("Write-enabled groups")
     }
 
     css = None
@@ -162,7 +163,9 @@ class Model(PersistentDict):
                 form = ['<div>Not editable, sorry...</div>']
             else:
                 form = ['<form class="edit_form" id="edit_form" action="edit" method="get">']
-                for field, factory in self.editable_fields.iteritems():
+                items = self.editable_fields.items()
+                items.sort(key=lambda o: o[1].__class__.__name__+o[0])
+                for field, factory in items:
                     val = getattr(self, field)
                     form.append("<div>%s</div>"%factory.html(field, val))
                 form.append('<div><input class="submit" type="submit" value="Ok"/></div></form>')
