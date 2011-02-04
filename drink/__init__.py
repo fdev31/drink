@@ -47,7 +47,6 @@ class Authenticator(object):
         if not self.success:
             self.user = db['users']['anonymous']
 
-
     def access(self, obj):
 
         usr = self.user
@@ -57,9 +56,9 @@ class Authenticator(object):
 
         groups = [g.id for g in usr.groups]
 
-        if usr.id == obj.owner.id or any(grp.id in groups for grp in obj.write_groups):
+        if usr.id == obj.owner.id or any(grp.id in groups or grp.id == 'anonymous' for grp in obj.write_groups):
             return 'rw'
-        elif any(grp.id in groups for grp in obj.read_groups):
+        elif any(grp.id in groups or grp.id == 'anonymous' for grp in obj.read_groups):
             return 'r'
         return ''
 
