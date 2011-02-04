@@ -97,7 +97,8 @@ class File(_Editable):
     form_attr = 'enctype="multipart/form-data"'
 
     def set(self, obj, name, val):
-        from ZODB.blob import Blob
+        if val == '':
+            return
         setattr(obj, name+"_name", val.filename)
         new_o = Blob()
         setattr(obj, name, new_o)
