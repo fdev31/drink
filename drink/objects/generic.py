@@ -2,14 +2,18 @@ from __future__ import absolute_import
 __all__ = ['Page', 'ListPage', 'Model',
     'Text', 'TextArea', 'Id' ]
 
+import os
 from bottle import request, abort
 from persistent.dict import PersistentDict
+from ZODB.blob import Blob
 import transaction
 from drink import template
 import drink
 from . import classes
 
 class _Editable(object):
+
+    form_attr = None
 
     def __init__(self, caption=None, group=None):
         self.caption = caption
@@ -87,6 +91,25 @@ class Int(Text):
 class Password(Text):
     _template = r'''<input type="password" size="%(size)d" id="%(id)s" name="%(name)s" value="%(value)s" />'''
 
+class File(_Editable):
+    _template = '<input name="%(name)s" id="%(id)s" type="file" />'
+
+    form_attr = 'enctype="multipart/form-data"'
+
+    def set(self, obj, name, val):
+        from ZODB.blob import Blob
+        setattr(obj, name+"_name", val.filename)
+        new_o = Blob()
+        setattr(obj, name, new_o)
+        o_fd = new_o.open('w')
+        chunk_sz = 2**17
+        while True:
+            dat = val.file.read(chunk_sz)
+            if not dat:
+                break
+            o_fd.write(dat)
+        o_fd.close()
+
 
 class Model(PersistentDict):
 
@@ -145,18 +168,16 @@ class Model(PersistentDict):
         if 'w' not in request.identity.access(self):
             return abort(401, "Not authorized")
 
-        if request.GET:
-            get = request.GET.get
-        elif request.POST:
+        if request.POST:
             get = request.POST.get
+        elif request.GET:
+            get = request.GET.get
         else:
             get = None
 
         if get:
             for attr, caster in self.editable_fields.iteritems():
-                v = get(attr)
-                if v:
-                    caster.set(self, attr, v)
+                caster.set(self, attr, get(attr))
             transaction.commit()
             return drink.rdr(self.path)
         else:
@@ -167,15 +188,18 @@ class Model(PersistentDict):
                 # sort by group+id
                 items.sort(key=lambda o: o[1].group+o[0])
                 current_group = items[0][1].group
-
-                form = ['<form class="edit_form" id="edit_form" action="edit" method="get"><div class="%s_grp">'%current_group]
+                form_opts = []
+                form = []
                 for field, factory in items:
+                    if factory.form_attr:
+                        form_opts.append(factory.form_attr)
                     if factory.group != current_group:
                         current_group = factory.group
                         form.append('</div><div class="%s_grp">'%current_group)
                     val = getattr(self, field)
                     form.append('<div class="input">%s</div>'%factory.html(field, val))
                 form.append('</div><div class="buttons"><input class="submit" type="submit" value="Ok"/></div></form>')
+                form.insert(0, '<form class="edit_form" id="edit_form" action="edit" %s method="post"><div class="%s_grp">'%(' '.join(form_opts), current_group))
             return drink.template('main.html', obj=self, html='\n'.join(form), classes=self.classes, authenticated=request.identity)
 
 
@@ -247,4 +271,40 @@ class ListPage(Page):
         return template('list.html', obj=self, classes=self.classes, authenticated=request.identity)
 
 
-exported = {'Folder index': ListPage}
+class StaticFile(Page):
+
+    mime = "page"
+    mimetype = "text/plain"
+    doc = "A generic file"
+    classes = {}
+
+    editable_fields = {
+        'read_groups': GroupListArea("Read-enabled groups", group="x_permissions"),
+        'write_groups': GroupListArea("Write-enabled groups", group="x_permissions"),
+        'content': File("File to upload"),
+        'mimetype': Text(),
+        'mime': Text(),
+    }
+
+    content = ''
+    content_name = "unnamed"
+
+    def raw(self):
+        root, fname = os.path.split(self.content.committed())
+        return drink.static_file(fname, root, mimetype=self.mimetype)
+        #Alternatively: drink.response.headers['Content-Type'] = '...'
+        # + read
+
+    def view(self):
+        if self.mimetype.startswith('image/'):
+            html = '<img src="raw" />'
+        else:
+            html = '<a href="raw">Download file %r!</a>'%self.content_name
+
+        return drink.template('main.html', obj=self, html=html, classes=self.classes, authenticated=request.identity)
+
+    def struct(self):
+        return dict((k, getattr(self, k+"_name", 'N/A')) for k, v in self.editable_fields.iteritems() if isinstance(v, File))
+
+
+exported = {'Folder index': ListPage, 'File': StaticFile}

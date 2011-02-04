@@ -69,7 +69,7 @@ class Authenticator(object):
 
 from .objects import classes, get_object, init as init_objects
 from .objects.generic import Page, ListPage, Model, Text, TextArea
-from .objects.generic import Id, Int, Password, GroupListArea
+from .objects.generic import Id, Int, Password, GroupListArea, File
 init_objects()
 
 # init db
@@ -96,7 +96,7 @@ def log_out():
     response.set_cookie('password', '', 'drink')
     rdr('/')
 
-@route("/:objpath#.+#")
+@route("/:objpath#.+#", method=['GET', 'POST'])
 def glob_index(objpath="/"):
     request.identity = Authenticator()
     try:
