@@ -82,6 +82,6 @@ if __name__ == "__main__":
         # Let's run !
         try:
             bottle.debug(debug)
-            bottle.run(app=bottle.app(), host=host, port=port, reloader=debug, server='wsgiref' if mode == 'debug' else mode)
+            bottle.run(app=app, host=host, port=port, reloader=debug, server='wsgiref' if mode == 'debug' else mode)
         finally:
             db.db.pack()
