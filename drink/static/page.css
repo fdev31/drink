@@ -22,6 +22,15 @@ h1{
 padding-left: 2em;
     margin: 1ex;
 }
+
+label.autoform {
+    display: block;
+    float: left;
+    padding: 0 1ex 0 0;
+    text-align: right;
+    width: 20ex;
+}
+
 a {
     text-decoration: none;
    padding: 0 1ex 0 1ex;

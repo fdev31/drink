@@ -11,14 +11,15 @@ from . import classes
 
 class _Editable(object):
 
-    def __init__(self, caption=None):
+    def __init__(self, caption=None, group=None):
         self.caption = caption
         self.id = str(id(self))
+        self.group = group if group else self.__class__.__name__
 
     def html(self, name, value):
         d = self.__dict__.copy()
         d.update({'id': self.id, 'name': name, 'caption': self.caption or name, 'value': value})
-        return ('<label for="%(id)s">%(caption)s</label>'+self._template)%d
+        return ('<label class="autoform" for="%(id)s">%(caption)s</label>'+self._template)%d
 
     set = setattr
 
@@ -27,7 +28,7 @@ class Text(_Editable):
 
     _template = r'''<input type="text" size="%(size)d" id="%(name)s" value="%(value)s" name="%(name)s" />'''
 
-    def __init__(self, caption=None, size=40):
+    def __init__(self, caption=None, group=None, size=40):
         _Editable.__init__(self, caption)
         self.size = 40
 
@@ -35,8 +36,8 @@ class Text(_Editable):
 class TextArea(_Editable):
     _template = '''<textarea rows="%(rows)s" cols="%(cols)s" id="%(id)s" name="%(name)s">%(value)s</textarea>'''
 
-    def __init__(self, caption=None, rows=None, cols=None):
-        _Editable.__init__(self, caption)
+    def __init__(self, caption=None, group=None, rows=None, cols=None):
+        _Editable.__init__(self, caption, group)
         self._rows = rows
         self._cols = cols
 
@@ -90,8 +91,8 @@ class Password(Text):
 class Model(PersistentDict):
 
     editable_fields = {
-        'read_groups': GroupListArea("Read-enabled groups"),
-        'write_groups': GroupListArea("Write-enabled groups")
+        'read_groups': GroupListArea("Read-enabled groups", group="x_permissions"),
+        'write_groups': GroupListArea("Write-enabled groups", group="x_permissions")
     }
 
     css = None
@@ -162,13 +163,19 @@ class Model(PersistentDict):
             if not self.editable_fields:
                 form = ['<div>Not editable, sorry...</div>']
             else:
-                form = ['<form class="edit_form" id="edit_form" action="edit" method="get">']
                 items = self.editable_fields.items()
-                items.sort(key=lambda o: o[1].__class__.__name__+o[0])
+                # sort by group+id
+                items.sort(key=lambda o: o[1].group+o[0])
+                current_group = items[0][1].group
+
+                form = ['<form class="edit_form" id="edit_form" action="edit" method="get"><div class="%s_grp">'%current_group]
                 for field, factory in items:
+                    if factory.group != current_group:
+                        current_group = factory.group
+                        form.append('</div><div class="%s_grp">'%current_group)
                     val = getattr(self, field)
-                    form.append("<div>%s</div>"%factory.html(field, val))
-                form.append('<div><input class="submit" type="submit" value="Ok"/></div></form>')
+                    form.append('<div class="input">%s</div>'%factory.html(field, val))
+                form.append('</div><div class="buttons"><input class="submit" type="submit" value="Ok"/></div></form>')
             return drink.template('main.html', obj=self, html='\n'.join(form), classes=self.classes, authenticated=request.identity)
 
 
