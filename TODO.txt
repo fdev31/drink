@@ -1,5 +1,6 @@
-- login += anonymous group
-- File upload
+before 0.1:
+
+- File upload + test blob
 - improve init so it can set default groups ('open' or 'admin')
 - fix, rewrite & improve task list
 - test if groups are really shared or if it's better to keep them strings

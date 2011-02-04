@@ -102,7 +102,7 @@ def glob_index(objpath="/"):
     try:
         o = get_object(db, objpath)
     except AttributeError, e:
-        abort(404, "%s not found"%e.args[0])
+        abort(404, "%s not found"%objpath)
 
     if callable(o):
         return o()

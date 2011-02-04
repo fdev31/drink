@@ -124,6 +124,11 @@ class Model(PersistentDict):
     def __hash__(self):
         return hash(self.id)
 
+    def __setitem__(self, name, val):
+        if name in self:
+            abort(401, "%r is already defined!"%name)
+        PersistentDict.__setitem__(self, name, val)
+
     def view(self):
         return "Not viewable"
 
@@ -185,7 +190,7 @@ class Page(Model):
 
     def _add(self, name, cls):
         if isinstance(cls, basestring):
-            klass = classes[cls]
+            klass = self.classes[cls] if self.classes else classes[cls]
         else:
             klass = cls
         new_obj = klass(name, self.path)
@@ -229,7 +234,7 @@ class ListPage(Page):
         return Page.__delitem__(self, name)
 
     def view(self):
-        return template('list.html', obj=self, classes=classes, authenticated=request.identity)
+        return template('list.html', obj=self, classes=self.classes, authenticated=request.identity)
 
 
 exported = {'Folder index': ListPage}
