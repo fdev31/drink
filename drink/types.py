@@ -49,7 +49,7 @@ class TextArea(_Editable):
         r = self._rows
         c = self._cols
         if c is None: # automatic mode
-            self.cols = 100
+            self.cols = 50
         else:
             self.cols = c
 
