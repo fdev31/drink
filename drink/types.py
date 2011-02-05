@@ -77,6 +77,26 @@ class GroupListArea(TextArea):
         setattr(obj, name, set(groups[line.strip()] for line in val.split('\n') if line.strip() in groups))
 
 
+class GroupCheckBoxes(_Editable):
+
+    def html(self, name, value):
+        d = self.__dict__.copy()
+        d.update({'id': self.id, 'name': name, 'caption': self.caption or name, 'value': value})
+
+        groups = [g for g in drink.db['groups']]
+        values = [v.id for v in value]
+
+        opts = [r'<input type="checkbox" name=%(name)s value="'+o+'" '+\
+            ('checked="checked">' if o in values else '>')+\
+            o+'</input>' for o in groups]
+        return ('<label class="autoform" for="%(id)s">%(caption)s</label>'+('\n'.join(opts)))%d
+
+    def set(self, obj, name, val):
+        groups = request.forms.getall(name)
+        dgroups = drink.db['groups']
+        setattr(obj, name, set(dgroups[g] for g in groups))
+
+
 class Id(Text):
     def set(self, obj, name, val):
         parent = drink.get_object(drink.db, obj.rootpath)

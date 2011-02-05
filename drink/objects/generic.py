@@ -12,8 +12,10 @@ from . import classes
 class Model(PersistentDict):
 
     editable_fields = {
-        'read_groups': drink.types.GroupListArea("Read-enabled groups", group="x_permissions"),
-        'write_groups': drink.types.GroupListArea("Write-enabled groups", group="x_permissions")
+        'read_groups':
+            drink.types.GroupCheckBoxes("Read-enabled groups", group="x_permissions"),
+        'write_groups':
+            drink.types.GroupCheckBoxes("Write-enabled groups", group="x_permissions")
     }
 
     css = None
