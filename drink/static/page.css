@@ -77,8 +77,7 @@ fieldset {
 
 .buttons {
     margin: 1ex auto;
-    text-align: center;
-    width: 60%;
+    text-align: left;
 }
 
 .edit_form {

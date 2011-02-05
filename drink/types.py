@@ -23,7 +23,7 @@ class _Editable(object):
     def html(self, name, value, _template=None):
         d = self.__dict__.copy()
         d.update({'id': self.id, 'name': name, 'caption': self.caption or name, 'value': value})
-        return ('<label class="autoform" for="%(id)s">%(caption)s</label>'+(_template or self._template))%d
+        return ('<label class="autoform" for="%(id)s">%(caption)s:</label>'+(_template or self._template))%d
 
     set = setattr
 
@@ -86,16 +86,14 @@ class GroupListArea(TextArea):
 class GroupCheckBoxes(_Editable):
 
     def html(self, name, value):
-        d = self.__dict__.copy()
-        d.update({'id': self.id, 'name': name, 'caption': self.caption or name, 'value': value})
-
         groups = [g for g in drink.db['groups']]
         values = [v.id for v in value]
 
         opts = [r'<input type="checkbox" name=%(name)s value="'+o+'" '+\
             ('checked="checked">' if o in values else '>')+\
             o+'</input>' for o in groups]
-        return ('<label class="autoform" for="%(id)s">%(caption)s</label>'+('\n'.join(opts)))%d
+        return _Editable.html(self, name, value, '\n'.join(opts))
+
 
     def set(self, obj, name, val):
         groups = request.forms.getall(name)
