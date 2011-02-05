@@ -1,4 +1,4 @@
-body{
+body {
 	padding:50px;
 	background-color: #F0F0F0;
 	font-family:Georgia,"Times New Roman","Bitstream Charter",Times,serif;
@@ -6,7 +6,7 @@ body{
     }
 
 
-h1{
+h1 {
 	font-style:italic;
 	text-shadow: 1px 2px 2px #aaa;
 	font-weight:normal;
@@ -35,6 +35,7 @@ a {
     text-decoration: none;
    padding: 0 1ex 0 1ex;
 }
+
 a:hover {
 
     text-decoration: underline;
