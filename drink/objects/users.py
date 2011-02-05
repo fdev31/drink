@@ -2,20 +2,6 @@ import drink
 from . import classes
 import transaction
 
-class UserList(drink.Page):
-    doc = "Users folder"
-    mime = "group"
-
-    def view(self):
-        return drink.template('list.html', obj=self, classes={'User': User}, authenticated=drink.request.identity)
-
-class GroupList(drink.Page):
-    doc = "Groups"
-    mime = "group"
-
-    def view(self):
-        return drink.template('list.html', obj=self, classes={'Group': Group}, authenticated=drink.request.identity)
-
 
 class User(drink.Model):
 
@@ -35,7 +21,7 @@ class User(drink.Model):
         'name': drink.types.Text(),
         'surname': drink.types.Text(),
         'password': drink.types.Password(),
-        'groups': drink.types.GroupListArea(),
+        'groups': drink.types.GroupCheckBoxes(),
     }
 
     @property
@@ -60,6 +46,14 @@ class User(drink.Model):
     def view(self):
         drink.rdr(self.path+'edit')
 
+
+class UserList(drink.ListPage):
+    doc = "Users folder"
+    mime = "group"
+
+    classes = {'User': User}
+
+
 class Group(drink.Page):
 
     mime = "group"
@@ -74,5 +68,13 @@ class Group(drink.Page):
 
     def view(self):
         return 'keep out'
+
+
+class GroupList(drink.ListPage):
+    doc = "Groups"
+    mime = "group"
+
+    classes = {'Group': Group}
+
 
 exported = {}
