@@ -71,7 +71,9 @@ fieldset {
 }
 
 .buttons {
-    text-align: right;
+    margin: 1ex auto;
+    text-align: center;
+    width: 60%;
 }
 
 .edit_form {
@@ -84,10 +86,10 @@ fieldset {
 
 div.input > input {
     margin: 0 0 0.7ex 0;
-    border: solid #777 1px;
+    border: solid #999 1px;
 }
 
 div.input > textarea {
     margin: 0;
-    border: solid #777 1px;
+    border: solid #999 1px;
 }
