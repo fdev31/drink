@@ -12,7 +12,6 @@ class MarkdownEditor(drink.types._Editable):
       $("#%(id)s").markItUp(mySettings);
    });
 </script>
-<br/>
 <textarea id="%(id)s" name="%(name)s" cols="80" rows="25">%(value)s</textarea>
     ''')
 
@@ -42,7 +41,7 @@ class MarkdownPage(drink.Page):
 
         return drink.template('main.html', obj=self,
              html=html, authenticated=drink.request.identity,
-             css=self.css,
+             # do not include js code, or css code, it's only for editing
              classes=self.classes,
              )
 

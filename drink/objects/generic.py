@@ -99,7 +99,7 @@ class Model(PersistentDict):
                     val = getattr(self, field)
                     form.append('<div class="input">%s</div>'%factory.html(field, val))
                 form.append('</div><div class="buttons"><input class="submit" type="submit" value="Save changes please"/></div></form>')
-                form.insert(0, '<form class="edit_form" id="edit_form" action="edit" %s method="post"><div class="%s_grp">'%(' '.join(form_opts), current_group))
+                form.insert(0, '<form class="auto_edit_form" id="auto_edit_form" action="edit" %s method="post"><div class="%s_grp">'%(' '.join(form_opts), current_group))
             return drink.template('main.html', obj=self, html='\n'.join(form), css=self.css, js=self.js, classes=self.classes, authenticated=request.identity)
 
 

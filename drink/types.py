@@ -23,14 +23,14 @@ class _Editable(object):
     def html(self, name, value, _template=None):
         d = self.__dict__.copy()
         d.update({'id': self.id, 'name': name, 'caption': self.caption or name, 'value': value})
-        return ('<label class="autoform" for="%(id)s">%(caption)s:</label>'+(_template or self._template))%d
+        return ('<div class="editable"><label class="autoform" for="%(id)s">%(caption)s:</label>'+(_template or self._template)+'</div>')%d
 
     set = setattr
 
 
 class Text(_Editable):
 
-    _template = r'''<input type="text" size="%(size)d" id="%(name)s" value="%(value)s" name="%(name)s" />'''
+    _template = r'''<input type="text" size="%(size)d" id="%(id)s" value="%(value)s" name="%(name)s" />'''
 
     def __init__(self, caption=None, group=None, size=40):
         _Editable.__init__(self, caption)

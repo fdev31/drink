@@ -25,10 +25,8 @@ h1 {
 
 label.autoform {
     display: block;
-    float: left;
+    margin-top: 1ex;
     padding: 0 1ex 0 0;
-    text-align: right;
-    width: 20ex;
 }
 
 a {
@@ -81,7 +79,7 @@ fieldset {
     text-align: left;
 }
 
-.edit_form {
+.auto_edit_form {
     width: 80%;
     margin: 1em auto 0 auto;
     border: solid 2px black
@@ -89,8 +87,8 @@ fieldset {
     -moz-border-radius: 3em 10em 10em 3em;
 }
 
-div.input {
-    margin-bottom: 1ex;
+div.editable {
+    flush: left;
 }
 
 div.input > input , div.input > textarea {
