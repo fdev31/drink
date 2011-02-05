@@ -48,13 +48,18 @@ class TextArea(_Editable):
     def html(self, name, value):
         r = self._rows
         c = self._cols
+        if isinstance(value, basestring):
+            length = value.count('\n')
+        else:
+            length = len(value)
+
         if c is None: # automatic mode
             self.cols = 50
         else:
             self.cols = c
 
         if r is None:
-            self.rows = min(400, max(10, len(value.split('\n'))))
+            self.rows = min(400, max(10, length))
         else:
             self.rows = r
 
@@ -70,6 +75,7 @@ class TextArea(_Editable):
 class GroupListArea(TextArea):
     def html(self, name, value):
         self._cols = 30
+        self._rows = len(value) + 2
         return TextArea.html(self, name, '\n'.join(group.id for group in value))
 
     def set(self, obj, name, val):
