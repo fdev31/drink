@@ -1,5 +1,6 @@
 before 0.1:
 
+- find the cleanest way to make all incoming URLs ends with /
 - fix, rewrite & improve task list
 - integrate showdown
 - File upload + test blob
