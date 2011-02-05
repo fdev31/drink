@@ -12,10 +12,20 @@ else:
 
 if __name__ == "__main__":
     sys.path.insert(0, os.path.curdir)
+    try:
+        import gevent.monkey
+        gevent.monkey.patch_all()
+    except ImportError:
+        async = False
+    else:
+        async = True
+
+    from drink.config import config
+    config.async = async
+
     import bottle
     app = bottle.app()
     from drink import init, db
-    from drink.config import config
 
     if len(sys.argv) == 2 and sys.argv[1] == "init":
         init()
