@@ -44,6 +44,3 @@ def init():
         except Exception:
             print "Unable to load %s, remove it from config file in [objects] section."%obj
             raise
-
-
-    del exported

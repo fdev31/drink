@@ -30,12 +30,12 @@ class User(drink.Model):
     groups = set()
 
     editable_fields = {
-        'id': drink.Id(),
-        'doc': drink.Text(),
-        'name': drink.Text(),
-        'surname': drink.Text(),
-        'password': drink.Password(),
-        'groups': drink.GroupListArea(),
+        'id': drink.types.Id(),
+        'doc': drink.types.Text(),
+        'name': drink.types.Text(),
+        'surname': drink.types.Text(),
+        'password': drink.types.Password(),
+        'groups': drink.types.GroupListArea(),
     }
 
     @property

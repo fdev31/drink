@@ -78,7 +78,7 @@ class TasksPage(drink.Page):
 class Task(drink.Model):
 
     editable_fields = {
-        'content': drink.Text(),
+        'content': drink.types.Text(),
     }
 
     @property
