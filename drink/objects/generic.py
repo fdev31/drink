@@ -112,9 +112,9 @@ class Page(Model):
         return self.id.replace('_', ' ').replace('-', ' ')
 
     def rm(self):
-        if 'w' not in request.identity.access(self):
-            return abort(401, "Not authorized")
         name = request.GET.get('name')
+        if 'w' not in request.identity.access(self[name]):
+            return abort(401, "Not authorized")
         parent_path = self[name].path+".."
         del self[name]
         transaction.commit()
