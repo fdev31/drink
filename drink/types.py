@@ -20,10 +20,10 @@ class _Editable(object):
         self.id = str(id(self))
         self.group = group if group else self.__class__.__name__
 
-    def html(self, name, value):
+    def html(self, name, value, _template=None):
         d = self.__dict__.copy()
         d.update({'id': self.id, 'name': name, 'caption': self.caption or name, 'value': value})
-        return ('<label class="autoform" for="%(id)s">%(caption)s</label>'+self._template)%d
+        return ('<label class="autoform" for="%(id)s">%(caption)s</label>'+(_template or self._template))%d
 
     set = setattr
 

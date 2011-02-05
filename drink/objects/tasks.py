@@ -12,7 +12,6 @@ class TasksPage(drink.Page):
 
     css = [
         "/static/style.css",
-        "/static/validate.jquery.js",
     ]
 
     js = [

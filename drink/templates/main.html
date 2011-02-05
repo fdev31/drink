@@ -7,9 +7,11 @@
 
         <!-- Cascading Style Sheets -->
         <link href="/static/page.css" rel="stylesheet" type="text/css" />
+        {% if css %}
         {% for url in css %}
         <link href="{{url}}" rel="stylesheet" type="text/css" />
         {% endfor %}
+        {% endif %}
         <!-- Javascript -->
         <script type="text/javascript" src="/static/jquery-1.4.4.js"></script>
         <script type="text/javascript" src="/static/jquery-ui-1.8.custom.min.js"></script>
@@ -17,7 +19,7 @@
         <script type="text/javascript">
             jQuery.validator.addMethod("identifier", function(value, element) {
 	            return this.optional(element) || !/[.$%/][$%/]*/i.test(value);
-            }, 'No "$", "%" or "/" and don\' start with a dot, please :)');  
+            }, 'No "$", "%" or "/" and don\' start with a dot, please :)');
 
           $(document).ready(function(){
                 $("#add_form").validate();
@@ -30,10 +32,12 @@
             });
         </script>
 
-
+        {% if js %}
         {% for url in js %}
         <script type="text/javascript" src="{{url}}"></script>
         {% endfor %}
+        {% endif %}
+
         {% block head %}
         <title>Flaskbox</title>
         {% endblock %}

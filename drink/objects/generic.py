@@ -82,7 +82,7 @@ class Model(PersistentDict):
             return drink.rdr(self.path)
         else:
             if not self.editable_fields:
-                form = ['<div>Not editable, sorry...</div>']
+                form = ['<div class="error_message">Not editable, sorry...</div>']
             else:
                 items = self.editable_fields.items()
                 # sort by group+id
@@ -98,9 +98,9 @@ class Model(PersistentDict):
                         form.append('</div><div class="%s_grp">'%current_group)
                     val = getattr(self, field)
                     form.append('<div class="input">%s</div>'%factory.html(field, val))
-                form.append('</div><div class="buttons"><input class="submit" type="submit" value="Ok"/></div></form>')
+                form.append('</div><div class="buttons"><input class="submit" type="submit" value="Save changes please"/></div></form>')
                 form.insert(0, '<form class="edit_form" id="edit_form" action="edit" %s method="post"><div class="%s_grp">'%(' '.join(form_opts), current_group))
-            return drink.template('main.html', obj=self, html='\n'.join(form), classes=self.classes, authenticated=request.identity)
+            return drink.template('main.html', obj=self, html='\n'.join(form), css=self.css, js=self.js, classes=self.classes, authenticated=request.identity)
 
 
 class Page(Model):
@@ -168,7 +168,7 @@ class ListPage(Page):
         return Page.__delitem__(self, name)
 
     def view(self):
-        return template('list.html', obj=self, classes=self.classes, authenticated=request.identity)
+        return template('list.html', obj=self, css=self.css, js=self.js, classes=self.classes, authenticated=request.identity)
 
 
 class StaticFile(Page):
@@ -204,7 +204,7 @@ class StaticFile(Page):
         else:
             html = '<a href="raw">Download file %r!</a>'%self.content_name
 
-        return drink.template('main.html', obj=self, html=html, classes=self.classes, authenticated=request.identity)
+        return drink.template('main.html', obj=self, css=self.css, js=self.js, html=html, classes=self.classes, authenticated=request.identity)
 
     def struct(self):
         return dict((k, getattr(self, k+"_name", 'N/A')) for k, v in self.editable_fields.iteritems() if isinstance(v, File))

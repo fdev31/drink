@@ -4,6 +4,18 @@ import drink
 
 from markdown import markdown
 
+class MarkdownEditor(drink.types._Editable):
+    def html(self, caption, group):
+        return drink.types._Editable.html(self, caption, group, '''
+<script type="text/javascript" >
+   $(document).ready(function() {
+      $("#%(id)s").markItUp(mySettings);
+   });
+</script>
+<br/>
+<textarea id="%(id)s" name="%(name)s" cols="80" rows="25">%(value)s</textarea>
+    ''')
+
 class MarkdownPage(drink.Page):
     content = "[Edit me](edit)"
 
@@ -11,11 +23,18 @@ class MarkdownPage(drink.Page):
 
     doc = "A markdown rendered page"
 
+    js = ['/static/markitup/jquery.markitup.js', '/static/markitup/sets/markdown/set.js']
+
+    css = ['/static/markitup/skins/markitup/style.css', '/static/markitup/sets/markdown/style.css']
+
     editable_fields = drink.Page.editable_fields.copy()
     editable_fields.update({
-        'content': drink.types.TextArea("Content"),
+        'content': MarkdownEditor("Content"),
         'mime': drink.types.Text(),
     })
+
+    def process(self):
+        return markdown(drink.request.forms.get('data'))
 
     def view(self):
 
@@ -23,6 +42,7 @@ class MarkdownPage(drink.Page):
 
         return drink.template('main.html', obj=self,
              html=html, authenticated=drink.request.identity,
+             css=self.css,
              classes=self.classes,
              )
 

@@ -48,6 +48,11 @@ a:hover {
     -moz-border-radius: 3px;
 }
 
+.error_message {
+    font-size: 300%;
+    color: #a55;
+}
+
 .toggler {
     cursor: pointer;
 }
