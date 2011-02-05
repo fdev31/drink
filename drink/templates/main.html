@@ -56,13 +56,13 @@
     <fieldset class="toggler" id="commands">
         <legend onclick="$('.togglable').slideToggle('slow');">{{authenticated.user.id}} commands</legend>
         <div class="togglable" >
-        <a href="/logout">[Log out]</a>
+        <a title="log out" href="/logout"><img src="/static/img/exit.png" /></a>
         {% if obj.path != '/' %}
-            <a href="./edit">[Edit]</a>
-            <a href="../">[Parent folder]</a>
+            <a title="Edit current element" href="./edit"><img src="/static/img/edit.png" /></a>
+            <a title="Back to parent element" href="../"><img src="/static/img/back.png" /></a>
             {% if classes %}
             <form id="add_form" action="add" method="get">
-                <label for="selected_class">Add new</label>
+                <label for="selected_class"><img src="/static/img/add.png" /></label>
                 <select id="selected_class" name="class" size="0">
                 {% for k in classes.iterkeys() %}
                     <option value="{{k}}" label="{{k}}"></option>
@@ -75,7 +75,7 @@
             {% endif %}
             {% if obj %}
             <form id="rm_form" action="rm" method="get" enctype="text/plain">
-                <label for="selected_rm_key">Remove</label>
+                <label for="selected_rm_key"><img src="/static/img/delete.png" /></label>
                 <select id="selected_rm_key" name="name" size="0" class="required">
                     <option value="" label="-nothing-"></option>
                 {% for k in obj.iterkeys() %}
@@ -88,7 +88,7 @@
             </form>
 
             <form id="edit_form" action="edit" method="get" enctype="text/plain">
-                <label for="selected_edit_key">Edit</label>
+                <label for="selected_edit_key"><img src="/static/img/edit.png" /></label>
                 <select id="selected_edit_key" size="0" class="required">
                     <option value="" label="-none-"></option>
                 {% for k in obj.iterkeys() %}

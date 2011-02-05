@@ -88,12 +88,19 @@ fieldset {
     -moz-border-radius: 3em 10em 10em 3em;
 }
 
-div.input > input {
+div.input {
+    margin-bottom: 1ex;
+}
+
+div.input > input , div.input > textarea {
     margin: 0 0 0.7ex 0;
     border: solid #999 1px;
 }
 
-div.input > textarea {
-    margin: 0;
-    border: solid #999 1px;
+div.input > input[type="file"] {
+    border: none;
+}
+
+label > img {
+    margin-bottom: -10px;
 }

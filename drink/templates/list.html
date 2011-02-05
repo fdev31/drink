@@ -8,7 +8,7 @@
 
 {% if obj.path != '/' %}
  <h1>{{ obj.path }} content:</h1>
-    <div><a href="../"><img class="icon" src="/static/back.png" />Back Up!</a></div>
+    <div><a href="../"><img class="icon" src="/static/img/back.png" /></a></div>
 {% endif %}
 {% for name in obj.iterkeys() %}
     {% if 'r' in authenticated.access(obj[name]) %}
