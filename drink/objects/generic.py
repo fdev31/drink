@@ -180,9 +180,9 @@ class StaticFile(Page):
 
     editable_fields = {
         'read_groups':
-            drink.types.GroupListArea("Read-enabled groups", group="x_permissions"),
+            drink.types.GroupCheckBoxes("Read-enabled groups", group="x_permissions"),
         'write_groups':
-            drink.types.GroupListArea("Write-enabled groups", group="x_permissions"),
+            drink.types.GroupCheckBoxes("Write-enabled groups", group="x_permissions"),
         'content':
             drink.types.File("File to upload"),
         'mimetype': drink.types.Text(),
