@@ -7,8 +7,8 @@
 {% block body %}
 
 {% if obj.path != '/' %}
- <h1>{{ obj.path }} content:</h1>
     <div><a href="../"><img class="icon" src="/static/img/back.png" /></a></div>
+ <h1>{{ obj.path }} content:</h1>
 {% endif %}
 {% for name in obj.iterkeys() %}
     {% if 'r' in authenticated.access(obj[name]) %}

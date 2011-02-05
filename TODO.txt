@@ -1,5 +1,10 @@
 before 0.1:
-
+- think comments ( as property of some Model ?)
+- commentlist ?
+- add Mime-Type guessing for File object
+- add & handle "user" group by default
+- do some umask-like feature (+ sub-objects inherit permissions)
+- add some recursive permissions setter
 - find the cleanest way to make all incoming URLs ends with /
 - fix, rewrite & improve task list
 - integrate showdown
