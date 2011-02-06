@@ -137,7 +137,10 @@ class Page(Model):
         name = request.GET.get('name')
         if 'w' not in request.identity.access(self[name]):
             return abort(401, "Not authorized")
-        parent_path = self[name].path+".."
+        try:
+            parent_path = self.path
+        except AttributeError:
+            parent_path = '.'
         del self[name]
         transaction.commit()
         return drink.rdr(parent_path)
