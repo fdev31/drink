@@ -1,4 +1,6 @@
 before 0.1:
+- checkboxes: "check all" in javascript + "not anonymous"
+- "t" permission, for traversal
 - D&D sortable folders
 - HomePage object: write user homepages (with login & passwd & name & surname change) / splash-like if not logged-in
 - think about comments ( as property of some Model ?) - commentlist ?
