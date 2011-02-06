@@ -12,10 +12,27 @@ h1 {
 	font-weight:normal;
 }
 
+a {
+   text-decoration: none;
+   padding: 0 1ex 0 1ex;
+}
+
 .entry a {
 	outline:none;
-    text-decoration: none;
     font-size: 21pt;
+}
+
+a:hover {
+
+    text-decoration: underline;
+   background: #778;
+    text-decoration: none;
+   color: white;
+    -moz-box-shadow: 10px 10px 5px #888;
+    -webkit-box-shadow: 3px 1px 5px #888;
+    box-shadow: 10px 10px 5px #888;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
 }
 
 .entry {
@@ -27,6 +44,54 @@ label.autoform {
     display: block;
     margin-top: 1ex;
     padding: 0 1ex 0 0;
+}
+
+#login_form {
+    margin-bottom: 2em;
+}
+
+fieldset {
+    margin-top: 1em;
+    border-radius: 3em 10em 10em 3em;
+    -moz-border-radius: 3em 10em 10em 3em;
+}
+
+.buttons {
+    margin: 1ex auto;
+    text-align: left;
+}
+
+.auto_edit_form {
+    width: 80%;
+    margin: 1em auto 0 auto;
+    border: solid 2px black
+    border-radius: 3em 10em 10em 3em;
+    -moz-border-radius: 3em 10em 10em 3em;
+}
+
+div.editable {
+    flush: left;
+}
+
+form input , div.input input , div.input textarea {
+    margin: 0 0 0.7ex 0;
+    border: solid 1px #999;
+}
+
+div.input input[type="file"] {
+    border: none;
+}
+
+input:hover {
+    background: #ffa;
+    -moz-box-shadow: 10px 10px 5px #888;
+    -webkit-box-shadow: 3px 1px 5px #888;
+    box-shadow: 10px 10px 5px #888;
+
+}
+
+label > img {
+    margin-bottom: -10px;
 }
 
 a {
@@ -60,46 +125,4 @@ a:hover {
     width: 32px;
     margin-right: 1ex;
     margin-bottom: -8px;
-}
-
-fieldset {    margin-top: 1em;
-}
-
-#login_form {
-    margin-bottom: 2em;
-}
-
-fieldset {
-    border-radius: 3em 10em 10em 3em;
-    -moz-border-radius: 3em 10em 10em 3em;
-}
-
-.buttons {
-    margin: 1ex auto;
-    text-align: left;
-}
-
-.auto_edit_form {
-    width: 80%;
-    margin: 1em auto 0 auto;
-    border: solid 2px black
-    border-radius: 3em 10em 10em 3em;
-    -moz-border-radius: 3em 10em 10em 3em;
-}
-
-div.editable {
-    flush: left;
-}
-
-form input , div.input input , div.input textarea {
-    margin: 0 0 0.7ex 0;
-    border: solid 1px #999;
-}
-
-div.input input[type="file"] {
-    border: none;
-}
-
-label > img {
-    margin-bottom: -10px;
 }

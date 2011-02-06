@@ -90,8 +90,7 @@ class GroupCheckBoxes(_Editable):
         values = [v.id for v in value]
 
         opts = [r'<input type="checkbox" name=%(name)s value="'+o+'" '+\
-            ('checked="checked">' if o in values else '>')+\
-            o+'</input>' for o in groups]
+            ('checked="checked">' if o in values else '>')+o+'</input>' for o in groups]
         return _Editable.html(self, name, value, '\n'.join(opts))
 
 
