@@ -4,6 +4,48 @@ import time
 from hashlib import sha1
 import drink
 
+class TODO(drink.Page):
+
+    doc = "Something to do"
+
+    editable_fields = {
+        'title': drink.types.Text("Title", group="a"),
+        'content': drink.types.TextArea("Summary", group="b"),
+        #'date': drink.types.Date,
+    }
+
+    content = ''
+    title = ''
+
+    def __init__(self, name, root):
+        drink.Page.__init__(self, name, root)
+
+    def view(self):
+        drink.rdr(self.path+'edit')
+
+
+class TODOList(drink.ListPage):
+
+    doc = "A TODO list"
+
+    classes = {'TODO': TODO}
+
+    editable_fields = {
+        'title': drink.types.Text("Title", group="a"),
+    }
+
+    html = """
+    <div><a href="../"><img class="icon" src="/static/back.png" />Exit!</a></div>
+
+    <h1>Daily tasks</h1>
+    <div class="shoppingList">
+        <ul>
+        </ul>
+    </div>
+    """
+
+
+
 class TasksPage(drink.Page):
 
     mime = "tasks"
@@ -18,6 +60,8 @@ class TasksPage(drink.Page):
         "/static/jquery.shoppingList.js",
         "/static/script.js",
     ]
+
+    title = "A task lsit"
 
     html = """
     <div><a href="../"><img class="icon" src="/static/back.png" />Exit!</a></div>
@@ -80,7 +124,6 @@ class Task(drink.Model):
         'content': drink.types.Text(),
     }
 
-
     @property
     def title(self):
         if len(self.content) > 20:
@@ -106,4 +149,4 @@ class Task(drink.Model):
             'text': self.content,
         }
 
-exported = {'Task list': TasksPage}
+exported = {'Task list': TasksPage, 'TODO list': TODOList}

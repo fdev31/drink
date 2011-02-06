@@ -9,10 +9,14 @@ from drink import template
 import drink
 from . import classes
 
+# TODO: make Model inherit Persistent + Page inherit PersistentDict
+#  Model & Page will share most of the interface but Model can't have any children (it's an end-point property)
+# ??? Models will be self-editable, wilth _Editable-like interface, they may have a link...
 
 class Model(PersistentDict):
 
     editable_fields = {}
+
 
     owner_fields = {
         'read_groups':
@@ -30,6 +34,8 @@ class Model(PersistentDict):
     js = None
 
     html = None
+
+    mime = 'model'
 
     data = {}
 
@@ -67,7 +73,29 @@ class Model(PersistentDict):
         return "Not viewable"
 
     def struct(self):
-        return 'Not defined'
+
+        d = dict()
+        for k in self.editable_fields.keys():
+            v = getattr(self, k, None)
+            if isinstance(v, Model):
+                v = v.struct()
+            elif isinstance(v, (basestring, int, float)):
+                pass # serializes well in json
+            else:
+                v = "N/A"
+            d[k] = v
+
+        it = [v.struct() for v in self.itervalues()]
+        if it:
+            d['items'] = it
+
+
+        d['id'] = self.id
+        d['title'] = self.title
+        d['path'] = self.rootpath
+        d['mime'] = self.mime
+
+        return d
 
     @property
     def path(self):
@@ -178,32 +206,49 @@ class Page(Model):
 
 
 class ListPage(Page):
-    doc = "An ordered folder display"
+    doc = "An ordered folder-like display"
 
     mime = "folder"
 
     forced_order = None
 
+    js = ['/static/listing.js']
+
+    def __init__(self, name, rootpath=None):
+        Page.__init__(self, name, rootpath)
+        self.forced_order = list(Page.keys(self))
+
     def iterkeys(self):
-        if not self.forced_order:
-            self.forced_order = list(self.keys())
-        return self.forced_order
+        return iter(self.forced_order or Page.keys(self))
+
+    keys = iterkeys
+
+    def itervalues(self):
+        return (self[v] for v in self.keys())
+
+    def values(self):
+        return list(self.itervalues)
 
     def __setitem__(self, name, val):
-        if name in self.forced_order:
-            self.forced_order.remove(name)
-        self.forced_order.append(name)
-        return Page.__setitem__(self, name, val)
+        try:
+            r = Page.__setitem__(self, name, val)
+        except Exception:
+            raise
+        else:
+            self.forced_order.append(name)
+            return r
 
     def __delitem__(self, name):
-        self.forced_order.remove(name)
-        return Page.__delitem__(self, name)
+        try:
+            r = Page.__delitem__(self, name)
+        except Exception:
+            raise
+        else:
+            self.forced_order.remove(name)
+            return r
 
     def view(self):
         return template('list.html', obj=self, css=self.css, js=self.js, classes=self.classes, authenticated=request.identity)
-
-    def struct(self):
-        return {'items': self.forced_order, 'mime': self.mime}
 
 class StaticFile(Page):
 
@@ -256,9 +301,6 @@ class StaticFile(Page):
             html.append('</pre>')
 
         return drink.template('main.html', obj=self, css=self.css, js=self.js, html='\n'.join(html), classes=self.classes, authenticated=request.identity)
-
-    def struct(self):
-        return dict((k, getattr(self, k+"_name", 'N/A')) for k, v in self.editable_fields.iteritems() if isinstance(v, File))
 
 
 exported = {'Folder index': ListPage, 'File': StaticFile}

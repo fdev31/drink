@@ -1,4 +1,5 @@
 before 0.1:
+- allow objects to add custom actions in admin bar
 - form object
 - checkboxes: "check all" in javascript + "not anonymous"
 - "t" permission, for traversal
