@@ -12,6 +12,8 @@ from . import classes
 
 class Model(PersistentDict):
 
+    editable_fields = {}
+
     owner_fields = {
         'read_groups':
             drink.types.GroupCheckBoxes("Read-enabled groups", group="x_permissions"),
@@ -19,7 +21,9 @@ class Model(PersistentDict):
             drink.types.GroupCheckBoxes("Write-enabled groups", group="x_permissions")
     }
 
-    editable_fields = {}
+    admin_fields = {
+        'id': drink.types.Id(),
+    }
 
     css = None
 
@@ -86,9 +90,11 @@ class Model(PersistentDict):
             get = None
 
         items = self.editable_fields.items()
-        if request.identity.user.id == self.owner.id \
-            or request.identity.user.id == "admin":
+        if request.identity.id == self.owner.id or request.identity.admin:
             items += self.owner_fields.items()
+
+        if request.identity.admin:
+            items += self.admin_fields.items()
 
         if get:
             for attr, caster in items:
@@ -96,7 +102,7 @@ class Model(PersistentDict):
             transaction.commit()
             return (drink.rdr, self.path)
         else:
-            if not self.editable_fields:
+            if not items:
                 form = ['<div class="error_message">Not editable, sorry...</div>']
             else:
                 # sort by group+id
@@ -212,6 +218,7 @@ class StaticFile(Page):
     editable_fields = {
         'content':
             drink.types.File("File to upload"),
+        'content_name': drink.types.Text("File name"),
         'mimetype': drink.types.Text(),
     }
 

@@ -22,16 +22,23 @@ class User(drink.Model):
 
     default_write_groups = set()
 
-    editable_fields = {
-        'id': drink.types.Id(),
+    admin_fields = drink.Model.admin_fields.copy()
+
+    admin_fields.update( {
         'doc': drink.types.Text(),
-        'email': drink.types.Text(),
-        'name': drink.types.Text(),
-        'surname': drink.types.Text(),
-        'password': drink.types.Password(),
         'groups': drink.types.GroupCheckBoxes(),
+    } )
+    owner_fields = {
+    # FIXME: Don't look ordered by group !
+        'name': drink.types.Text(group='1'),
+        'surname': drink.types.Text(group='2'),
+        'email': drink.types.Text(group='3'),
+        'password': drink.types.Password(group='4'),
         'default_read_groups': drink.types.GroupCheckBoxes('Default readers Groups', group='x_permissions'),
         'default_write_groups': drink.types.GroupCheckBoxes('Default writers Groups', group='x_permissions'),
+    }
+
+    editable_fields = {
     }
 
     @property
