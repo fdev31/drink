@@ -12,12 +12,14 @@ from . import classes
 
 class Model(PersistentDict):
 
-    editable_fields = {
+    owner_fields = {
         'read_groups':
             drink.types.GroupCheckBoxes("Read-enabled groups", group="x_permissions"),
         'write_groups':
             drink.types.GroupCheckBoxes("Write-enabled groups", group="x_permissions")
     }
+
+    editable_fields = {}
 
     css = None
 
@@ -59,7 +61,7 @@ class Model(PersistentDict):
         return "Not viewable"
 
     def struct(self):
-        return dict(self)
+        return 'Not defined'
 
     @property
     def path(self):
@@ -83,8 +85,13 @@ class Model(PersistentDict):
         else:
             get = None
 
+        items = self.editable_fields.items()
+        if request.identity.user.id == self.owner.id \
+            or request.identity.user.id == "admin":
+            items += self.owner_fields.items()
+
         if get:
-            for attr, caster in self.editable_fields.iteritems():
+            for attr, caster in items:
                 caster.set(self, attr, get(attr))
             transaction.commit()
             return (drink.rdr, self.path)
@@ -92,7 +99,6 @@ class Model(PersistentDict):
             if not self.editable_fields:
                 form = ['<div class="error_message">Not editable, sorry...</div>']
             else:
-                items = self.editable_fields.items()
                 # sort by group+id
                 items.sort(key=lambda o: o[1].group+o[0])
                 current_group = items[0][1].group
@@ -157,7 +163,7 @@ class Page(Model):
         return drink.rdr(self._add(name, cls, auth.user.read_groups, auth.user.write_groups).rootpath)
 
     def view(self):
-        return 'Please, inherit...'
+        return 'Not viewable...'
 
 
 class ListPage(Page):
@@ -185,6 +191,8 @@ class ListPage(Page):
     def view(self):
         return template('list.html', obj=self, css=self.css, js=self.js, classes=self.classes, authenticated=request.identity)
 
+    def struct(self):
+        return {'items': self.forced_order, 'mime': self.mime}
 
 class StaticFile(Page):
 
@@ -193,15 +201,18 @@ class StaticFile(Page):
     doc = "A generic file"
     classes = {}
 
-    editable_fields = {
+    owner_fields = {
         'read_groups':
             drink.types.GroupCheckBoxes("Read-enabled groups", group="x_permissions"),
         'write_groups':
             drink.types.GroupCheckBoxes("Write-enabled groups", group="x_permissions"),
+        'mime': drink.types.Text(),
+    }
+
+    editable_fields = {
         'content':
             drink.types.File("File to upload"),
         'mimetype': drink.types.Text(),
-        'mime': drink.types.Text(),
     }
 
     content = ''
