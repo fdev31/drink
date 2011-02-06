@@ -52,7 +52,7 @@ import transaction
 
 class Authenticator(object):
 
-    __slots__ = ['user', 'success']
+    __slots__ = ['user', 'success', 'groups', 'admin', 'id']
 
     def __init__(self):
         login = request.get_cookie('login', 'drink')
@@ -64,23 +64,34 @@ class Authenticator(object):
             password = request.get_cookie('password', 'drink')
             self.success = self.user.password == password
 
-        if not self.success:
+        if self.success:
+            self.groups = [g.id for g in self.user.groups]
+            self.admin = 'admin' in self.groups or self.id == 'admin'
+        else:
             self.user = db['users']['anonymous']
+            self.admin = False
+            self.groups = set([db['groups']['anonymous']])
+
+        self.id = self.user.id
 
     def access(self, obj):
 
         usr = self.user
+        groups = self.groups
 
         if usr.id == "admin":
             return 'rw'
 
-        groups = [g.id for g in usr.groups]
+        rights = ''
 
-        if usr.id == obj.owner.id or any(grp.id in groups or grp.id == 'anonymous' for grp in obj.write_groups):
-            return 'rw'
+        if usr.id == obj.owner.id:
+            rights = 'or'
+
+        if any(grp.id in groups or grp.id == 'anonymous' for grp in obj.write_groups):
+            rights += 'rw'
         elif any(grp.id in groups or grp.id == 'anonymous' for grp in obj.read_groups):
-            return 'r'
-        return ''
+            rights += 'r'
+        return rights
 
     def __nonzero__(self):
         return self.success
