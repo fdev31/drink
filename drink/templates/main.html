@@ -65,7 +65,7 @@
                 <label for="selected_class"><img src="/static/img/add.png" /></label>
                 <select id="selected_class" name="class" size="0">
                 {% for k in classes.iterkeys() %}
-                    <option value="{{k}}" label="{{k}}"></option>
+                    <option value="{{k}}" label="{{k}}">{{k}}</option>
                 {% endfor %}
                 </select>
                 <label for="obj_name">as</label>
@@ -80,7 +80,7 @@
                     <option value="" label="-nothing-"></option>
                 {% for k in obj.iterkeys() %}
                     {% if authenticated.access(obj[k]) %}
-                    <option value="{{k}}" label="{{k}}"></option>
+                    <option value="{{k}}" label="{{k}}">{{k}}</option>
                     {% endif %}
                 {% endfor %}
                 </select>
@@ -93,7 +93,7 @@
                     <option value="" label="-none-"></option>
                 {% for k in obj.iterkeys() %}
                     {% if authenticated.access(obj[k]) %}
-                    <option value="{{k}}" label="{{k}}"></option>
+                    <option value="{{k}}" label="{{k}}">{{k}}</option>
                     {% endif %}
                 {% endfor %}
                 </select>
