@@ -56,6 +56,7 @@ class Authenticator(object):
 
     def __init__(self):
         login = request.get_cookie('login', 'drink')
+        # TODO: handle basic http auth digest
         try:
             self.user = db['users'][login]
         except KeyError:
@@ -75,22 +76,28 @@ class Authenticator(object):
         self.id = self.user.id
 
     def access(self, obj):
+        """
+        read
+        write
+        owner
+        traversal
+        """
 
         usr = self.user
         groups = self.groups
 
         if usr.id == "admin":
-            return 'rw'
+            return 'rowt'
 
         rights = ''
 
         if usr.id == obj.owner.id:
-            rights = 'or'
+            rights = 'ort'
 
         if any(grp.id in groups or grp.id == 'anonymous' for grp in obj.write_groups):
-            rights += 'rw'
+            rights += 'trw'
         elif any(grp.id in groups or grp.id == 'anonymous' for grp in obj.read_groups):
-            rights += 'r'
+            rights += 'tr'
         return rights
 
     def __nonzero__(self):
