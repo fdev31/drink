@@ -33,6 +33,8 @@ class Model(PersistentDict):
 
     data = {}
 
+    title = "<no title>"
+
     classes = drink.classes
 
     def __init__(self, name, rootpath=None):

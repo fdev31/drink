@@ -80,6 +80,14 @@ class Task(drink.Model):
         'content': drink.types.Text(),
     }
 
+
+    @property
+    def title(self):
+        if len(self.content) > 20:
+            return self.content[:20]+"..."
+        else:
+            return self.content
+
     @property
     def path(self):
         return self.rootpath + self.id

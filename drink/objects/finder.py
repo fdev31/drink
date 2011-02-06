@@ -8,12 +8,15 @@ class ObjectBrowser(drink.Page):
 
     classes = {}
 
+    def __init__(self, name, rootpath):
+        drink.Page.__init__(self, name, rootpath)
+        self.lastlog = {}
+
     def query(self):
         yield '<html><body>'
         pat = drink.request.forms.get('pattern')
-        print pat
+        items = []
         def _match(i, ignore_case=False):
-            print pat
             for attr in ('title', 'content', 'description'):
                 v = getattr(i, attr, None)
                 if isinstance(v, basestring):
@@ -22,19 +25,36 @@ class ObjectBrowser(drink.Page):
             return False
 
         to_scan = drink.db.values()
+        auth = drink.request.identity
+
         for item in to_scan:
-            if _match(item):
-                yield '<li><a href="%s">%s</a></li>'%(item.path, item.id)
+            if 'r' in auth.access(item) and _match(item):
+                items.append(item)
+                yield '<li><a href="%s">%s</a></li>'%(item.path, item.title)
             try:
                 to_scan.extend(item.itervalues())
             except AttributeError:
                 pass
-        yield "<div>Done!</div></body></html>"
+        self.lastlog[auth.id] = (pat, items)
+        yield '<div>Done!</div><a href="%s">make new search...</a></body></html>'%self.path
 
     def view(self):
-        form= ['<form class="query_form" id="query_form" action="query" method="post">',
-            drink.types.Text('Look for').html('pattern', ''),
+
+        auth = drink.request.identity
+
+        if auth.id in self.lastlog:
+            pat, items = self.lastlog[auth.id]
+        else:
+            pat = ''
+            items = None
+
+
+        form = ['<form class="query_form" id="query_form" action="query" method="post">',
+            drink.types.Text('Look for').html('pattern', pat),
             '<input class="submit" type="submit" value="GO!"/></form>']
-        return drink.template('main.html', obj=self, html='\n'.join(form), authenticated=drink.request.identity, classes=self.classes)
+        if items:
+            form.extend('<li><a href="%s">%s</a></li>'%(i.path, i.title) for i in items)
+
+        return drink.template('main.html', obj=self, html='\n'.join(form), authenticated=auth, classes=self.classes)
 
 exported = {"Finder": ObjectBrowser}
