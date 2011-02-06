@@ -1,30 +1,56 @@
 before 0.1:
-- think comments ( as property of some Model ?)
-- commentlist ?
-- add Mime-Type guessing for File object
+- D&D sortable folders
+- HomePage object: write user homepages (with login & passwd & name & surname change) / splash-like if not logged-in
+- think about comments ( as property of some Model ?) - commentlist ?
+- edit form: only send "dirty" values when possible
 - add & handle "user" group by default
 - do some umask-like feature (+ sub-objects inherit permissions)
 - add some recursive permissions setter
 - find the cleanest way to make all incoming URLs ends with /
 - fix, rewrite & improve task list
-- integrate showdown
-- File upload + test blob
 - improve init so it can set default groups ('open' or 'admin')
 - test if groups are really shared or if it's better to keep them strings
 - add proper checks at server side too (in add  & edit methods mostly)
-- D&D sortable folders
 - "background processes" for each user / sessions
 - theme support (config entry + template & static path)
 - finish default edition method (add form)
 - add more types to default form edition
-   - editable_types = {
-        'name': TypeObj,
-         ...
-        }
-   - types:
-        * date
-        * caption
-        * text
-        * integer
-        * object_path (later)
+    * date
+    * object_path
+
+0.2:
+- zip importer
+- doc
+- project support (using drink as a base)
+
+0.3:
+- multi-object page
+
+0.4:
+- chat program
+
+0.5:
+- forum
+
+0.6:
+- gadgets (google search, rss reader, clock, xkcd, ?)
+
+0.7:
+- permissions setting admin object
+
+0.8:
+- user interface cleanup
+
+0.9:
+- doc & fix but minor improvements
+
+1.0:
+ stable release
+
+1.5:
+ homepage focus
+
+2.0:
+ GED focused
+
 

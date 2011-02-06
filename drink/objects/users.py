@@ -15,6 +15,10 @@ class User(drink.Model):
 
     groups = set()
 
+    default_read_groups = set()
+
+    default_write_groups = set()
+
     editable_fields = {
         'id': drink.types.Id(),
         'doc': drink.types.Text(),
@@ -22,6 +26,8 @@ class User(drink.Model):
         'surname': drink.types.Text(),
         'password': drink.types.Password(),
         'groups': drink.types.GroupCheckBoxes(),
+        'default_read_groups': drink.types.GroupCheckBoxes('Default readers Groups', group='x_permissions'),
+        'default_write_groups': drink.types.GroupCheckBoxes('Default writers Groups', group='x_permissions'),
     }
 
     @property

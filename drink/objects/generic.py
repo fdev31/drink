@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 import os
+from mimetypes import guess_type
 from bottle import request, abort
 from persistent.dict import PersistentDict
 from ZODB.blob import Blob
@@ -64,7 +65,14 @@ class Model(PersistentDict):
     def path(self):
         return self.rootpath + self.id + '/'
 
-    def edit(self):
+    def edit(self, result=None):
+        r = result or self._edit()
+        if callable(r[0]):
+            return r[0](*r[1:])
+        else:
+            return r
+
+    def _edit(self):
         if 'w' not in request.identity.access(self):
             return abort(401, "Not authorized")
 
@@ -79,7 +87,7 @@ class Model(PersistentDict):
             for attr, caster in self.editable_fields.iteritems():
                 caster.set(self, attr, get(attr))
             transaction.commit()
-            return drink.rdr(self.path)
+            return (drink.rdr, self.path)
         else:
             if not self.editable_fields:
                 form = ['<div class="error_message">Not editable, sorry...</div>']
@@ -122,24 +130,31 @@ class Page(Model):
         transaction.commit()
         return drink.rdr(parent_path)
 
-    def _add(self, name, cls):
+    def _add(self, name, cls, read_groups, write_groups):
         if isinstance(cls, basestring):
             klass = self.classes[cls] if self.classes else classes[cls]
         else:
             klass = cls
         new_obj = klass(name, self.path)
+        if not new_obj.read_groups:
+            new_obj.read_groups = set(read_groups)
+        if not new_obj.write_groups:
+            new_obj.write_groups = set(write_groups)
         self[name] = new_obj
+
         transaction.commit()
         return new_obj
 
-    def add(self, name=None, cls=None):
-        if 'w' not in request.identity.access(self):
+    def add(self, name=None, cls=None, read_groups=None, write_groups=None):
+        auth = request.identity
+
+        if 'w' not in auth.access(self):
             return abort(401, "Not authorized")
         name = name or request.GET.get('name')
         if None == cls:
             cls = request.GET.get('class')
 
-        return drink.rdr(self._add(name, cls).rootpath)
+        return drink.rdr(self._add(name, cls, auth.user.read_groups, auth.user.write_groups).rootpath)
 
     def view(self):
         return 'Please, inherit...'
@@ -194,17 +209,30 @@ class StaticFile(Page):
 
     def raw(self):
         root, fname = os.path.split(self.content.committed())
-        return drink.static_file(fname, root, mimetype=self.mimetype)
+        return drink.static_file(fname, root, mimetype=self.mimetype, download=self.content_name)
         #Alternatively: drink.response.headers['Content-Type'] = '...'
         # + read
 
-    def view(self):
-        if self.mimetype.startswith('image/'):
-            html = '<img src="raw" />'
-        else:
-            html = '<a href="raw">Download file %r!</a>'%self.content_name
+    def edit(self):
+        r = Page._edit(self)
+        if request.files:
+            self.mimetype = guess_type(request.files.get('content').filename)[0] or 'application/octet-stream'
+        transaction.commit()
+        return Page.edit(self, r)
 
-        return drink.template('main.html', obj=self, css=self.css, js=self.js, html=html, classes=self.classes, authenticated=request.identity)
+    def view(self):
+        html = ['<div class="download"><a href="raw">Download file (original name: %r)</a></div>'%self.content_name]
+
+        mime = self.mimetype
+        if mime.startswith('image/'):
+            html.append('<img src="raw" />')
+        elif mime in ('application/xml', ) or mime.startswith('text/'):
+            f = self.content.open()
+            html.append('<pre>')
+            html.append(f.read())
+            html.append('</pre>')
+
+        return drink.template('main.html', obj=self, css=self.css, js=self.js, html='\n'.join(html), classes=self.classes, authenticated=request.identity)
 
     def struct(self):
         return dict((k, getattr(self, k+"_name", 'N/A')) for k, v in self.editable_fields.iteritems() if isinstance(v, File))

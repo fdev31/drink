@@ -91,12 +91,12 @@ div.editable {
     flush: left;
 }
 
-div.input > input , div.input > textarea {
+form input , div.input input , div.input textarea {
     margin: 0 0 0.7ex 0;
-    border: solid #999 1px;
+    border: solid 1px #999;
 }
 
-div.input > input[type="file"] {
+div.input input[type="file"] {
     border: none;
 }
 
