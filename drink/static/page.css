@@ -17,6 +17,10 @@ a {
    padding: 0 1ex 0 1ex;
 }
 
+a img {
+    border: none;
+}
+
 .entry a {
 	outline:none;
     font-size: 21pt;
