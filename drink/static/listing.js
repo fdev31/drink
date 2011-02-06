@@ -25,9 +25,12 @@ var startcode = function(data, status, req) {
         sortable.append(e);
    }
    sortable.sortable({
-        axis: "y",
-        containment: ".sortable",
-        distance: 10,
+//        axis: "y",
+//        containment: ".sortable",
+        cursor: 'move', update: function(event, ui) {
+            var pat = $('.sortable').find('li').map( function() { return $(this).data('item') } ).get().join('/')
+            $.post('move', {'set': pat});
+        },
    });
 }
 
