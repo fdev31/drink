@@ -65,7 +65,8 @@ class User(drink.Model):
 
     def edit(self):
         r = drink.Model._edit(self)
-        self.mime = 'http://www.gravatar.com/avatar/'+md5(self.email).hexdigest()
+        uid = md5(self.email).hexdigest()
+        self.mime = 'http://www.gravatar.com/avatar/%s?s=32'%uid
         return drink.Model.edit(self, resume=r)
 
 class UserList(drink.ListPage):
