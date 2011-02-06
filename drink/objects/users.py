@@ -1,6 +1,7 @@
 import drink
 from . import classes
 import transaction
+from hashlib import md5
 
 
 class User(drink.Model):
@@ -10,6 +11,8 @@ class User(drink.Model):
     doc = "User object"
 
     password = ''
+
+    email = ''
 
     classes = {}
 
@@ -22,6 +25,7 @@ class User(drink.Model):
     editable_fields = {
         'id': drink.types.Id(),
         'doc': drink.types.Text(),
+        'email': drink.types.Text(),
         'name': drink.types.Text(),
         'surname': drink.types.Text(),
         'password': drink.types.Password(),
@@ -52,6 +56,10 @@ class User(drink.Model):
     def view(self):
         drink.rdr(self.path+'edit')
 
+    def edit(self):
+        r = drink.Model._edit(self)
+        self.mime = 'http://www.gravatar.com/avatar/'+md5(self.email).hexdigest()
+        return drink.Model.edit(self, resume=r)
 
 class UserList(drink.ListPage):
     doc = "Users folder"

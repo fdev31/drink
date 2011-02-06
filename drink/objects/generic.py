@@ -67,8 +67,8 @@ class Model(PersistentDict):
     def path(self):
         return self.rootpath + self.id + '/'
 
-    def edit(self, result=None):
-        r = result or self._edit()
+    def edit(self, resume=None):
+        r = resume or self._edit()
         if callable(r[0]):
             return r[0](*r[1:])
         else:
