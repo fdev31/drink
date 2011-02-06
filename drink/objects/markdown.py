@@ -1,7 +1,5 @@
 from __future__ import absolute_import
-import transaction
 import drink
-
 from markdown import markdown
 
 class MarkdownEditor(drink.types._Editable):

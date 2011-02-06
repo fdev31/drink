@@ -1,4 +1,5 @@
 before 0.1:
+- form object
 - checkboxes: "check all" in javascript + "not anonymous"
 - "t" permission, for traversal
 - D&D sortable folders
