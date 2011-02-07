@@ -72,23 +72,25 @@ class Model(PersistentDict):
     def view(self):
         return "Not viewable"
 
-    def struct(self):
+    def struct(self, childs=True):
 
         d = dict()
         for k in self.editable_fields.keys():
             v = getattr(self, k, None)
             if isinstance(v, Model):
-                v = v.struct()
+                v = v.struct(False)
+                v['id'] = k
             elif isinstance(v, (basestring, int, float)):
                 pass # serializes well in json
             else:
                 v = "N/A"
             d[k] = v
 
-        it = [v.struct() for v in self.itervalues()]
-        if it:
-            d['items'] = it
 
+        if childs:
+            it = [v.struct() for v in self.itervalues()]
+            if it:
+                d['items'] = it
 
         d['id'] = self.id
         d['title'] = self.title
@@ -112,13 +114,6 @@ class Model(PersistentDict):
         if 'w' not in request.identity.access(self):
             return abort(401, "Not authorized")
 
-        if request.POST:
-            get = request.POST.get
-        elif request.GET:
-            get = request.GET.get
-        else:
-            get = None
-
         items = self.editable_fields.items()
         if request.identity.id == self.owner.id or request.identity.admin:
             items += self.owner_fields.items()
@@ -126,9 +121,13 @@ class Model(PersistentDict):
         if request.identity.admin:
             items += self.admin_fields.items()
 
-        if get:
+        forms = request.forms
+
+        if forms:
+            editable = forms.keys()
             for attr, caster in items:
-                caster.set(self, attr, get(attr))
+                if attr in editable:
+                    caster.set(self, attr, forms.get(attr))
             transaction.commit()
             return (drink.rdr, self.path)
         else:
@@ -159,9 +158,7 @@ class Page(Model):
 
     doc = 'An abstract page'
 
-    @property
-    def title(self):
-        return self.id.replace('_', ' ').replace('-', ' ')
+    title = "no title"
 
     def rm(self):
         name = request.GET.get('name')
@@ -233,6 +230,8 @@ class ListPage(Page):
         return list(self.itervalues)
 
     def __setitem__(self, name, val):
+        if name is None:
+            import pdb; pdb.set_trace()
         try:
             r = Page.__setitem__(self, name, val)
         except Exception:
