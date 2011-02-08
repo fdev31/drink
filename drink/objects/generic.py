@@ -41,22 +41,22 @@ class Model(PersistentDict):
 
     data = {}
 
-    title = "<no title>"
-
     classes = drink.classes
 
     def __init__(self, name, rootpath=None):
         self.read_groups = set()
         self.write_groups = set()
 
-        if rootpath is None:
-            PersistentDict.__init__(self, name)
-            self.id = getattr(name, 'id', '')
-            self.rootpath = getattr(name, 'rootpath', '')
-        else:
-            PersistentDict.__init__(self)
-            self.id = name
-            self.rootpath = rootpath
+        if not name:
+            drink.abort(401, 'Wrong identifier: %r'%name)
+
+        PersistentDict.__init__(self)
+        # minor sanity check
+        self.id = name.replace(' ', '-').replace('\t','_').replace('/','.')
+        self.rootpath = rootpath
+
+        if not hasattr(self, 'title'):
+            self.title = self.id.replace('_', ' ').replace('-', ' ').capitalize()
 
         try:
             self.owner
@@ -159,8 +159,6 @@ class Page(Model):
     mime = 'page'
 
     doc = 'An abstract page'
-
-    title = "no title"
 
     def rm(self):
         name = request.GET.get('name')
