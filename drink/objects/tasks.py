@@ -17,9 +17,6 @@ class TODO(drink.Page):
     content = ''
     title = ''
 
-    def __init__(self, name, root):
-        drink.Page.__init__(self, name, root)
-
     def view(self):
         drink.rdr(self.path+'edit')
 
@@ -29,6 +26,8 @@ class TODOList(drink.ListPage):
     doc = "A TODO list"
 
     classes = {'TODO': TODO}
+
+    mime = "tasks"
 
     editable_fields = {
         'title': drink.types.Text("Title", group="a"),
