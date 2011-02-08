@@ -126,6 +126,7 @@ def log_out():
     response.set_cookie('password', '', 'drink')
     rdr('/')
 
+# generic dispatcher method
 @route("/:objpath#.+#", method=['GET', 'POST'])
 def glob_index(objpath="/"):
     request.identity = Authenticator()
