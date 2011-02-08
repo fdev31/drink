@@ -76,7 +76,6 @@ class UserList(drink.ListPage):
 
     classes = {'User': User}
 
-
 class Group(drink.Page):
 
     mime = "group"
