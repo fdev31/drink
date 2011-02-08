@@ -158,7 +158,6 @@ def init():
     request.identity = FakeId()
     groups = root['groups'] = obj.GroupList('groups', '/')
     users = root['users'] = obj.UserList('users', '/')
-    transaction.commit()
 
     admin = obj.User('admin', '/users/')
     anon = obj.User('anonymous', '/users/')
@@ -182,6 +181,7 @@ def init():
     for pagename, name in config.items('layout'):
         elt = classes[ name ](pagename, '/')
         root[pagename] = elt
+
     transaction.commit()
 
 def startup():
