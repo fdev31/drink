@@ -157,12 +157,12 @@ def init():
 
     request.identity = FakeId()
     root['groups'] = users.GroupList('groups', '/')
+    root['users'] = users.UserList('users', '/')
     transaction.commit()
     admin = users.User('admin', '/users/')
     request.identity.user = admin
     root['groups'].owner = admin
     root['groups'].write_groups = admin.groups.copy()
-    root['users'] = users.UserList('users', '/')
     root['users'].owner = admin
     root['users'].write_groups = admin.groups.copy()
 
