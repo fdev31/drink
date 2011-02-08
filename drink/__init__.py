@@ -111,12 +111,6 @@ def main_index():
     request.identity = Authenticator()
     return classes[config.get('server', 'index')](db.data).view()
 
-@route('/struct')
-def main_index():
-    request.identity = Authenticator()
-    return classes[config.get('server', 'index')](db.data).struct()
-
-
 @route('/static/:filename#.*#')
 def server_static(filename):
     return static_file(filename, root=os.path.join(BASE_DIR, 'static'))
