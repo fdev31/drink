@@ -2,6 +2,6 @@
 
 if __name__ == "__main__":
     from drink import init, startup, db
-    if len(db.db.open().root()) == 0:
+    if len(db.db.open().root()) < 3: # users, groups + pages at least
         init()
     startup()
