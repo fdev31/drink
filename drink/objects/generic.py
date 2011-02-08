@@ -15,7 +15,9 @@ from . import classes
 
 class Model(PersistentDict):
 
-    editable_fields = {'title': drink.types.Text('Title')}
+    editable_fields = {
+        'title': drink.types.Text('Title')
+    }
 
 
     owner_fields = {
