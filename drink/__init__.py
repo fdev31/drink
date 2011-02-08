@@ -156,22 +156,29 @@ def init():
             return 'rw'
 
     request.identity = FakeId()
-    root['groups'] = users.GroupList('groups', '/')
-    root['users'] = users.UserList('users', '/')
+    groups = root['groups'] = users.GroupList('groups', '/')
+    users = root['users'] = users.UserList('users', '/')
     transaction.commit()
+
     admin = users.User('admin', '/users/')
+    anon = users.User('anonymous', '/users/')
+
     request.identity.user = admin
-    root['groups'].owner = admin
-    root['groups'].write_groups = admin.groups.copy()
-    root['users'].owner = admin
-    root['users'].write_groups = admin.groups.copy()
 
-    root['users']['anonymous'] = users.User('anonymous', '/users/')
+    groups.owner = admin
+    groups.write_groups = set()
+    groups.read_groups = set()
 
+    users.owner = admin
+    users.write_groups = set([anon])
+    users.write_groups = set()
+
+    root['users']['anonymous'] = anon
+    root['users']['admin'] = admin
     admin.password = 'admin'
     admin.surname = "BOFH"
     admin.name = "Mr Admin"
-    root['users']['admin'] = admin
+    anon.owner = admin.owner = admin
 
     for pagename, name in config.items('layout'):
         elt = classes[ name ](pagename, '/')
