@@ -24,6 +24,11 @@ a img {
 .entry a {
 	outline:none;
     font-size: 21pt;
+    color: #557;
+}
+
+.sortable {
+ list-style-image: url(/static/mime/hand.png);
 }
 
 a:hover {
@@ -37,11 +42,6 @@ a:hover {
     box-shadow: 10px 10px 5px #888;
     border-radius: 3px;
     -moz-border-radius: 3px;
-}
-
-.entry {
-    padding-left: 2em;
-    margin: 1ex;
 }
 
 label.autoform {
