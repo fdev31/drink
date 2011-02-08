@@ -38,7 +38,6 @@ var startcode = function(data, status, req) {
         },
    });
 
-
     var enter_edit_func = function(){
 		txt = $(this).text();
 		// set an input field up, with focus
@@ -52,7 +51,7 @@ var startcode = function(data, status, req) {
 		if (uid == undefined) { return; }
 		$.post(''+uid+'/edit', {title: txt} );
 		// FIXME: set the item display
-		var li = make_li({id: uid, title: txt, path: uid+'/'});
+		var li = make_li({id: uid, title: txt, path: './'});
 		li.dblclick(enter_edit_func);
 	    li.live('blur', exit_edit_func);
 	    li.live('keyup', on_enter);
