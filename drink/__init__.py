@@ -147,7 +147,7 @@ def init():
     root = db.data
     root.clear()
 
-    from .objects import users
+    from .objects import users as obj
 
     class FakeId(object):
         user = None
@@ -156,12 +156,12 @@ def init():
             return 'rw'
 
     request.identity = FakeId()
-    groups = root['groups'] = users.GroupList('groups', '/')
-    users = root['users'] = users.UserList('users', '/')
+    groups = root['groups'] = obj.GroupList('groups', '/')
+    users = root['users'] = obj.UserList('users', '/')
     transaction.commit()
 
-    admin = users.User('admin', '/users/')
-    anon = users.User('anonymous', '/users/')
+    admin = obj.User('admin', '/users/')
+    anon = obj.User('anonymous', '/users/')
 
     request.identity.user = admin
 
@@ -178,7 +178,6 @@ def init():
     admin.password = 'admin'
     admin.surname = "BOFH"
     admin.name = "Mr Admin"
-    anon.owner = admin.owner = admin
 
     for pagename, name in config.items('layout'):
         elt = classes[ name ](pagename, '/')
@@ -193,7 +192,7 @@ def startup():
     except ImportError:
         print "Unable to set process' name, easy_install setproctitle, if you want it."
     else:
-        setproctitle.setproctitle('drink')
+        setproctitle.setproctitle('ownerdrink')
 
 
     if len(sys.argv) == 2 and sys.argv[1] == "init":
