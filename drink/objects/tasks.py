@@ -43,8 +43,6 @@ class TODOList(drink.ListPage):
     </div>
     """
 
-
-
 class TasksPage(drink.Page):
 
     mime = "tasks"

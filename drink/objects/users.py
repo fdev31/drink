@@ -30,6 +30,7 @@ class User(drink.Model):
     } )
     owner_fields = {
     # FIXME: Don't look ordered by group !
+        'title': drink.types.Text('Nickname', group='0'),
         'name': drink.types.Text(group='1'),
         'surname': drink.types.Text(group='2'),
         'email': drink.types.Text(group='3'),
