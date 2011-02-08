@@ -50,7 +50,14 @@ class Model(PersistentDict):
         if not name:
             drink.abort(401, 'Wrong identifier: %r'%name)
 
-        PersistentDict.__init__(self)
+        if not isinstance(name, basestring):
+            # Root object special case
+            PersistentDict.__init__(self, name)
+            name = '.'
+            rootpath = '/'
+        else:
+            PersistentDict.__init__(self)
+
         # minor sanity check
         self.id = name.replace(' ', '-').replace('\t','_').replace('/','.')
         self.rootpath = rootpath
