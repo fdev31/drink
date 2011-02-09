@@ -1,4 +1,5 @@
 before 0.1:
+- filter objects retrieved with /struct
 - implement default read/write groups
 - refactor welcome & login page
 - allow objects to add custom actions in admin bar
