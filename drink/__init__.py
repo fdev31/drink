@@ -67,7 +67,7 @@ class Authenticator(object):
 
         if self.success:
             self.groups = [g.id for g in self.user.groups]
-            self.admin = 'admin' in self.groups or self.id == 'admin'
+            self.admin = 'admin' in self.groups or self.user.id == 'admin'
         else:
             self.user = db['users']['anonymous']
             self.admin = False
