@@ -134,9 +134,14 @@ class Model(PersistentDict):
 
         if forms:
             editable = forms.keys()
+            files = request.files.keys()
+
             for attr, caster in items:
-                if attr in editable:
+                if attr in files:
+                    caster.set(self, attr, request.files.get(attr))
+                elif attr in editable:
                     caster.set(self, attr, forms.get(attr))
+
             transaction.commit()
             return (drink.rdr, self.path)
         else:
