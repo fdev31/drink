@@ -57,10 +57,6 @@ class User(drink.Model):
         self.groups.add(group_list[name])
         transaction.commit()
 
-    @property
-    def title(self):
-        return self.id
-
     def view(self):
         drink.rdr(self.path+'edit')
 
