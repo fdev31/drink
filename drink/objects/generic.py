@@ -55,11 +55,12 @@ class Model(PersistentDict):
             PersistentDict.__init__(self, name)
             name = '/'
             rootpath = '/'
+            self.id = '.'
         else:
             PersistentDict.__init__(self)
+            # minor sanity check
+            self.id = name.replace(' ', '-').replace('\t','_').replace('/','.').replace('?', '')
 
-        # minor sanity check
-        self.id = name.replace(' ', '-').replace('\t','_').replace('/','.').replace('?', '')
         self.rootpath = rootpath
 
         if not hasattr(self, 'title'):

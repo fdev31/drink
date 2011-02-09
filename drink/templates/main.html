@@ -47,7 +47,8 @@
 
     <body>
     </head>
-    {% if not authenticated and obj.path == '/' %}
+
+    {% if not authenticated and obj.id == '.' and obj.rootpath == '/' %}
     <form id="login_form" class="autovalidate" action="/login" method="POST">
         <label for="ilogin">Authenticate as:</label>
         <input type="text" class="required" name="login_name" id="ilogin" />
