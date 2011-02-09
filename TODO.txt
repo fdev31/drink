@@ -1,4 +1,6 @@
 before 0.1:
+- implement default read/write groups
+- refactor welcome & login page
 - allow objects to add custom actions in admin bar
 - form object
 - checkboxes: "check all" in javascript + "not anonymous"
