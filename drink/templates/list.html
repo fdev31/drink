@@ -6,7 +6,7 @@
 
 {% block body %}
 
-{% if obj.path != '/' %}
+{% if obj.rootpath != '/' %}
     <div><a href="../"><img class="icon" src="/static/img/back.png" /></a></div>
  <h1>{{ obj.path }} content:</h1>
 {% endif %}
@@ -19,17 +19,12 @@
     </li>
     {% endif %}
 {% else %}
-    {% if obj.path == '/' %}
-        No content! did you run "init" ?
-    {% else %}
-        No content here...
-        {%if not authenticated %}
+    No content here...
+    {%if not authenticated %}
         Log in to add a new object !
-        {% else %}
+    {% else %}
         you may want to add some object...
-        {% endif %}
     {% endif %}
-
 {% endfor %}
 </ul>
 {% endblock %}
