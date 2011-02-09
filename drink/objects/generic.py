@@ -194,7 +194,8 @@ class Page(Model):
             new_obj.read_groups = set(read_groups)
         if not new_obj.write_groups:
             new_obj.write_groups = set(write_groups)
-        self[name] = new_obj
+
+        self[new_obj.id] = new_obj
 
         transaction.commit()
         return new_obj
