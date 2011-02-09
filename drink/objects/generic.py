@@ -28,7 +28,7 @@ class Model(PersistentDict):
     }
 
     admin_fields = {
-        'id': drink.types.Id(),
+        #'id': drink.types.Id(),
     }
 
     css = None
