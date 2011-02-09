@@ -309,14 +309,15 @@ class StaticFile(Page):
     def view(self):
         html = ['<div class="download"><a href="raw">Download file (original name: %r)</a></div>'%self.content_name]
 
-        mime = self.mimetype
-        if mime.startswith('image/'):
-            html.append('<img src="raw" />')
-        elif mime in ('application/xml', ) or mime.startswith('text/'):
-            f = self.content.open()
-            html.append('<pre>')
-            html.append(f.read())
-            html.append('</pre>')
+        if self.content:
+            mime = self.mimetype
+            if mime.startswith('image/'):
+                html.append('<img src="raw" />')
+            elif mime in ('application/xml', ) or mime.startswith('text/'):
+                f = self.content.open()
+                html.append('<pre>')
+                html.append(f.read())
+                html.append('</pre>')
 
         return drink.template('main.html', obj=self, css=self.css, js=self.js, html='\n'.join(html), classes=self.classes, authenticated=request.identity)
 
