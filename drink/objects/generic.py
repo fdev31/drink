@@ -285,7 +285,7 @@ class StaticFile(Page):
     editable_fields.update( {
         'content':
             drink.types.File("File to upload"),
-        'content_name': drink.types.Text("File name"),
+#        'content_name': drink.types.Text("File name"),
         'mimetype': drink.types.Text(),
     } )
 
