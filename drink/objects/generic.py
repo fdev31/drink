@@ -53,17 +53,17 @@ class Model(PersistentDict):
         if not isinstance(name, basestring):
             # Root object special case
             PersistentDict.__init__(self, name)
-            name = '.'
+            name = '/'
             rootpath = '/'
         else:
             PersistentDict.__init__(self)
 
         # minor sanity check
-        self.id = name.replace(' ', '-').replace('\t','_').replace('/','.')
+        self.id = name.replace(' ', '-').replace('\t','_').replace('/','.').replace('?', '')
         self.rootpath = rootpath
 
         if not hasattr(self, 'title'):
-            self.title = self.id.replace('_', ' ').replace('-', ' ').capitalize()
+            self.title = name.replace('_', ' ').replace('-', ' ').capitalize()
 
         try:
             self.owner
