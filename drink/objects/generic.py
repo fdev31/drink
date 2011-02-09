@@ -274,12 +274,14 @@ class StaticFile(Page):
         'mime': drink.types.Text(),
     }
 
-    editable_fields = {
+    editable_fields = Page.editable_fields.copy()
+
+    editable_fields.update( {
         'content':
             drink.types.File("File to upload"),
         'content_name': drink.types.Text("File name"),
         'mimetype': drink.types.Text(),
-    }
+    } )
 
     content = ''
     content_name = "unnamed"
