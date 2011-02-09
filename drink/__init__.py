@@ -92,7 +92,7 @@ class Authenticator(object):
         rights = ''
 
         if usr.id == obj.owner.id:
-            rights = 'ort'
+            return 'owrt'
 
         if any(grp.id in groups or grp.id == 'anonymous' for grp in obj.write_groups):
             rights += 'trw'
