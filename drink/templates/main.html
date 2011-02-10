@@ -32,6 +32,12 @@
                 $("#edit_form").attr("action", action+"/edit");
             });
 
+            $('.editable span').click( function() {
+                var o = $(this).prev();
+                o.attr('checked', ! o.is(':checked'));
+            } );
+
+            $('.editable span').addClass('toggler');
         });
         </script>
 
