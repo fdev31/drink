@@ -1,4 +1,5 @@
 before 0.1:
+- add a proper MANIFEST file
 - add http://www.freewisdom.org/projects/python-markdown/CodeHilite support
 - allow rss via http://www.freewisdom.org/projects/python-markdown/RSS
 - auto-wikilinks via http://www.freewisdom.org/projects/python-markdown/WikiLinks
