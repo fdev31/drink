@@ -202,7 +202,18 @@ def startup():
     # TODO: create "update" command
     elif len(sys.argv) == 2 and sys.argv[1] == "pack":
         db.db.pack()
+    elif len(sys.argv) == 2 and sys.argv[1] == "debug":
+        import pdb
+        from pdb import set_trace
+        root = db.db.open().root()
+        set_trace()
     else:
+
+        if not 'BOTTLE_CHILD' in os.environ:
+            if len(db.db.open().root()) < 3: # users, groups + pages at least
+                init()
+            db.db.close()
+
         host = config.get('server', 'host')
         port = int(config.get('server', 'port'))
         mode = config.get('server', 'backend')
