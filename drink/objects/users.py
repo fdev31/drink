@@ -27,7 +27,14 @@ class User(drink.Model):
     admin_fields.update( {
         'doc': drink.types.Text(),
         'groups': drink.types.GroupCheckBoxes(),
+        'read_groups':
+            drink.types.GroupCheckBoxes("Read-enabled groups", group="x_permissions"),
+        'min_rights':
+            drink.types.Text("Every user's permissions (wrta)", group="x_permissions"),
+        'write_groups':
+            drink.types.GroupCheckBoxes("Write-enabled groups", group="x_permissions")
     } )
+
     owner_fields = {
     # FIXME: Don't look ordered by group !
         'title': drink.types.Text('Nickname', group='0'),
@@ -44,14 +51,18 @@ class User(drink.Model):
 
     def __init__(self, name, rootpath):
         drink.Model.__init__(self, name, rootpath)
+        name = self.id
         self.phones = {}
         self.groups = set()
         self.name = "no name"
         self.surname = "no surname"
         group_list = drink.db["groups"]
         group_list._add(name, Group, {}, {})
-        self.groups.add(group_list[name])
+        mygroup = group_list[name]
+        self.groups.add(mygroup)
+        self.write_groups.add(mygroup)
         self.groups.add(group_list["users"])
+        self.owner = self
         transaction.commit()
 
     def view(self):
@@ -69,6 +80,7 @@ class UserList(drink.ListPage):
     mime = "group"
 
     classes = {'User': User}
+
 
 class Group(drink.Page):
 

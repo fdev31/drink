@@ -23,6 +23,8 @@ class Model(PersistentDict):
     owner_fields = {
         'read_groups':
             drink.types.GroupCheckBoxes("Read-enabled groups", group="x_permissions"),
+        'min_rights':
+            drink.types.Text("Every user's permissions (wrta)", group="x_permissions"),
         'write_groups':
             drink.types.GroupCheckBoxes("Write-enabled groups", group="x_permissions")
     }
@@ -43,12 +45,11 @@ class Model(PersistentDict):
 
     classes = drink.classes
 
+    min_rights = ''
+
     def __init__(self, name, rootpath=None):
         self.read_groups = set()
         self.write_groups = set()
-
-        if not name:
-            drink.abort(401, 'Wrong identifier: %r'%name)
 
         if not isinstance(name, basestring):
             # Root object special case
@@ -57,6 +58,8 @@ class Model(PersistentDict):
             rootpath = '/'
             self.id = '.'
         else:
+            if not name or name[0] in r'/.$%_':
+                drink.abort(401, 'Wrong identifier: %r'%name)
             PersistentDict.__init__(self)
             # minor sanity check
             self.id = name.replace(' ', '-').replace('\t','_').replace('/','.').replace('?', '')

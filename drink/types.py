@@ -33,7 +33,7 @@ class Text(_Editable):
     _template = r'''<input type="text" size="%(size)d" id="%(id)s" value="%(value)s" name="%(name)s" />'''
 
     def __init__(self, caption=None, group=None, size=40):
-        _Editable.__init__(self, caption)
+        _Editable.__init__(self, caption, group)
         self.size = 40
 
 

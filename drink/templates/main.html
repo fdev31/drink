@@ -62,12 +62,12 @@
         <input type="password" class="required" name="login_password" id="ipassword" />
         <input class="submit" type="submit" value="Log in!"/>
     </form>
-    {% elif obj.id != '.' and 'w' in authenticated.access(obj) and not no_admin %}
+    {% elif 'w' in authenticated.access(obj) and not no_admin %}
     <fieldset class="toggler" id="commands">
         <legend onclick="$('.togglable').slideToggle('slow');">{{authenticated.id}}</legend>
         <div class="togglable" >
         <a title="log out" href="/logout"><img src="/static/img/exit.png" /></a>
-        {% if obj.path != '/' %}
+        {% if obj.id != '.' %}
             <a title="Edit current element" href="{{obj.path}}edit"><img src="/static/img/edit.png" /></a>
             <a title="Back to parent element" href="{{obj.path}}../"><img src="/static/img/back.png" /></a>
             {% if classes %}

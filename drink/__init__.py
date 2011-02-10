@@ -66,39 +66,39 @@ class Authenticator(object):
             self.success = self.user.password == password
 
         if self.success:
-            self.groups = [g.id for g in self.user.groups]
+            self.groups = set(g.id for g in self.user.groups)
             self.admin = 'admin' in self.groups or self.user.id == 'admin'
         else:
             self.user = db['users']['anonymous']
             self.admin = False
-            self.groups = set([db['groups']['anonymous']])
+            self.groups = set()
+
+        self.groups.add('anonymous')
 
         self.id = self.user.id
 
     def access(self, obj):
         """
-        read
-        write
         owner
+        write
+        add(& delete if owner)
+        read
         traversal
         """
 
-        usr = self.user
         groups = self.groups
-
-        if usr.id == "admin":
-            return 'rowt'
-
         rights = ''
 
-        if usr.id == obj.owner.id:
-            return 'owrt'
+        if self.id in ("admin", obj.owner.id):
+            rights = 'owart'
+        elif self.success and 'users' in obj.write_groups:
+            rights = 'wrt'
+        elif any(grp.id in groups for grp in obj.write_groups):
+            rights = 'wrt'
+        elif any(grp.id in groups for grp in obj.read_groups):
+            rights = 'rt'
 
-        if any(grp.id in groups or grp.id == 'anonymous' for grp in obj.write_groups):
-            rights += 'trw'
-        elif any(grp.id in groups or grp.id == 'anonymous' for grp in obj.read_groups):
-            rights += 'tr'
-        return rights
+        return rights+obj.min_rights
 
     def __nonzero__(self):
         return self.success
@@ -189,6 +189,7 @@ def init():
     users.owner = admin
     users.read_groups = set()
     users.write_groups = set()
+    users.min_rights = 't'
 
     for pagename, name in config.items('layout'):
         elt = classes[ name ](pagename, '/')
