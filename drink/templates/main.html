@@ -68,8 +68,8 @@
         <div class="togglable" >
         <a title="log out" href="/logout"><img src="/static/img/exit.png" /></a>
         {% if obj.path != '/' %}
-            <a title="Edit current element" href="./edit"><img src="/static/img/edit.png" /></a>
-            <a title="Back to parent element" href="../"><img src="/static/img/back.png" /></a>
+            <a title="Edit current element" href="{{obj.path}}edit"><img src="/static/img/edit.png" /></a>
+            <a title="Back to parent element" href="{{obj.path}}../"><img src="/static/img/back.png" /></a>
             {% if classes %}
             <form id="add_form" class="autovalidate" action="add" method="get">
                 <label for="selected_class"><img src="/static/img/add.png" /></label>
