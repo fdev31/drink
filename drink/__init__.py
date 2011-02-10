@@ -176,9 +176,14 @@ def init():
 
     root['users']['anonymous'] = anon
     root['users']['admin'] = admin
+
     admin.password = 'admin'
     admin.surname = "BOFH"
     admin.name = "Mr Admin"
+    admin.owner = admin
+
+    anon.groups = set()
+    anon.owner = admin
 
     for pagename, name in config.items('layout'):
         elt = classes[ name ](pagename, '/')

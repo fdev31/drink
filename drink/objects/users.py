@@ -63,6 +63,7 @@ class User(drink.Model):
         self.mime = 'http://www.gravatar.com/avatar/%s?s=32'%uid
         return drink.Model.edit(self, resume=r)
 
+
 class UserList(drink.ListPage):
     doc = "Users folder"
     mime = "group"
