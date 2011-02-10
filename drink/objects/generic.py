@@ -210,7 +210,7 @@ class Page(Model):
         if None == cls:
             cls = request.GET.get('class')
 
-        return drink.rdr(self._add(name, cls, auth.user.read_groups, auth.user.write_groups).rootpath)
+        return drink.rdr(self._add(name, cls, auth.user.default_read_groups, auth.user.default_write_groups).rootpath)
 
     def view(self):
         return 'Not viewable...'
