@@ -167,11 +167,11 @@ def init():
     request.identity.user = admin
 
     groups.owner = admin
-    groups.write_groups = set()
     groups.read_groups = set()
+    groups.write_groups = set()
 
     users.owner = admin
-    users.write_groups = set([anon])
+    users.read_groups = set([anon])
     users.write_groups = set()
 
     root['users']['anonymous'] = anon
@@ -184,6 +184,11 @@ def init():
 
     anon.groups = set()
     anon.owner = admin
+
+    users = root['groups']['users']
+    users.owner = admin
+    users.read_groups = set()
+    users.write_groups = set()
 
     for pagename, name in config.items('layout'):
         elt = classes[ name ](pagename, '/')
