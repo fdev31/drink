@@ -64,7 +64,7 @@
     </form>
     {% elif obj.id != '.' and 'w' in authenticated.access(obj) and not no_admin %}
     <fieldset class="toggler" id="commands">
-        <legend onclick="$('.togglable').slideToggle('slow');">{{authenticated.user.id}} commands</legend>
+        <legend onclick="$('.togglable').slideToggle('slow');">{{authenticated.id}}</legend>
         <div class="togglable" >
         <a title="log out" href="/logout"><img src="/static/img/exit.png" /></a>
         {% if obj.path != '/' %}
