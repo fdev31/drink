@@ -42,19 +42,16 @@ class User(drink.Model):
     editable_fields = {
     }
 
-    @property
-    def owner(self):
-        return self
-
     def __init__(self, name, rootpath):
         drink.Model.__init__(self, name, rootpath)
         self.phones = {}
         self.groups = set()
         self.name = "no name"
         self.surname = "no surname"
-        group_list = drink.get_object(drink.db, 'groups')
+        group_list = drink.db["groups"]
         group_list._add(name, Group, {}, {})
         self.groups.add(group_list[name])
+        self.groups.add(group_list["users"])
         transaction.commit()
 
     def view(self):

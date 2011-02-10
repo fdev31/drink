@@ -159,6 +159,8 @@ def init():
     groups = root['groups'] = obj.GroupList('groups', '/')
     users = root['users'] = obj.UserList('users', '/')
 
+    root['groups']['users'] = obj.Group('users', '/groups/')
+
     admin = obj.User('admin', '/users/')
     anon = obj.User('anonymous', '/users/')
 
