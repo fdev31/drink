@@ -279,8 +279,5 @@ def startup():
         #app = authenticate(app)
 
         # Let's run !
-        try:
-            bottle.debug(debug)
-            bottle.run(app=app, host=host, port=port, reloader=debug, server='wsgiref' if mode == 'debug' else mode)
-        finally:
-            db.db.pack()
+        bottle.debug(debug)
+        bottle.run(app=app, host=host, port=port, reloader=debug, server='wsgiref' if mode == 'debug' else mode)
