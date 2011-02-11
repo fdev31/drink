@@ -206,7 +206,7 @@ def startup():
     except ImportError:
         print "Unable to set process' name, easy_install setproctitle, if you want it."
     else:
-        setproctitle.setproctitle('ownerdrink')
+        setproctitle.setproctitle('drink')
 
 
     if len(sys.argv) == 2 and sys.argv[1] == "init":
