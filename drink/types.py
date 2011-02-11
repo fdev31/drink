@@ -79,14 +79,14 @@ class GroupListArea(TextArea):
         return TextArea.html(self, name, '\n'.join(group.id for group in value))
 
     def set(self, obj, name, val):
-        groups = drink.db['groups']
+        groups = drink.db.db['groups']
         setattr(obj, name, set(groups[line.strip()] for line in val.split('\n') if line.strip() in groups))
 
 
 class GroupCheckBoxes(_Editable):
 
     def html(self, name, value):
-        groups = [g for g in drink.db['groups']]
+        groups = [g for g in drink.db.db['groups']]
         values = [v.id for v in value]
 
         opts = [r'<input type="checkbox" name=%(name)s value="'+o+'" '+\
@@ -96,7 +96,7 @@ class GroupCheckBoxes(_Editable):
 
     def set(self, obj, name, val):
         groups = request.forms.getall(name)
-        dgroups = drink.db['groups']
+        dgroups = drink.db.db['groups']
         setattr(obj, name, set(dgroups[g] for g in groups))
 
 
