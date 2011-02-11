@@ -33,7 +33,7 @@ class Text(_Editable):
     _template = r'''<input type="text" size="%(size)d" id="%(id)s" value="%(value)s" name="%(name)s" />'''
 
     def __init__(self, caption=None, group=None, size=40):
-        _Editable.__init__(self, caption)
+        _Editable.__init__(self, caption, group)
         self.size = 40
 
 
@@ -90,7 +90,7 @@ class GroupCheckBoxes(_Editable):
         values = [v.id for v in value]
 
         opts = [r'<input type="checkbox" name=%(name)s value="'+o+'" '+\
-            ('checked="checked">' if o in values else '>')+o+'</input>' for o in groups]
+            ('checked="checked" />' if o in values else '/><span class="label">')+o+'</span>' for o in groups]
         return _Editable.html(self, name, value, '\n'.join(opts))
 
 

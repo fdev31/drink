@@ -19,10 +19,11 @@ class Model(PersistentDict):
         'title': drink.types.Text('Title')
     }
 
-
     owner_fields = {
         'read_groups':
             drink.types.GroupCheckBoxes("Read-enabled groups", group="x_permissions"),
+        'min_rights':
+            drink.types.Text("Every user's permissions (wrta)", group="x_permissions"),
         'write_groups':
             drink.types.GroupCheckBoxes("Write-enabled groups", group="x_permissions")
     }
@@ -43,12 +44,11 @@ class Model(PersistentDict):
 
     classes = drink.classes
 
+    min_rights = ''
+
     def __init__(self, name, rootpath=None):
         self.read_groups = set()
         self.write_groups = set()
-
-        if not name:
-            drink.abort(401, 'Wrong identifier: %r'%name)
 
         if not isinstance(name, basestring):
             # Root object special case
@@ -57,6 +57,8 @@ class Model(PersistentDict):
             rootpath = '/'
             self.id = '.'
         else:
+            if not name or name[0] in r'/.$%_':
+                drink.abort(401, 'Wrong identifier: %r'%name)
             PersistentDict.__init__(self)
             # minor sanity check
             self.id = name.replace(' ', '-').replace('\t','_').replace('/','.').replace('?', '')
@@ -84,23 +86,29 @@ class Model(PersistentDict):
 
     def struct(self, childs=True):
 
+        a = request.identity.access
+
         d = dict()
-        for k in self.editable_fields.keys():
-            v = getattr(self, k, None)
-            if isinstance(v, Model):
-                v = v.struct(False)
-                v['id'] = k
-            elif isinstance(v, (basestring, int, float)):
-                pass # serializes well in json
-            else:
-                v = "N/A"
-            d[k] = v
+
+        if 'r' in a(self):
+            for k in self.editable_fields.keys():
+                v = getattr(self, k, None)
+                if isinstance(v, Model):
+                    if not 'r' in a(v):
+                        continue
+                    v = v.struct(False)
+                    v['id'] = k
+                elif isinstance(v, (basestring, int, float)):
+                    pass # serializes well in json
+                else:
+                    v = "N/A"
+                d[k] = v
 
 
-        if childs:
-            it = [v.struct() for v in self.itervalues()]
-            if it:
-                d['items'] = it
+            if childs:
+                it = [v.struct() for v in self.itervalues() if 'r' in a(v)]
+                if it:
+                    d['items'] = it
 
         d['id'] = self.id
         d['title'] = self.title
@@ -175,11 +183,11 @@ class Page(Model):
 
     def rm(self):
         name = request.GET.get('name')
-        if 'w' not in request.identity.access(self[name]):
+        if not ('a' not in request.identity.access(self) and 'w' not in request.identity.access(self[name])):
             return abort(401, "Not authorized")
         try:
             parent_path = self.path
-        except AttributeError:
+        except AttributeError: # XXX: unclean
             parent_path = '.'
         del self[name]
         transaction.commit()
@@ -204,13 +212,13 @@ class Page(Model):
     def add(self, name=None, cls=None, read_groups=None, write_groups=None):
         auth = request.identity
 
-        if 'w' not in auth.access(self):
+        if 'a' not in auth.access(self):
             return abort(401, "Not authorized")
         name = name or request.GET.get('name')
         if None == cls:
             cls = request.GET.get('class')
 
-        return drink.rdr(self._add(name, cls, auth.user.read_groups, auth.user.write_groups).rootpath)
+        return drink.rdr(self._add(name, cls, auth.user.default_read_groups, auth.user.default_write_groups).rootpath)
 
     def view(self):
         return 'Not viewable...'

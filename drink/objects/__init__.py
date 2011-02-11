@@ -15,6 +15,7 @@ def get_object(current, objpath):
     for i, elt in enumerate(path_list):
 
         if i == last_idx:
+            # getting
             try:
                 current = current[elt]
                 if 'r' not in request.identity.access(current):
@@ -27,9 +28,10 @@ def get_object(current, objpath):
                     raise AttributeError(elt)
             break # found a matching object
         else:
+            # traversal
             try:
                 current = current[elt]
-                if 'r' not in request.identity.access(current):
+                if 't' not in request.identity.access(current):
                     abort(401, 'Not authorized')
                     return
             except (KeyError, AttributeError):

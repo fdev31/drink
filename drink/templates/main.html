@@ -32,6 +32,12 @@
                 $("#edit_form").attr("action", action+"/edit");
             });
 
+            $('.editable span').click( function() {
+                var o = $(this).prev();
+                o.attr('checked', ! o.is(':checked'));
+            } );
+
+            $('.editable span').addClass('toggler');
         });
         </script>
 
@@ -56,15 +62,18 @@
         <input type="password" class="required" name="login_password" id="ipassword" />
         <input class="submit" type="submit" value="Log in!"/>
     </form>
-    {% elif 'w' in authenticated.access(obj) and not no_admin %}
+    {% elif not no_admin and authenticated %}
     <fieldset class="toggler" id="commands">
-        <legend onclick="$('.togglable').slideToggle('slow');">{{authenticated.user.id}} commands</legend>
+        <legend onclick="$('.togglable').slideToggle('slow');">{{authenticated.id}}</legend>
         <div class="togglable" >
+        <a title="log out" href="/users/{{authenticated.id}}/edit"><img width="42px" src="/static/mime/user.png" /></a>
         <a title="log out" href="/logout"><img src="/static/img/exit.png" /></a>
-        {% if obj.path != '/' %}
-            <a title="Edit current element" href="./edit"><img src="/static/img/edit.png" /></a>
-            <a title="Back to parent element" href="../"><img src="/static/img/back.png" /></a>
-            {% if classes %}
+        {% if obj.id != '.' %}
+            <a title="Back to parent element" href="{{obj.path}}../"><img src="/static/img/back.png" /></a>
+        {% endif %}
+        {% if obj.id != '.' and 'w' in authenticated.access(obj) %}
+            <a title="Edit current element" href="{{obj.path}}edit"><img src="/static/img/edit.png" /></a>
+            {% if classes and 'a' in authenticated.access(obj) %}
             <form id="add_form" class="autovalidate" action="add" method="get">
                 <label for="selected_class"><img src="/static/img/add.png" /></label>
                 <select id="selected_class" class="required" name="class" size="0">
@@ -77,7 +86,7 @@
                 <input class="submit" type="submit" value="Create!"/>
             </form>
             {% endif %}
-            {% if obj %}
+            {% if obj and 'a' in authenticated.access(obj) %}
             <form id="rm_form" action="rm" class="autovalidate" method="get" enctype="text/plain">
                 <label for="selected_rm_key"><img src="/static/img/delete.png" /></label>
                 <select id="selected_rm_key" name="name" size="0" class="required">
