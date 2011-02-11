@@ -138,6 +138,7 @@ def glob_index(objpath="/"):
     if callable(o):
         return o()
     elif isinstance(o, basestring):
+        response.content_type = "text/plain"
         return o
     else:
         return o.view()
