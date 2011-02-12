@@ -56,7 +56,7 @@ class User(drink.Model):
         self.groups = set()
         self.name = "no name"
         self.surname = "no surname"
-        group_list = drink.db["groups"]
+        group_list = drink.db.db["groups"]
         group_list._add(name, Group, {}, {})
         mygroup = group_list[name]
         self.groups.add(mygroup)

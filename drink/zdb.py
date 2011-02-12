@@ -10,8 +10,6 @@ class Database(object):
         self.app = wsgi_app
         self._config = config_file
         self.locals = threading.local()
-        self.locals.__dict__.setdefault('c', None)
-        self.locals.__dict__.setdefault('root', None)
         self._db = None
         self.connection = None
         wsgi_app.add_hook('before_request', self.start_request)
@@ -21,7 +19,7 @@ class Database(object):
     def _cleanup(self):
         if self._db:
             self._db.close()
-        if self.locals.c:
+        if getattr(self.locals, 'c', None):
             self.locals.c.close()
         self.app.hooks.clear()
 
@@ -33,9 +31,9 @@ class Database(object):
         if self._db is None:
             self._db = ZODB.config.databaseFromURL(self._config)
 
-        r = self.locals.root
+        r = getattr(self.locals, 'root', None)
 
-        if not self.locals.c:
+        if None == r:
             c = self.locals.c = self._db.open()
             r = self.locals.root = c.root()
 
@@ -50,12 +48,9 @@ class Database(object):
 
     def close_request(self):
         transaction.commit()
-        self.locals.c.close()
-        self.locals.c = None
 
     def __exit__(self, exc_type, exc_value, traceback):
         if exc_value:
             transaction.abort()
         else:
             transaction.commit()
-        self.close_request()

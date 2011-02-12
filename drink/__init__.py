@@ -245,7 +245,7 @@ def startup():
         if dbg_in_env:
             mode = 'debug'
 
-        if mode not in ('debug', 'paste'):
+        if mode not in ('debug', 'paste', 'rocket'):
             try:
                 import gevent.monkey
                 gevent.monkey.patch_all()
