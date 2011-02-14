@@ -3,8 +3,7 @@ body {
 	background-color: #F0F0F0;
 	font-family:Georgia,"Times New Roman","Bitstream Charter",Times,serif;
 	color:#093E56;
-    }
-
+}
 
 h1 {
 	font-style:italic;
@@ -28,20 +27,48 @@ a img {
 }
 
 .sortable {
- list-style-image: url(/static/mime/hand.png);
+    list-style-image: url(/static/mime/hand.png);
+}
+
+.selected {
+    border-radius: 1em;
+    -moz-border-radius: 1em;
+    background-image: -moz-linear-gradient(top, #91be15, #84b710 27px, #7ab200 27px, #86bb08);
+    background-image: -webkit-gradient(linear, left bottom, right top, from(#fa0), color-stop(0.2, #fa0),
+		    color-stop(0.5, rgba(255,255,255, 0)));
 }
 
 a:hover {
-
     text-decoration: underline;
-   background: #778;
+    background: #778;
     text-decoration: none;
-   color: white;
+    color: white;
     -moz-box-shadow: 10px 10px 5px #888;
     -webkit-box-shadow: 3px 1px 5px #888;
     box-shadow: 10px 10px 5px #888;
     border-radius: 3px;
     -moz-border-radius: 3px;
+}
+
+.x_permissions_grp {
+    background: #FCC;
+    padding: 1em;
+    width: 25em;
+    border: solid #FAA 2px;
+    border-radius: 1em;
+    -moz-border-radius: 1em;
+}
+.x_permissions_grp:hover {
+    background: #fdd;
+    border: solid #F00 2px;
+    -moz-box-shadow: 10px 10px 5px #888;
+    -webkit-box-shadow: 3px 1px 5px #888;
+    box-shadow: 10px 10px 5px #888;
+}
+
+.x_permissions_grp:before {
+    content:"Permissions:";
+   font-weight: bold;
 }
 
 label.autoform {
@@ -80,6 +107,9 @@ div.editable {
 form input , div.input input , div.input textarea {
     margin: 0 0 0.7ex 0;
     border: solid 1px #999;
+    -webkit-border-radius: 1em;
+    -moz-border-radius: 1em;
+    border-radius: 1em;
 }
 
 div.input input[type="file"] {
@@ -91,7 +121,13 @@ input:hover {
     -moz-box-shadow: 10px 10px 5px #888;
     -webkit-box-shadow: 3px 1px 5px #888;
     box-shadow: 10px 10px 5px #888;
+}
 
+div.editable span.label:hover {
+    background: #ffa;
+    -moz-box-shadow: 10px 10px 5px #888;
+    -webkit-box-shadow: 3px 1px 5px #888;
+    box-shadow: 10px 10px 5px #888;
 }
 
 label > img {
@@ -100,15 +136,14 @@ label > img {
 
 a {
     text-decoration: none;
-   padding: 0 1ex 0 1ex;
+    padding: 0 1ex 0 1ex;
 }
 
 a:hover {
-
     text-decoration: underline;
-   background: #778;
+    background: #778;
     text-decoration: none;
-   color: white;
+    color: white;
     -moz-box-shadow: 10px 10px 5px #888;
     -webkit-box-shadow: 3px 1px 5px #888;
     box-shadow: 10px 10px 5px #888;
