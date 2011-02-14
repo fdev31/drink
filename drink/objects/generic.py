@@ -159,19 +159,22 @@ class Model(PersistentDict):
             else:
                 # sort by group+id
                 items.sort(key=lambda o: o[1].group+o[0])
-                current_group = items[0][1].group
+                current_group = None
                 form_opts = []
                 form = []
                 for field, factory in items:
                     if factory.form_attr:
                         form_opts.append(factory.form_attr)
                     if factory.group != current_group:
+                        old_group = current_group
                         current_group = factory.group
-                        form.append('</div><div class="%s_grp">'%current_group)
+                        if old_group:
+                            form.append('</div>')
+                        form.append('<div class="%s_grp">'%current_group)
                     val = getattr(self, field, '')
                     form.append('<div class="input">%s</div>'%factory.html(field, val))
                 form.append('</div><div class="buttons"><input class="submit" type="submit" value="Save changes please"/></div></form>')
-                form.insert(0, '<form class="auto_edit_form" id="auto_edit_form" action="edit" %s method="post"><div class="%s_grp">'%(' '.join(form_opts), current_group))
+                form.insert(0, '<form class="auto_edit_form" id="auto_edit_form" action="edit" %s method="post">'%(' '.join(form_opts)))
             return drink.template('main.html', obj=self, html='\n'.join(form), css=self.css, js=self.js, classes=self.classes, authenticated=request.identity)
 
 
