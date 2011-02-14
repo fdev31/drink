@@ -171,8 +171,9 @@ def init():
         groups.write_groups = set()
 
         users.owner = admin
-        users.read_groups = set([anon])
+        users.read_groups = set()
         users.write_groups = set()
+        users.min_rights = 't'
 
         root['users']['anonymous'] = anon
         root['users']['admin'] = admin
