@@ -3,8 +3,7 @@ body {
 	background-color: #F0F0F0;
 	font-family:Georgia,"Times New Roman","Bitstream Charter",Times,serif;
 	color:#093E56;
-    }
-
+}
 
 h1 {
 	font-style:italic;
@@ -42,6 +41,20 @@ a:hover {
     box-shadow: 10px 10px 5px #888;
     border-radius: 3px;
     -moz-border-radius: 3px;
+}
+
+.x_permissions_grp {
+    background: #FCC;
+    padding: 1em;
+    width: 25em;
+    border: solid #FAA 1px;
+    border-radius: 1em;
+    -moz-border-radius: 1em;
+}
+
+.x_permissions_grp:before {
+    content:"Permissions:";
+   font-weight: bold;
 }
 
 label.autoform {
@@ -91,7 +104,13 @@ input:hover {
     -moz-box-shadow: 10px 10px 5px #888;
     -webkit-box-shadow: 3px 1px 5px #888;
     box-shadow: 10px 10px 5px #888;
+}
 
+div.editable span.label:hover {
+    background: #ffa;
+    -moz-box-shadow: 10px 10px 5px #888;
+    -webkit-box-shadow: 3px 1px 5px #888;
+    box-shadow: 10px 10px 5px #888;
 }
 
 label > img {
@@ -100,15 +119,14 @@ label > img {
 
 a {
     text-decoration: none;
-   padding: 0 1ex 0 1ex;
+    padding: 0 1ex 0 1ex;
 }
 
 a:hover {
-
     text-decoration: underline;
-   background: #778;
+    background: #778;
     text-decoration: none;
-   color: white;
+    color: white;
     -moz-box-shadow: 10px 10px 5px #888;
     -webkit-box-shadow: 3px 1px 5px #888;
     box-shadow: 10px 10px 5px #888;
