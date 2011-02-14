@@ -30,6 +30,12 @@ a img {
     list-style-image: url(/static/mime/hand.png);
 }
 
+.selected {
+    background: #fa0;
+    border-radius: 1ex;
+    border-left: solid 1px black;
+}
+
 a:hover {
     text-decoration: underline;
     background: #778;
