@@ -27,15 +27,14 @@ a img {
 }
 
 .sortable {
- list-style-image: url(/static/mime/hand.png);
+    list-style-image: url(/static/mime/hand.png);
 }
 
 a:hover {
-
     text-decoration: underline;
-   background: #778;
+    background: #778;
     text-decoration: none;
-   color: white;
+    color: white;
     -moz-box-shadow: 10px 10px 5px #888;
     -webkit-box-shadow: 3px 1px 5px #888;
     box-shadow: 10px 10px 5px #888;
@@ -47,9 +46,16 @@ a:hover {
     background: #FCC;
     padding: 1em;
     width: 25em;
-    border: solid #FAA 1px;
+    border: solid #FAA 2px;
     border-radius: 1em;
     -moz-border-radius: 1em;
+}
+.x_permissions_grp:hover {
+    background: #fdd;
+    border: solid #F00 2px;
+    -moz-box-shadow: 10px 10px 5px #888;
+    -webkit-box-shadow: 3px 1px 5px #888;
+    box-shadow: 10px 10px 5px #888;
 }
 
 .x_permissions_grp:before {
