@@ -186,7 +186,7 @@ class Page(Model):
 
     def rm(self):
         name = request.GET.get('name')
-        if not ('a' not in request.identity.access(self) and 'w' not in request.identity.access(self[name])):
+        if not ('a' in request.identity.access(self) and 'w' in request.identity.access(self[name])):
             return abort(401, "Not authorized")
         try:
             parent_path = self.path
