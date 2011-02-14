@@ -2,8 +2,10 @@ from __future__ import absolute_import
 import os
 from mimetypes import guess_type
 from bottle import request, abort
-from persistent.dict import PersistentDict
 from ZODB.blob import Blob
+#from persistent.dict import PersistentDict
+import persistent
+from persistent.mapping import default
 import transaction
 from drink import template
 import drink
@@ -13,7 +15,155 @@ from . import classes
 #  Model & Page will share most of the interface but Model can't have any children (it's an end-point property)
 # ??? Models will be self-editable, wilth _Editable-like interface, they may have a link...
 
-class Model(PersistentDict):
+
+class Model(persistent.Persistent):
+
+    # Dict-like methods
+
+    def __init__(self, name, rootpath=None):
+        persistent.Persistent.__init__(self)
+        self.data = {}
+        self.read_groups = set()
+        self.write_groups = set()
+
+        if not isinstance(name, basestring):
+            # Root object special case, will pass the dict or None...
+            if name is not None:
+                self.update(name)
+            name = '/'
+            rootpath = '/'
+            self.id = '.'
+        else:
+            if not name or name[0] in r'/.$%_':
+                drink.abort(401, 'Wrong identifier: %r'%name)
+            # minor sanity check
+            self.id = name.replace(' ', '-').replace('\t','_').replace('/','.').replace('?', '')
+
+        self.rootpath = rootpath
+
+        if not hasattr(self, 'title'):
+            self.title = name.replace('_', ' ').replace('-', ' ').capitalize()
+
+        try:
+            self.owner
+        except AttributeError:
+            self.owner = request.identity.user
+
+    def __repr__(self):
+        return repr(self.data)
+
+    def __cmp__(self, dict):
+        if isinstance(dict, Model):
+            return cmp(self.data, dict.data)
+        else:
+            return cmp(self.data, dict)
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, key):
+        if key in self.data:
+            return self.data[key]
+        if hasattr(self.__class__, "__missing__"):
+            return self.__class__.__missing__(self, key)
+        raise KeyError(key)
+
+    def __setitem__(self, key, item):
+        if key in self:
+            abort(401, "%r is already defined!"%key)
+        self.data[key] = item
+        self._p_changed = 1
+
+    def __delitem__(self, key):
+        del self.data[key]
+        self._p_changed = 1
+
+    def clear(self):
+        self.data.clear()
+        self._p_changed = 1
+
+    def copy(self):
+        if self.__class__ is Model:
+            return Model(self.data.copy())
+        import copy
+        data = self.data
+        try:
+            self.data = {}
+            c = copy.copy(self)
+        finally:
+            self.data = data
+        c.update(self)
+        return c
+
+    def keys(self):
+        return self.data.keys()
+
+    def items(self):
+        return self.data.items()
+
+    def iteritems(self):
+        return self.data.iteritems()
+
+    def iterkeys(self):
+        return self.data.iterkeys()
+
+    def itervalues(self):
+        return self.data.itervalues()
+
+    def values(self):
+        return self.data.values()
+
+    def has_key(self, key):
+        return key in self.data
+
+    def update(self, dict=None, **kwargs):
+        if dict is None:
+            pass
+        elif isinstance(dict, Model):
+            self.data.update(dict.data)
+        elif isinstance(dict, type({})) or not hasattr(dict, 'items'):
+            self.data.update(dict)
+        else:
+            for k, v in dict.items():
+                self[k] = v
+        if len(kwargs):
+            self.data.update(kwargs)
+        self._p_changed = 1
+
+    def get(self, key, failobj=None):
+        if key not in self:
+            return failobj
+        return self[key]
+
+    def setdefault(self, key, failobj=None):
+        if key not in self:
+            self[key] = failobj
+        return self[key]
+
+    def pop(self, key, *args):
+        r = self.data.pop(key, *args)
+        self._p_changed = 1
+        return r
+
+    def popitem(self):
+        r = self.data.popitem()
+        self._p_changed = 1
+        return r
+
+    def __contains__(self, key):
+        return key in self.data
+
+    @classmethod
+    def fromkeys(cls, iterable, value=None):
+        d = cls()
+        for key in iterable:
+            d[key] = value
+        return d
+
+    def __iter__(self):
+        return iter(self.data)
+
+    # Model properties
 
     editable_fields = {
         'title': drink.types.Text('Title')
@@ -40,46 +190,14 @@ class Model(PersistentDict):
 
     mime = 'model'
 
-    data = {}
-
     classes = drink.classes
 
     min_rights = ''
 
-    def __init__(self, name, rootpath=None):
-        self.read_groups = set()
-        self.write_groups = set()
-
-        if not isinstance(name, basestring):
-            # Root object special case
-            PersistentDict.__init__(self, name)
-            name = '/'
-            rootpath = '/'
-            self.id = '.'
-        else:
-            if not name or name[0] in r'/.$%_':
-                drink.abort(401, 'Wrong identifier: %r'%name)
-            PersistentDict.__init__(self)
-            # minor sanity check
-            self.id = name.replace(' ', '-').replace('\t','_').replace('/','.').replace('?', '')
-
-        self.rootpath = rootpath
-
-        if not hasattr(self, 'title'):
-            self.title = name.replace('_', ' ').replace('-', ' ').capitalize()
-
-        try:
-            self.owner
-        except AttributeError:
-            self.owner = request.identity.user
+    # Model methods
 
     def __hash__(self):
         return hash(self.id)
-
-    def __setitem__(self, name, val):
-        if name in self:
-            abort(401, "%r is already defined!"%name)
-        PersistentDict.__setitem__(self, name, val)
 
     def view(self):
         return "Not viewable"
