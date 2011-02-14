@@ -355,8 +355,8 @@ class ListPage(Page):
     js = ['/static/listing.js']
 
     def __init__(self, name, rootpath=None):
+        self.forced_order = []
         Page.__init__(self, name, rootpath)
-        self.forced_order = list(Page.keys(self))
 
     def iterkeys(self):
         return iter(self.forced_order or Page.keys(self))
