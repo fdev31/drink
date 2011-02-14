@@ -16,6 +16,7 @@ class Database(object):
         wsgi_app.add_hook('after_request', self.close_request)
         atexit.register(self._cleanup)
 
+
     def _cleanup(self):
         if self._db:
             self._db.close()
