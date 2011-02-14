@@ -210,11 +210,11 @@ def startup():
 
     if len(sys.argv) == 2 and sys.argv[1] == "init":
         init()
-        db.db.pack()
+        db.pack()
     # TODO: rename __init_
     # TODO: create "update" command
     elif len(sys.argv) == 2 and sys.argv[1] == "pack":
-        db.db.pack()
+        db.pack()
     elif len(sys.argv) == 2 and sys.argv[1] == "debug":
         import pdb
         from pdb import set_trace

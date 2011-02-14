@@ -26,6 +26,9 @@ class Database(object):
     def __del__(self):
         self._cleanup()
 
+    def pack(self):
+        return self._db.pack()
+
     @property
     def db(self):
         if self._db is None:
