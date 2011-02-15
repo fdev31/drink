@@ -106,7 +106,7 @@ div.editable {
 
 form input , div.input input , div.input textarea {
     margin: 0 0 0.7ex 0;
-    border: solid 1px #999;
+    border: solid 2px #999;
     -webkit-border-radius: 1em;
     -moz-border-radius: 1em;
     border-radius: 1em;
