@@ -24,20 +24,6 @@ class Model(persistent.Persistent):
 
     # Dict-like methods
 
-    def upload(self):
-        filename = request.GET.get('qqfile', 'uploaded')
-        o = self._add(filename, 'File',
-            request.identity.user.default_read_groups,
-            request.identity.user.default_write_groups)
-        fake_post_obj = _Mock()
-        fake_post_obj.file = request.body
-        fake_post_obj.filename = filename
-        o.editable_fields['content'].set(o, 'content', fake_post_obj)
-        o.mimetype = get_type(fake_post_obj.filename)
-        return {'success': True, # for upload function
-        # following describes the object:
-        'path': o.path, 'id': o.id, 'mime': 'page', 'title': o.title}
-
     def __init__(self, name, rootpath=None):
         persistent.Persistent.__init__(self)
         self.data = {}
@@ -318,6 +304,20 @@ class Page(Model):
     mime = 'page'
 
     doc = 'An abstract page'
+
+    def upload(self):
+        filename = request.GET.get('qqfile', 'uploaded')
+        o = self._add(filename, 'File',
+            request.identity.user.default_read_groups,
+            request.identity.user.default_write_groups)
+        fake_post_obj = _Mock()
+        fake_post_obj.file = request.body
+        fake_post_obj.filename = filename
+        o.editable_fields['content'].set(o, 'content', fake_post_obj)
+        o.mimetype = get_type(fake_post_obj.filename)
+        return {'success': True, # for upload function
+        # following describes the object:
+        'path': o.path, 'id': o.id, 'mime': 'page', 'title': o.title}
 
     def rm(self):
         name = request.GET.get('name')
