@@ -7,33 +7,31 @@ var startcode = function(data, status, req) {
    var url_regex = /^(\/|http).+/;
 
    var make_li = function (obj) {
-        var e = $('<li class="entry"><a href="'+obj.path+obj.id+'/edit"><img width="32px" src="'+mime+'" /></a><a href="'+obj.path+obj.id+'/view">'+(obj.title || obj.id)+'</a></li>');
+        var mime = "";
+        if ( obj.mime ) {
+            if ( obj.mime.match( url_regex )) {
+                mime = obj.mime;
+            } else {
+                mime = "/static/mime/"+obj.mime+".png";
+            }
+        } else {
+            mime = "/static/mime/page.png";
+        }
+
+        var e = $('<li class="entry"><img width="32px" src="'+mime+'" /><a href="'+obj.path+obj.id+'/view">'+(obj.title || obj.id)+'</a></li>');
         e.data('item', obj.id);
         e.disableSelection();
         return e;
     }
 
    for(n=0; n<data.items.length; n++) {
-        i = data.items[n];
-
-        var mime = "";
-        if ( i.mime ) {
-            if ( i.mime.match( url_regex )) {
-                mime = i.mime;
-            } else {
-                mime = "/static/mime/"+i.mime+".png";
-            }
-        } else {
-            mime = "/static/mime/page.png";
-        }
-        e = make_li(i);
-        sortable.append(e);
+        sortable.append(make_li(data.items[n]));
    }
    sortable.sortable({
 //        axis: "y",
 //        containment: ".sortable",
         cursor: 'move', update: function(event, ui) {
-            var pat = $('.sortable').find('li').map( function() { return $(this).data('item') } ).get().join('/')
+            var pat = $('.sortable').find('li').map( function() { return $(this).data('item') } ).get().join('/');
             $.post('move', {'set': pat});
         },
    });
