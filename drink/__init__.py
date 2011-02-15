@@ -216,10 +216,9 @@ def startup():
     elif len(sys.argv) == 2 and sys.argv[1] == "pack":
         db.pack()
     elif len(sys.argv) == 2 and sys.argv[1] == "debug":
-        import pdb
         from pdb import set_trace
-        root = db.db.open().root()
-        set_trace()
+        with db as root:
+            set_trace()
     else:
         dbg_in_env = 'DEBUG' in os.environ
 
