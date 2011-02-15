@@ -229,8 +229,7 @@ class Model(persistent.Persistent):
 
             if childs:
                 it = [v.struct() for v in self.itervalues() if 'r' in a(v)]
-                if it:
-                    d['items'] = it
+                d['items'] = it
 
         d['id'] = self.id
         d['title'] = self.title
