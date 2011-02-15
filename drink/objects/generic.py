@@ -364,7 +364,7 @@ class ListPage(Page):
     keys = iterkeys
 
     def move(self):
-        self.forced_order = request.forms.get('set').split('/')
+        self.forced_order = request.params.get('set').split('/')
 
     def itervalues(self):
         return (self[v] for v in self.keys())
