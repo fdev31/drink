@@ -375,7 +375,8 @@ class ListPage(Page):
         Page.__init__(self, name, rootpath)
 
     def iterkeys(self):
-        return iter(self.forced_order or Page.keys(self))
+        k = Page.keys(self)
+        return (x for x in self.forced_order if x in k) or k
 
     keys = iterkeys
 
@@ -384,6 +385,16 @@ class ListPage(Page):
 
     def itervalues(self):
         return (self[v] for v in self.keys())
+
+    def reset_items(self):
+        orig_order = []
+        k = Page.keys(self)
+
+        for item in self.forced_order:
+            if item not in orig_order and item in k:
+                orig_order.append(item)
+        self.forced_order = orig_order
+        return 'ok'
 
     def values(self):
         return list(self.itervalues)
