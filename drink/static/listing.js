@@ -69,7 +69,16 @@ var startcode = function(data, status, req) {
 	sortable.find(".entry input").live("keyup", on_enter);
 
 
-}
+    // Integration of http://valums.com/ajax-upload/
+    var uploader = new qq.FileUploader({
+        element: $('#file-uploader')[0],
+        action: 'upload',
+        onComplete: function(id, fileName, data){
+            sortable.append(make_li(data));
+        },
+    });
+
+} // End of startup code
 
 
 $(document).ready(

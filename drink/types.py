@@ -133,4 +133,3 @@ class File(_Editable):
                 break
             o_fd.write(dat)
         o_fd.close()
-

@@ -15,10 +15,28 @@ from . import classes
 #  Model & Page will share most of the interface but Model can't have any children (it's an end-point property)
 # ??? Models will be self-editable, wilth _Editable-like interface, they may have a link...
 
+class _Mock(object): pass
+
+def get_type(filename):
+    return guess_type(filename)[0] or 'application/octet-stream'
 
 class Model(persistent.Persistent):
 
     # Dict-like methods
+
+    def upload(self):
+        filename = request.GET.get('qqfile', 'uploaded')
+        o = self._add(filename, 'File',
+            request.identity.user.default_read_groups,
+            request.identity.user.default_write_groups)
+        fake_post_obj = _Mock()
+        fake_post_obj.file = request.body
+        fake_post_obj.filename = filename
+        o.editable_fields['content'].set(o, 'content', fake_post_obj)
+        o.mimetype = get_type(fake_post_obj.filename)
+        return {'success': True, # for upload function
+        # following describes the object:
+        'path': o.path, 'id': o.id, 'mime': 'page', 'title': o.title}
 
     def __init__(self, name, rootpath=None):
         persistent.Persistent.__init__(self)
@@ -295,7 +313,6 @@ class Model(persistent.Persistent):
                 form.insert(0, '<form class="auto_edit_form" id="auto_edit_form" action="edit" %s method="post">'%(' '.join(form_opts)))
             return drink.template('main.html', obj=self, html='\n'.join(form), css=self.css, js=self.js, classes=self.classes, authenticated=request.identity)
 
-
 class Page(Model):
 
     mime = 'page'
@@ -428,12 +445,11 @@ class StaticFile(Page):
         #Alternatively: drink.response.headers['Content-Type'] = '...'
         # + read
 
-    def edit(self):
+    def _edit(self):
         r = Page._edit(self)
-        if request.files:
-            self.mimetype = guess_type(request.files.get('content').filename)[0] or 'application/octet-stream'
-        transaction.commit()
-        return Page.edit(self, r)
+        if request.forms and request.files and request.files.filename:
+            self.mimetype = get_type(request.files.get('content').filename)
+        return r
 
     def view(self):
         html = ['<div class="download"><a href="raw">Download file (original name: %r)</a></div>'%self.content_name]
