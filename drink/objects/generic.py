@@ -244,6 +244,7 @@ class Model(persistent.Persistent):
 
     def edit(self, resume=None):
         r = resume or self._edit()
+        transaction.commit() # commit before eventual redirect
         if callable(r[0]):
             return r[0](*r[1:])
         else:
@@ -456,9 +457,15 @@ class StaticFile(Page):
         # + read
 
     def _edit(self):
+        # In case the user didn't change the mimetype
+        # we guess it from the uploaded file name
+
+        old_mimetype = self.mimetype
         r = Page._edit(self)
-        if request.forms and request.files and request.files.filename:
-            self.mimetype = get_type(request.files.get('content').filename)
+        if old_mimetype == self.mimetype \
+           and request.forms.keys() and 'content' in request.files \
+           and request.files['content'].filename:
+            self.mimetype = get_type(self.content_name)
         return r
 
     def view(self):
@@ -475,6 +482,5 @@ class StaticFile(Page):
                 html.append('</pre>')
 
         return drink.template('main.html', obj=self, css=self.css, js=self.js, html='\n'.join(html), classes=self.classes, authenticated=request.identity)
-
 
 exported = {'Folder index': ListPage, 'File': StaticFile}
