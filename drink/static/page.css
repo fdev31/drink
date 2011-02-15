@@ -34,8 +34,7 @@ a img {
     border-radius: 1em;
     -moz-border-radius: 1em;
     background-image: -moz-linear-gradient(top, #91be15, #84b710 27px, #7ab200 27px, #86bb08);
-    background-image: -webkit-gradient(linear, left bottom, right top, from(#fa0), color-stop(0.2, #fa0),
-		    color-stop(0.5, rgba(255,255,255, 0)));
+    background-image: -webkit-gradient(linear, left bottom, right top, from(#fa0), color-stop(0.2, #fa0), color-stop(0.5, rgba(255,255,255, 0)));
 }
 
 a:hover {
@@ -82,6 +81,7 @@ label.autoform {
 }
 
 fieldset {
+    border: solid 2px #999;
     margin-top: 1em;
     border-radius: 3em 10em 10em 3em;
     -moz-border-radius: 3em 10em 10em 3em;
@@ -106,7 +106,7 @@ div.editable {
 
 form input , div.input input , div.input textarea {
     margin: 0 0 0.7ex 0;
-    border: solid 1px #999;
+    border: solid 2px #999;
     -webkit-border-radius: 1em;
     -moz-border-radius: 1em;
     border-radius: 1em;
