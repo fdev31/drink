@@ -44,7 +44,7 @@ var startcode = function(data, status, req) {
 	}
 
 	var exit_edit_func = function(){
-		txt = $(this).val().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");;
+		txt = $(this).val().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 		uid = $(this).parent().data('item');
 		if (uid == undefined) { return; }
 		$.post(''+uid+'/edit', {title: txt} );
