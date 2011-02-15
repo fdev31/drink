@@ -74,7 +74,9 @@ var startcode = function(data, status, req) {
         element: $('#file-uploader')[0],
         action: 'upload',
         onComplete: function(id, fileName, data){
-            sortable.append(make_li(data));
+            if ( data.id ) {
+                sortable.append(make_li(data));
+            }
         },
     });
 
