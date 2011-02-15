@@ -116,7 +116,8 @@ div.input input[type="file"] {
     border: none;
 }
 
-input:hover {
+input:hover , textarea:hover {
+    font-weight: bold;
     background: #ffa;
     -moz-box-shadow: 10px 10px 5px #888;
     -webkit-box-shadow: 3px 1px 5px #888;
