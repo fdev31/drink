@@ -1,7 +1,12 @@
 Drink
 =====
 
-Alpha program, base for a lightweight CMS / Intranet / etc...
+Alpha Web framework, base for a lightweight CMS / Intranet / etc...
+
+Features
+--------
+
+Zope/Bluebream -like at micro-framework sauce
 
 
 Issues
