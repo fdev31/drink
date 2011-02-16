@@ -20,7 +20,7 @@ a img {
     border: none;
 }
 
-.entry a {
+.entry a , .entry input {
 	outline:none;
     font-size: 21pt;
     color: #557;
@@ -43,12 +43,12 @@ a img {
     width: 25em;
     border-radius: 1em;
     -moz-border-radius: 1em;
-    color: black;
+    color: #bbc;
 }
 .x_permissions_grp:hover {
-    -moz-box-shadow: 10px 10px 5px #000;
-    -webkit-box-shadow: 3px 1px 5px #000;
-    box-shadow: 10px 10px 5px #000;
+    -moz-box-shadow: 10px 10px 5px #444;
+    -webkit-box-shadow: 3px 1px 5px #444;
+    box-shadow: 10px 10px 5px #444;
 }
 .x_permissions_grp span.toggler:hover {
     color: #520;
@@ -116,16 +116,16 @@ div.input input[type="file"] {
 
 input:hover , textarea:hover {
     background: #be8;
-    -moz-box-shadow: 10px 10px 5px #000;
-    -webkit-box-shadow: 3px 1px 5px #000;
-    box-shadow: 10px 10px 5px #000;
+    -moz-box-shadow: 10px 10px 5px #444;
+    -webkit-box-shadow: 3px 1px 5px #444;
+    box-shadow: 10px 10px 5px #444;
 }
 
 div.editable span.label:hover {
     background: #be8;
-    -moz-box-shadow: 10px 10px 5px #000;
-    -webkit-box-shadow: 3px 1px 5px #000;
-    box-shadow: 10px 10px 5px #000;
+    -moz-box-shadow: 10px 10px 5px #444;
+    -webkit-box-shadow: 3px 1px 5px #444;
+    box-shadow: 10px 10px 5px #444;
 }
 
 label > img {
@@ -141,9 +141,9 @@ a:hover {
     background: #dde;
     text-decoration: none;
     color: black;
-    -moz-box-shadow: 10px 10px 5px #000;
-    -webkit-box-shadow: 0px 2px 5px #000;
-    box-shadow: 10px 10px 5px #000;
+    -moz-box-shadow: 10px 10px 5px #444;
+    -webkit-box-shadow: 0px 2px 5px #444;
+    box-shadow: 10px 10px 5px #444;
     border-radius: 3px;
     -moz-border-radius: 3px;
 }
