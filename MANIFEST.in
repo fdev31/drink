@@ -2,3 +2,4 @@ recursive-include drink/static *.css *.js
 recursive-include drink/templates *.html
 include drink/settings.ini
 include database/blobs/keep_me.txt
+include runserver.py
