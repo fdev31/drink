@@ -27,9 +27,17 @@ class User(drink.Model):
     admin_fields.update( {
         'doc': drink.types.Text(),
         'groups': drink.types.GroupCheckBoxes(),
+        'read_groups':
+            drink.types.GroupCheckBoxes("Read-enabled groups", group="x_permissions"),
+        'min_rights':
+            drink.types.Text("Every user's permissions (wrta)", group="x_permissions"),
+        'write_groups':
+            drink.types.GroupCheckBoxes("Write-enabled groups", group="x_permissions")
     } )
+
     owner_fields = {
     # FIXME: Don't look ordered by group !
+        'title': drink.types.Text('Nickname', group='0'),
         'name': drink.types.Text(group='1'),
         'surname': drink.types.Text(group='2'),
         'email': drink.types.Text(group='3'),
@@ -41,24 +49,21 @@ class User(drink.Model):
     editable_fields = {
     }
 
-    @property
-    def owner(self):
-        return self
-
     def __init__(self, name, rootpath):
         drink.Model.__init__(self, name, rootpath)
+        name = self.id
         self.phones = {}
         self.groups = set()
         self.name = "no name"
         self.surname = "no surname"
-        group_list = drink.get_object(drink.db, 'groups')
-        group_list._add(name=name, cls=Group)
-        self.groups.add(group_list[name])
+        group_list = drink.db.db["groups"]
+        group_list._add(name, Group, {}, {})
+        mygroup = group_list[name]
+        self.groups.add(mygroup)
+        self.write_groups.add(mygroup)
+        self.groups.add(group_list["users"])
+        self.owner = self
         transaction.commit()
-
-    @property
-    def title(self):
-        return self.id
 
     def view(self):
         drink.rdr(self.path+'edit')
@@ -68,6 +73,7 @@ class User(drink.Model):
         uid = md5(self.email).hexdigest()
         self.mime = 'http://www.gravatar.com/avatar/%s?s=32'%uid
         return drink.Model.edit(self, resume=r)
+
 
 class UserList(drink.ListPage):
     doc = "Users folder"

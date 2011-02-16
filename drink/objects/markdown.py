@@ -2,6 +2,9 @@ from __future__ import absolute_import
 import drink
 from markdown import markdown
 
+def mark_it_down(txt):
+    return markdown(txt, ['tables', 'fenced_code', 'codehilite(force_linenos=True)'])
+
 class MarkdownEditor(drink.types._Editable):
     def html(self, caption, group):
         return drink.types._Editable.html(self, caption, group, '''
@@ -31,11 +34,11 @@ class MarkdownPage(drink.Page):
     })
 
     def process(self):
-        return markdown(drink.request.forms.get('data'))
+        return mark_it_down(drink.request.forms.get('data'))
 
     def view(self):
 
-        html = markdown(self.content)
+        html = mark_it_down(self.content)
 
         return drink.template('main.html', obj=self,
              html=html, authenticated=drink.request.identity,

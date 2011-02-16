@@ -58,7 +58,7 @@ class Authenticator(object):
         login = request.get_cookie('login', 'drink')
         # TODO: handle basic http auth digest
         try:
-            self.user = db['users'][login]
+            self.user = db.db['users'][login]
         except KeyError:
             self.success = False
         else:
@@ -66,39 +66,39 @@ class Authenticator(object):
             self.success = self.user.password == password
 
         if self.success:
-            self.groups = [g.id for g in self.user.groups]
-            self.admin = 'admin' in self.groups or self.id == 'admin'
+            self.groups = set(g.id for g in self.user.groups)
+            self.admin = 'admin' in self.groups or self.user.id == 'admin'
         else:
-            self.user = db['users']['anonymous']
+            self.user = db.db['users']['anonymous']
             self.admin = False
-            self.groups = set([db['groups']['anonymous']])
+            self.groups = set()
+
+        self.groups.add('anonymous')
 
         self.id = self.user.id
 
     def access(self, obj):
         """
-        read
-        write
         owner
+        write
+        add(& delete if owner)
+        read
         traversal
         """
 
-        usr = self.user
         groups = self.groups
-
-        if usr.id == "admin":
-            return 'rowt'
-
         rights = ''
 
-        if usr.id == obj.owner.id:
-            rights = 'ort'
+        if self.id in ("admin", obj.owner.id):
+            rights = 'owart'
+        elif self.success and 'users' in obj.write_groups:
+            rights = 'wrt'
+        elif any(grp.id in groups for grp in obj.write_groups):
+            rights = 'wrt'
+        elif any(grp.id in groups for grp in obj.read_groups):
+            rights = 'rt'
 
-        if any(grp.id in groups or grp.id == 'anonymous' for grp in obj.write_groups):
-            rights += 'trw'
-        elif any(grp.id in groups or grp.id == 'anonymous' for grp in obj.read_groups):
-            rights += 'tr'
-        return rights
+        return rights+obj.min_rights
 
     def __nonzero__(self):
         return self.success
@@ -109,7 +109,7 @@ class Authenticator(object):
 @route('/')
 def main_index():
     request.identity = Authenticator()
-    return classes[config.get('server', 'index')](db.data).view()
+    return classes[config.get('server', 'index')](db.db).view()
 
 @route('/static/:filename#.*#')
 def server_static(filename):
@@ -126,56 +126,76 @@ def log_out():
     response.set_cookie('password', '', 'drink')
     rdr('/')
 
+# generic dispatcher method
 @route("/:objpath#.+#", method=['GET', 'POST'])
 def glob_index(objpath="/"):
     request.identity = Authenticator()
     try:
-        o = get_object(db, objpath)
+        o = get_object(db.db, objpath)
     except AttributeError, e:
         abort(404, "%s not found"%objpath)
 
     if callable(o):
         return o()
     elif isinstance(o, basestring):
+        response.content_type = "text/plain"
         return o
     else:
         return o.view()
 
 def init():
-    db.open_db()
-    root = db.data
-    root.clear()
+    with db as root:
+        root.clear()
 
-    from .objects import users
+        from .objects import users as obj
 
-    class FakeId(object):
-        user = None
+        class FakeId(object):
+            user = None
 
-        def access(self, obj):
-            return 'rw'
+            def access(self, obj):
+                return 'rw'
 
-    request.identity = FakeId()
-    root['groups'] = users.GroupList('groups', '/')
-    transaction.commit()
-    admin = users.User('admin', '/users/')
-    request.identity.user = admin
-    root['groups'].owner = admin
-    root['groups'].write_groups = admin.groups.copy()
-    root['users'] = users.UserList('users', '/')
-    root['users'].owner = admin
-    root['users'].write_groups = admin.groups.copy()
+        request.identity = FakeId()
+        groups = root['groups'] = obj.GroupList('groups', '/')
+        users = root['users'] = obj.UserList('users', '/')
 
-    root['users']['anonymous'] = users.User('anonymous', '/users/')
+        root['groups']['users'] = obj.Group('users', '/groups/')
 
-    admin.password = 'admin'
-    admin.surname = "BOFH"
-    admin.name = "Mr Admin"
-    root['users']['admin'] = admin
+        admin = obj.User('admin', '/users/')
+        anon = obj.User('anonymous', '/users/')
 
-    for pagename, name in config.items('layout'):
-        elt = classes[ name ](pagename, '/')
-        root[pagename] = elt
-    transaction.commit()
+        request.identity.user = admin
+
+        groups.owner = admin
+        groups.read_groups = set()
+        groups.write_groups = set()
+
+        users.owner = admin
+        users.read_groups = set()
+        users.write_groups = set()
+        users.min_rights = 't'
+
+        root['users']['anonymous'] = anon
+        root['users']['admin'] = admin
+
+        admin.password = 'admin'
+        admin.surname = "BOFH"
+        admin.name = "Mr Admin"
+        admin.owner = admin
+
+        anon.groups = set()
+        anon.owner = admin
+
+        users = root['groups']['users']
+        users.owner = admin
+        users.read_groups = set()
+        users.write_groups = set()
+        users.min_rights = 't'
+
+        for pagename, name in config.items('layout'):
+            elt = classes[ name ](pagename, '/')
+            root[pagename] = elt
+
 
 def startup():
     import sys
@@ -190,17 +210,33 @@ def startup():
 
     if len(sys.argv) == 2 and sys.argv[1] == "init":
         init()
-        db.db.pack()
+        db.pack()
     # TODO: rename __init_
     # TODO: create "update" command
     elif len(sys.argv) == 2 and sys.argv[1] == "pack":
-        db.db.pack()
+        db.pack()
+    elif len(sys.argv) == 2 and sys.argv[1] == "debug":
+        from pdb import set_trace
+        with db as root:
+            set_trace()
     else:
+        dbg_in_env = 'DEBUG' in os.environ
+
+        if not dbg_in_env and 'BOTTLE_CHILD' not in os.environ:
+
+            reset_required = False
+
+            with db as c:
+                if len(c) < 3:
+                    reset_required = True
+
+            if reset_required:
+                init()
+
         host = config.get('server', 'host')
         port = int(config.get('server', 'port'))
         mode = config.get('server', 'backend')
 
-        dbg_in_env = 'DEBUG' in os.environ
 
         # try some (optional) asynchronous optimization
 
@@ -209,7 +245,7 @@ def startup():
         if dbg_in_env:
             mode = 'debug'
 
-        if mode != 'debug':
+        if mode not in ('debug', 'paste', 'rocket'):
             try:
                 import gevent.monkey
                 gevent.monkey.patch_all()
@@ -263,6 +299,7 @@ def startup():
                     continue
             else:
                 print "Unable to install the debugging middleware, current setting: %s"%dbg_backend
+        # /end dbg_in_env
 
         #from wsgiauth.ip import ip
         #@ip
@@ -272,8 +309,5 @@ def startup():
         #app = authenticate(app)
 
         # Let's run !
-        try:
-            bottle.debug(debug)
-            bottle.run(app=app, host=host, port=port, reloader=debug, server='wsgiref' if mode == 'debug' else mode)
-        finally:
-            db.db.pack()
+        bottle.debug(debug)
+        bottle.run(app=app, host=host, port=port, reloader=debug, server='wsgiref' if mode == 'debug' else mode)

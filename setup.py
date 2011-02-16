@@ -13,12 +13,13 @@ setup(
     zip_safe=False,
     entry_points = {
         "console_scripts": [
-            'drink = drink:main',
+            'drink = drink:startup',
             ],
         "setuptools.installation" : [
-            'eggsecutable = drink:main'
+            'eggsecutable = drink:startup'
             ]
         },
     packages=find_packages(),
+    install_requires = ['jinja2', 'markdown', 'ZODB3'],
 )
 

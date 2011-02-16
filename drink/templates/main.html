@@ -7,6 +7,7 @@
 
         <!-- Cascading Style Sheets -->
         <link href="/static/page.css" rel="stylesheet" type="text/css" />
+        <link href="/static/pygments.css" rel="stylesheet" type="text/css" />
         {% if css %}
         {% for url in css %}
         <link href="{{url}}" rel="stylesheet" type="text/css" />
@@ -18,18 +19,59 @@
         <script type="text/javascript" src="/static/jquery.validate.min.js"></script>
         <script type="text/javascript">
             jQuery.validator.addMethod("identifier", function(value, element) {
-	            return this.optional(element) || !/[.$%/][$%/]*/i.test(value);
+	            return this.optional(element) || !/^[.$%/][$%/]*/i.test(value);
             }, 'No "$", "%" or "/" and don\' start with a dot, please :)');
 
-          $(document).ready(function(){
-                $("#add_form").validate();
-                $("#rm_form").validate();
-                $("#selected_edit_key").change(function() {
-                    var action = $(this).val();
-                    $("#edit_form").attr("action", action+"/edit");
-                });
+        $(document).ready(function(){
+            // debug mode
+            //$.validator.setDefaults({debug: true});
 
+            $(".autovalidate").each(function(index, ob) { $(ob).validate() } );
+
+            $("#selected_edit_key").change(function() {
+                var action = $(this).val();
+                $("#edit_form").attr("action", action+"/edit");
             });
+
+            $('.editable span').click( function() {
+                var o = $(this).prev();
+                o.attr('checked', ! o.is(':checked'));
+            });
+
+            $('#rm_form').droppable({
+                drop: function(event, ui) {
+                    $(this).removeClass("selected");
+                    $.ajax({
+                        url:'rm?name='+ui.draggable.data('item'),
+                    });
+					ui.draggable.hide();
+                },
+                over: function(event, ui) {
+                    $(this).addClass('selected');
+                },
+				out: function(event, ui) {
+				    $(this).removeClass("selected");
+				}
+            });
+
+            $('#edit_form').droppable({
+                drop: function(event, ui) {
+                    $(this).removeClass("selected");
+            		$($(this)[0][0]).val(ui.draggable.data('item'));
+                    $(this).attr("action", ui.draggable.data('item')+"/edit");
+					$(this).submit();
+                },
+                over: function(event, ui) {
+                    $(this).addClass('selected');
+                },
+				out: function(event, ui) {
+				    $(this).removeClass("selected");
+				}
+            });
+
+            $('.editable span').addClass('toggler');
+
+        });
         </script>
 
         {% if js %}
@@ -44,26 +86,30 @@
 
     <body>
     </head>
-    {% if not authenticated and obj.path == '/' %}
-    <form id="login_form" action="/login" method="POST">
+
+    {% if not authenticated and obj.id == '.' and obj.rootpath == '/' %}
+    <form id="login_form" class="autovalidate" action="/login" method="POST">
         <label for="ilogin">Authenticate as:</label>
-        <input type="text" name="login_name" id="ilogin" />
+        <input type="text" class="required" name="login_name" id="ilogin" />
         <label for="ipasswd">Password:</label>
-        <input type="password" name="login_password" id="ipassword" />
+        <input type="password" class="required" name="login_password" id="ipassword" />
         <input class="submit" type="submit" value="Log in!"/>
     </form>
-    {% elif 'w' in authenticated.access(obj) and not no_admin %}
+    {% elif not no_admin and authenticated %}
     <fieldset class="toggler" id="commands">
-        <legend onclick="$('.togglable').slideToggle('slow');">{{authenticated.user.id}} commands</legend>
+        <legend onclick="$('.togglable').slideToggle('slow');">{{authenticated.id}}</legend>
         <div class="togglable" >
+        <a title="log out" href="/users/{{authenticated.id}}/edit"><img width="42px" src="/static/mime/user.png" /></a>
         <a title="log out" href="/logout"><img src="/static/img/exit.png" /></a>
-        {% if obj.path != '/' %}
-            <a title="Edit current element" href="./edit"><img src="/static/img/edit.png" /></a>
-            <a title="Back to parent element" href="../"><img src="/static/img/back.png" /></a>
-            {% if classes %}
-            <form id="add_form" action="add" method="get">
+        {% if obj.id != '.' %}
+            <a title="Back to parent element" href="{{obj.path}}../"><img src="/static/img/back.png" /></a>
+        {% endif %}
+        {% if obj.id != '.' and 'w' in authenticated.access(obj) %}
+            <a title="Edit current element" href="{{obj.path}}edit"><img src="/static/img/edit.png" /></a>
+            {% if classes and 'a' in authenticated.access(obj) %}
+            <form id="add_form" class="autovalidate" action="add" method="get">
                 <label for="selected_class"><img src="/static/img/add.png" /></label>
-                <select id="selected_class" name="class" size="0">
+                <select id="selected_class" class="required" name="class" size="0">
                 {% for k in classes.iterkeys() %}
                     <option value="{{k}}" label="{{k}}">{{k}}</option>
                 {% endfor %}
@@ -73,9 +119,9 @@
                 <input class="submit" type="submit" value="Create!"/>
             </form>
             {% endif %}
-            {% if obj %}
-            <form id="rm_form" action="rm" method="get" enctype="text/plain">
-                <label for="selected_rm_key"><img src="/static/img/delete.png" /></label>
+            {% if obj and 'a' in authenticated.access(obj) %}
+            <form id="rm_form" action="rm" class="autovalidate" method="get" enctype="text/plain">
+                <label for="selected_rm_key"><img id="rm_form_image" class="droppable" src="/static/img/delete.png" /></label>
                 <select id="selected_rm_key" name="name" size="0" class="required">
                     <option value="" label="-nothing-"></option>
                 {% for k in obj.iterkeys() %}
@@ -87,7 +133,7 @@
                 <input class="submit" type="submit" value="Delete!"/>
             </form>
 
-            <form id="edit_form" action="edit" method="get" enctype="text/plain">
+            <form id="edit_form" class="autovalidate" action="edit" method="get" enctype="text/plain">
                 <label for="selected_edit_key"><img src="/static/img/edit.png" /></label>
                 <select id="selected_edit_key" size="0" class="required">
                     <option value="" label="-none-"></option>

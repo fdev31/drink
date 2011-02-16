@@ -1,34 +1,36 @@
 {% extends "main.html" %}
 {% block head %}
         <title>Flaskbox Browser</title>
+        <link href="/static/fileuploader.css" rel="stylesheet" type="text/css" />
+        <script type="text/javascript" src="/static/fileuploader.js"></script>
 {% endblock %}
 
 
 {% block body %}
 
-{% if obj.path != '/' %}
+{% if obj.id != '.' %}
     <div><a href="../"><img class="icon" src="/static/img/back.png" /></a></div>
  <h1>{{ obj.path }} content:</h1>
 {% endif %}
+<ul class="sortable">
 {% for name in obj.iterkeys() %}
     {% if 'r' in authenticated.access(obj[name]) %}
-    <div class="entry"><a title="{{obj[name].doc}}" href="{{obj.path}}{{name}}/"><img class="icon" src="{% if obj[name].mime.startswith('http') %}{{obj[name].mime}}{% else %}/static/mime/{{ obj[name].mime }}.png{% endif %}"/>{{ obj[name].title }}</a>
+    <li class="entry"><a title="{{obj[name].doc}}" href="{{obj.path}}{{name}}/"><img class="icon" src="{% if obj[name].mime.startswith('http') %}{{obj[name].mime}}{% else %}/static/mime/{{ obj[name].mime }}.png{% endif %}"/>{{ obj[name].title }}</a>
     {% if authenticated and obj[name].__len__() %} ({{ obj[name].__len__() }} item{% if obj[name].__len__() > 1 %}s{% endif %})
     {% endif %}
-    </div>
+    </li>
     {% endif %}
 {% else %}
-    {% if obj.path == '/' %}
-        No content! did you run "init" ?
-    {% else %}
-        No content here...
-        {%if not authenticated %}
+    No content here...
+    {%if not authenticated %}
         Log in to add a new object !
-        {% else %}
+    {% else %}
         you may want to add some object...
-        {% endif %}
     {% endif %}
-
 {% endfor %}
+</ul>
+
+<div id="file-uploader">
+</div>
 
 {% endblock %}

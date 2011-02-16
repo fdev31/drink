@@ -33,7 +33,7 @@ class Text(_Editable):
     _template = r'''<input type="text" size="%(size)d" id="%(id)s" value="%(value)s" name="%(name)s" />'''
 
     def __init__(self, caption=None, group=None, size=40):
-        _Editable.__init__(self, caption)
+        _Editable.__init__(self, caption, group)
         self.size = 40
 
 
@@ -79,24 +79,24 @@ class GroupListArea(TextArea):
         return TextArea.html(self, name, '\n'.join(group.id for group in value))
 
     def set(self, obj, name, val):
-        groups = drink.db['groups']
+        groups = drink.db.db['groups']
         setattr(obj, name, set(groups[line.strip()] for line in val.split('\n') if line.strip() in groups))
 
 
 class GroupCheckBoxes(_Editable):
 
     def html(self, name, value):
-        groups = [g for g in drink.db['groups']]
+        groups = [g for g in drink.db.db['groups']]
         values = [v.id for v in value]
 
         opts = [r'<input type="checkbox" name=%(name)s value="'+o+'" '+\
-            ('checked="checked">' if o in values else '>')+o+'</input>' for o in groups]
+            ('checked="checked" />' if o in values else '/><span class="label">')+o+'</span>' for o in groups]
         return _Editable.html(self, name, value, '\n'.join(opts))
 
 
     def set(self, obj, name, val):
         groups = request.forms.getall(name)
-        dgroups = drink.db['groups']
+        dgroups = drink.db.db['groups']
         setattr(obj, name, set(dgroups[g] for g in groups))
 
 
@@ -133,4 +133,3 @@ class File(_Editable):
                 break
             o_fd.write(dat)
         o_fd.close()
-
