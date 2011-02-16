@@ -5,3 +5,4 @@ include database/blobs/keep_me.txt
 include database/zodb.conf
 include bottle.py
 include runserver.py
+include README.rst

@@ -9,12 +9,7 @@ setup(
     license="BSD",
     platform="all",
     description="my web sandbox (ZODB + Bottle)",
-    long_description="""
-    Drink
-    =====
-
-    Alpha program, base for a lightweight CMS / Intranet / etc...
-    """,
+    long_description=open('README.rst').read(),
     include_package_data=True,
     zip_safe=False,
     entry_points = {
