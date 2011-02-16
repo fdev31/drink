@@ -317,7 +317,7 @@ class Page(Model):
         o.mimetype = get_type(fake_post_obj.filename)
         return {'success': True, # for upload function
         # following describes the object:
-        'path': o.path, 'id': o.id, 'mime': 'page', 'title': o.title}
+        'path': o.rootpath, 'id': o.id, 'mime': 'page', 'title': o.title}
 
     def rm(self):
         name = request.GET.get('name')
