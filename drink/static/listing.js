@@ -6,6 +6,7 @@ var startcode = function(data, status, req) {
    var i;
    var url_regex = /^(\/|http).+/;
 
+   // list-item creation fonction
    var make_li = function (obj) {
         var mime = "";
         if ( obj.mime ) {
@@ -21,72 +22,76 @@ var startcode = function(data, status, req) {
         var e = $('<li class="entry"><img width="32px" src="'+mime+'" /><a href="'+obj.path+obj.id+'/view">'+(obj.title || obj.id)+'</a></li>');
         e.data('item', obj.id);
         e.disableSelection();
+		e.dblclick(enter_edit_func);
         return e;
     }
 
-   for(n=0; n<data.items.length; n++) {
-        sortable.append(make_li(data.items[n]));
-   }
+   // handle sortables
    sortable.sortable({
-//        axis: "y",
-//        containment: ".sortable",
-        cursor: 'move', update: function(event, ui) {
-            var pat = $('.sortable').find('li').map( function() { return $(this).data('item') } ).get().join('/');
-            $.post('move', {'set': pat});
+        cursor: 'move',
+        accept: '.entry',
+        tolerence: 'pointer',
+        stop: function(event, ui) {
+            if ( event.ctrlKey ) {
+                var pat = $('.sortable').find('li').map( function() { return $(this).data('item') } ).get().join('/');
+                $.post('move', {'set': pat});
+            }
         },
    });
 
-    var enter_edit_func = function(){
-		txt = $(this).text();
-		// set an input field up, with focus
-		$(this).html("<input value='"+txt+"' />");
-		$(this).find("input").select();
+    // handle inline title edition
+	var blur_on_validate = function(e) {
+	    if (e.keyCode == 13) { $(this).trigger('blur'); };
 	}
-
 	var exit_edit_func = function(){
 		txt = $(this).val().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 		uid = $(this).parent().data('item');
 		if (uid == undefined) { return; }
 		$.post(''+uid+'/edit', {title: txt} );
-		// FIXME: set the item display
-		var li = make_li({id: uid, title: txt, path: './'});
-		li.dblclick(enter_edit_func);
-	    li.live('blur', exit_edit_func);
-	    li.live('keyup', on_enter);
-		$(this).parent().replaceWith(li);
+		$(this).replaceWith($('<a href="./'+uid+'/view">'+txt+'</a>'));
+		$(this).parent().dblclick(enter_edit_func);
+	}
+    var enter_edit_func = function(){
+		txt = $(this).text();
+		// set an input field up, with focus
+        var inp = $("<input value='"+txt+"' />");
+
+        // replace second children
+        $($(this)[0].children[1]).replaceWith(inp);
+		inp = $(this).find("input");
+        inp.select();
+
+        // on entry input blur
+        inp.blur(exit_edit_func)
+
+        // trigger blur on ENTER keyup
+        inp.keyup(blur_on_validate);
 	}
 
-	var on_enter = function(e) {
-	    if (e.keyCode == 13) { $(this).trigger('blur'); };
-	}
-
-	sortable.find(".entry").dblclick(enter_edit_func)
-
-	// on entry input blur
-	sortable.find(".entry input").live("blur", exit_edit_func)
-
-    // trigger blur on ENTER keyup
-	sortable.find(".entry input").live("keyup", on_enter);
-
+   for(n=0; n<data.items.length; n++) {
+        sortable.append(make_li(data.items[n]));
+   }
 
     // Integration of http://valums.com/ajax-upload/
-    var uploader = new qq.FileUploader({
-        element: $('#file-uploader')[0],
-        action: 'upload',
-        onComplete: function(id, fileName, data){
-            if ( data.id ) {
-                sortable.append(make_li(data));
-            }
-        },
-    });
+    try {
+        var uploader = new qq.FileUploader({
+            element: $('#file-uploader')[0],
+            action: 'upload',
+            onComplete: function(id, fileName, data){
+                if ( data.id ) {
+                    sortable.append(make_li(data));
+                }
+            },
+        });
+    } catch (ReferenceError) {
+        console.debug('Uploader code not available');
+    }
 
 } // End of startup code
 
 
 $(document).ready(
     function(){
-        //jQuery.fx.off = true;
-        //$('.shoppingList').fadeOut();
         $.ajax({url: "struct",
             dataType: 'json',
             data: {format: "json"},
