@@ -8,7 +8,13 @@ setup(
     author_email="fdev31@gmail.com",
     license="BSD",
     platform="all",
-    description="my web sandbox",
+    description="my web sandbox (ZODB + Bottle)",
+    long_description="""
+    Drink
+    =====
+
+    Alpha program, base for a lightweight CMS / Intranet / etc...
+    """,
     include_package_data=True,
     zip_safe=False,
     entry_points = {
