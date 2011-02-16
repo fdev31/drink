@@ -29,12 +29,18 @@ var startcode = function(data, status, req) {
    // handle sortables
    sortable.sortable({
         cursor: 'move',
+        distance: 5,
         accept: '.entry',
         tolerence: 'pointer',
+        helper: 'original',
+        revert: true,
         stop: function(event, ui) {
             if ( event.ctrlKey ) {
                 var pat = $('.sortable').find('li').map( function() { return $(this).data('item') } ).get().join('/');
                 $.post('move', {'set': pat});
+                return true;
+            } else {
+                return false;
             }
         },
    });
