@@ -86,6 +86,10 @@ var startcode = function(data, status, req) {
             onComplete: function(id, fileName, data){
                 if ( data.id ) {
                     sortable.append(make_li(data));
+            	    $('#edit_form select').append(
+            	     '<option value="'+data.id+'" label="'+data.id+'">'+data.id+'</option>'
+            	     );
+
                 }
             },
         });
