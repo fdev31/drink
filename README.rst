@@ -14,26 +14,25 @@ Then you'r free to put your hands into html/css/js and customize to your precise
 Goals
 +++++
 
- - Add features at ONE place in ONE language (html/css/js may be required for some advanced/custom usages)
- - Be fast
- - Ajax (ajaj in fact) - with nice fallbacks for old browsers
- - No SQL
- - Website: as simple as a nested dict-like objects tree, endpoints (last element of URL) are object's properties & methods
- - Make it as productive as possible for most generic tasks
+- Add features at ONE place in ONE language (html/css/js may be required for some advanced/custom usages)
+- Be fast
+- Ajax (ajaj in fact) - with nice fallbacks for old browsers
+- No SQL
+- Website: as simple as a nested dict-like objects tree, endpoints (last element of URL) are object's properties & methods
+- Make it as productive as possible for most generic tasks
 
 Out of the box, it is something between a wiki and a cms, probably a good base for a lightweight web CMS / Intranet / Forum / etc...
 
 Main Features
 -------------
 
-* Zope/Bluebream -like at micro-framework sauce
 * Designed to be simple, little knowledge involved
 * Automatic object edition's form generation
-* Multi-user with access control (group based)
-* Very user friendly (once doc will be there...)
+* Multi-user with access control (group based) at each level
+* Automatic "views" of your content, with regard to each object permissions
 * Webpage edition live preview, client-side form validation
 * Comes with some pre-developped objects:
-  
+
   - folder index (sortable with D&D)
   - file (upload your own file, also allows D&D)
   - Web page ( markdown only )
@@ -41,10 +40,18 @@ Main Features
 
   And of course special elements like Groups & Users ....
 
+* Very user friendly (once doc will be there...)
+
 Issues
 ------
 
- * no documentation yet
- * not very well tested
- * not very powerful yet
+* no documentation yet (default manager account, login/password: ``admin/admin`` )
+* no auto tests yet
+* not very powerful yet
 
+Release changes
+---------------
+
+* fix admin forms values if some file is added by drag & drop
+* fix admin forms values on drop over remove command
+* css improvements
