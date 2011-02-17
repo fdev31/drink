@@ -24,6 +24,10 @@ a img {
 	outline:none;
     font-size: 21pt;
     color: #557;
+    border: none;
+    background: none;
+    border-radius: 1ex;
+    -moz-border-radius: 1ex;
 }
 
 .sortable {
