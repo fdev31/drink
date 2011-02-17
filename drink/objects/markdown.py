@@ -17,7 +17,7 @@ class MarkdownEditor(drink.types._Editable):
     ''')
 
 class MarkdownPage(drink.Page):
-    content = "# You'r document title\n\n[Edit me](edit)"
+    content = "# Your document title\n\n[Edit me](edit)"
 
     mime = "markdown"
 
@@ -47,3 +47,4 @@ class MarkdownPage(drink.Page):
              )
 
 exported = {'Web page (markdown)': MarkdownPage}
+
