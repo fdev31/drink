@@ -57,7 +57,6 @@ Issues
 Release changes
 ---------------
 
-* fix admin forms values if some file is added by drag & drop
-* fix admin forms values on drop over remove command
-* css improvements
+* Update the indexer to use Whoosh
+* Fix on Group objects (wrong owner)
 
