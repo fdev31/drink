@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="drink",
-    version="0.0.4",
+    version="0.0.5",
     author="Fabien Devaux",
     author_email="fdev31@gmail.com",
     license="GPL",
