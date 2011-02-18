@@ -274,6 +274,9 @@ class Model(persistent.Persistent):
                     caster.set(self, attr, forms.get(attr))
 
             transaction.commit()
+            database = drink.db.db
+            if 'search' in database:
+                database['search']._update_object(self)
             return (drink.rdr, self.path)
         else:
             if not items:
@@ -343,6 +346,9 @@ class Page(Model):
             new_obj.write_groups = set(write_groups)
 
         self[new_obj.id] = new_obj
+        database = drink.db.db
+        if 'search' in database:
+            database['search']._add_object(new_obj)
 
         transaction.commit()
         return new_obj
