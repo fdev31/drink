@@ -1,26 +1,18 @@
 before 0.1:
-- add a "reset children list" command/input for owner (alphabetical + by type [bool])
-- add http://www.freewisdom.org/projects/python-markdown/CodeHilite support
 - allow rss via http://www.freewisdom.org/projects/python-markdown/RSS
 - auto-wikilinks via http://www.freewisdom.org/projects/python-markdown/WikiLinks
-- add tables too (to markdown)
-- filter objects retrieved with /struct
 - refactor welcome & login page
-- allow objects to add custom actions in admin bar
-- form object
-- "t" permission, for traversal
 - HomePage object: write user homepages (with login & passwd & name & surname change) / splash-like if not logged-in
+- allow objects to add custom actions in admin bar
+- Form object
 - think about comments ( as property of some Model ?) - commentlist ?
 - edit form: only send "dirty" values when possible
 - add some recursive permissions setter
 - find the cleanest way to make all incoming URLs ends with /
 - fix, rewrite & improve task list
-- improve init so it can set default groups ('open' or 'admin')
-- test if groups are really shared or if it's better to keep them strings
 - add proper checks at server side too (in add  & edit methods mostly)
 - "background processes" for each user / sessions
 - theme support (config entry + template & static path)
-- finish default edition method (add form)
 - add more types to default form edition
     * date
     * object_path
