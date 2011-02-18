@@ -4,6 +4,11 @@ Drink
 Alpha Web framework & sample mini CMS application with little dependencies: ZODB , bottle & markdown.
 Aims to be quite generic "all-in-one-but-minimalistic" web+database framework.
 
+Getting sources/Contributing
+----------------------------
+
+See `GitHub page <http://github.com/fdev31/drink>`_.
+
 The main ideas behind
 ---------------------
 
@@ -55,3 +60,4 @@ Release changes
 * fix admin forms values if some file is added by drag & drop
 * fix admin forms values on drop over remove command
 * css improvements
+
