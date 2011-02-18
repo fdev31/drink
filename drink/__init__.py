@@ -158,13 +158,12 @@ def init():
         request.identity = FakeId()
         groups = root['groups'] = obj.GroupList('groups', '/')
         users = root['users'] = obj.UserList('users', '/')
-
         root['groups']['users'] = obj.Group('users', '/groups/')
 
         admin = obj.User('admin', '/users/')
-        anon = obj.User('anonymous', '/users/')
-
         request.identity.user = admin
+
+        anon = obj.User('anonymous', '/users/')
 
         groups.owner = admin
         groups.read_groups = set()

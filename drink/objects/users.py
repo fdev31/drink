@@ -57,12 +57,13 @@ class User(drink.Model):
         self.name = "no name"
         self.surname = "no surname"
         group_list = drink.db.db["groups"]
-        group_list._add(name, Group, {}, {})
+        new_grp = group_list._add(name, Group, {}, {})
         mygroup = group_list[name]
         self.groups.add(mygroup)
         self.write_groups.add(mygroup)
         self.groups.add(group_list["users"])
         self.owner = self
+        new_grp.owner = self
         transaction.commit()
 
     def view(self):
