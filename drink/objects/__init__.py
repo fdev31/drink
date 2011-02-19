@@ -30,6 +30,8 @@ def get_object(current, objpath):
         else:
             # traversal
             try:
+                if elt.startswith('_'):
+                    abort(401, 'Not authorized')
                 current = current[elt]
                 if 't' not in request.identity.access(current):
                     abort(401, 'Not authorized')
