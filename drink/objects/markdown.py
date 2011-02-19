@@ -23,9 +23,11 @@ class MarkdownPage(drink.Page):
 
     description = "A markdown rendered page"
 
-    js = ['/static/markitup/jquery.markitup.js', '/static/markitup/sets/markdown/set.js']
+    js = ['/static/markitup/jquery.markitup.js',
+        '/static/markitup/sets/markdown/set.js']
 
-    css = ['/static/markitup/skins/markitup/style.css', '/static/markitup/sets/markdown/style.css']
+    css = ['/static/markitup/skins/markitup/style.css',
+        '/static/markitup/sets/markdown/style.css']
 
     editable_fields = drink.Page.editable_fields.copy()
     editable_fields.update({

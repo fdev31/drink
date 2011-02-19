@@ -198,9 +198,12 @@ class Page(Model):
         fake_post_obj.filename = filename
         o.editable_fields['content'].set(o, 'content', fake_post_obj)
         o.mimetype = get_type(fake_post_obj.filename)
-        return {'success': True, # for upload function
-        # following describes the object:
-        'path': o.rootpath, 'id': o.id, 'mime': 'page', 'title': o.title}
+        return {
+            # for upload function
+            'success': True,
+            # following describes the object:
+            'path': o.rootpath, 'id': o.id, 'mime': 'page', 'title': o.title
+        }
 
     def rm(self):
         name = request.GET.get('name')
