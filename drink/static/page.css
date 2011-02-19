@@ -82,6 +82,16 @@ label.autoform {
     padding: 0 1ex 0 0;
 }
 
+div.option {
+    font-family: sans-serif;
+    cursor: pointer;
+    padding-left: 1em;
+}
+
+div.option:hover {
+    background-color: #789;
+}
+
 #login_form {
     margin-bottom: 2em;
 }
