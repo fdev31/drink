@@ -23,7 +23,7 @@ class _Editable(object):
     def html(self, name, value, _template=None):
         d = self.__dict__.copy()
         d.update({'id': self.id, 'name': name, 'caption': self.caption or name, 'value': value})
-        return ('<div class="editable"><label class="autoform" for="%(id)s">%(caption)s:</label>'+(_template or self._template)+'</div>')%d
+        return ('<div id="edit_%(name)s" class="editable"><label class="autoform" for="%(id)s">%(caption)s:</label>'+(_template or self._template)+'</div>')%d
 
     set = setattr
 
