@@ -58,6 +58,11 @@ Issues
 Release changes
 ---------------
 
+Bugfix release.
+
+Previous release changelog is:
+
+
 * Update to Jquery 1.5
 * Update the indexer to use Whoosh
 * Fixes about Groups & ACLs
