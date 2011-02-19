@@ -37,22 +37,12 @@ class Page(Model):
             drink.types.GroupCheckBoxes("Write-enabled groups", group="x_permissions")
     }
 
-    admin_fields = {
-        #'id': drink.types.Id(),
-    }
-
+    admin_fields = {}
     min_rights = ''
-
     mime = 'page'
-
-    css = None
-
-    js = None
-
-    html = None
-
+    css = []
+    js = ['/static/listing.js']
     description = 'An abstract page'
-
     classes = drink.classes
 
     # Model methods
@@ -190,8 +180,10 @@ class Page(Model):
                     val = getattr(self, field, '')
                     form.append('<div class="input">%s</div>'%factory.html(field, val))
                 form.append('</div><div class="buttons"><input class="submit" type="submit" value="Save changes please"/></div></form>')
-                form.insert(0, '<form class="auto_edit_form" id="auto_edit_form" action="edit" %s method="post">'%(' '.join(form_opts)))
-            return drink.template('main.html', obj=self, html='\n'.join(form), css=self.css, js=self.js, classes=self.classes, authenticated=request.identity)
+                form.insert(0, '<form class="auto_edit_form" id="auto_edit_form" action="edit" %s method="post">'%(
+                    ' '.join(form_opts)))
+            return drink.template('main.html', obj=self, html='\n'.join(form), css=self.css, js=self.js,
+                 classes=self.classes, authenticated=request.identity)
 
     upload_map = {
         '*': 'File',
@@ -263,6 +255,10 @@ class Page(Model):
 
         return drink.rdr(self._add(name, cls, auth.user.default_read_groups, auth.user.default_write_groups).rootpath)
 
+    def list(self):
+        return template('list.html', obj=self, css=self.css, js=self.js,
+            classes=self.classes, authenticated=request.identity)
+
 
 class ListPage(Page):
     description = "An ordered folder-like display"
@@ -270,8 +266,6 @@ class ListPage(Page):
     mime = "folder"
 
     forced_order = None
-
-    js = ['/static/listing.js']
 
     def __init__(self, name, rootpath=None):
         self.forced_order = []
@@ -289,6 +283,16 @@ class ListPage(Page):
     def itervalues(self):
         return (self[v] for v in self.keys())
 
+    def values(self):
+        return list(self.itervalues)
+
+    def iteritems(self):
+        for k in self.iterkeys():
+            yield (k, self[k])
+
+    def items(self):
+        return list(self.iteritems)
+
     def reset_items(self):
         orig_order = []
         k = Page.keys(self)
@@ -297,14 +301,9 @@ class ListPage(Page):
             if item not in orig_order and item in k:
                 orig_order.append(item)
         self.forced_order = orig_order
-        return 'ok'
-
-    def values(self):
-        return list(self.itervalues)
+        return {'success': True}
 
     def __setitem__(self, name, val):
-        if name is None:
-            import pdb; pdb.set_trace()
         try:
             r = Page.__setitem__(self, name, val)
         except Exception:
@@ -322,8 +321,8 @@ class ListPage(Page):
             self.forced_order.remove(name)
             return r
 
-    def view(self):
-        return template('list.html', obj=self, css=self.css, js=self.js, classes=self.classes, authenticated=request.identity)
+    view = Page.list
+
 
 class StaticFile(Page):
 
@@ -383,6 +382,7 @@ class StaticFile(Page):
                 html.append(f.read())
                 html.append('</pre>')
 
-        return drink.template('main.html', obj=self, css=self.css, js=self.js, html='\n'.join(html), classes=self.classes, authenticated=request.identity)
+        return drink.template('main.html', obj=self, css=self.css, js=self.js, html='\n'.join(html),
+             classes=self.classes, authenticated=request.identity)
 
 exported = {'Folder index': ListPage, 'File': StaticFile}
