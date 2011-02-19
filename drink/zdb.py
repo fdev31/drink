@@ -87,8 +87,6 @@ class Model(persistent.Persistent):
         raise KeyError(key)
 
     def __setitem__(self, key, item):
-        if key in self:
-            abort(401, "%r is already defined!"%key)
         self.data[key] = item
         self._p_changed = 1
 

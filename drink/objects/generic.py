@@ -89,6 +89,11 @@ class Page(Model):
     def __hash__(self):
         return hash(self.id)
 
+    def __setitem__(self, key, item):
+        if key in self:
+            abort(401, "%r is already defined!"%key)
+        return Model.__setitem__(self, key, item)
+
     def view(self):
         return "Not viewable"
 
