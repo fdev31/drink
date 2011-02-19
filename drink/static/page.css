@@ -22,16 +22,20 @@ a img {
 
 .entry a , .entry input {
 	outline:none;
-    font-size: 21pt;
-    color: #557;
+    font-size: 16pt;
+    font-family: sans-serif;
+    color: #dde;
 }
 .entry input {
+    border: dashed 2px white;
+    width: 90%;
+    background: #be8;
     border-radius: 1ex;
     -moz-border-radius: 1ex;
-    background: #be8;
     -moz-box-shadow: 10px 10px 5px #444;
     -webkit-box-shadow: 3px 1px 5px #444;
     box-shadow: 10px 10px 5px #444;
+
     padding-left: 1ex;
 }
 
@@ -125,6 +129,7 @@ div.input input[type="file"] {
 
 input:hover , textarea:hover {
     background: #be8;
+    color: #456;
     -moz-box-shadow: 10px 10px 5px #444;
     -webkit-box-shadow: 3px 1px 5px #444;
     box-shadow: 10px 10px 5px #444;
