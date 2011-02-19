@@ -57,7 +57,9 @@ Issues
 Release changes
 ---------------
 
-* UPdate to Jquery 1.5
+* Update to Jquery 1.5
 * Update the indexer to use Whoosh
-* Fixes about Groups objects
+* Fixes about Groups & ACLs
+* Add a link to the search object in tool bar
+* Easy to use (high-level) permissions options
 
