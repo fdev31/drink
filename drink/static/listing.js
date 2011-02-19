@@ -19,7 +19,7 @@ var startcode = function(data, status, req) {
             mime = "/static/mime/page.png";
         }
 
-        var e = $('<li class="entry"><img width="32px" src="'+mime+'" /><a href="'+obj.path+obj.id+'/view">'+(obj.title || obj.id)+'</a></li>');
+        var e = $('<li class="entry"><img width="32px" src="'+mime+'" /><a href="'+obj.path+obj.id+'/view" title="'+obj.description+'">'+(obj.title || obj.id)+'</a></li>');
         e.data('item', obj.id);
         e.disableSelection();
 		e.dblclick(enter_edit_func);

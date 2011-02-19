@@ -21,7 +21,7 @@ class MarkdownPage(drink.Page):
 
     mime = "markdown"
 
-    doc = "A markdown rendered page"
+    description = "A markdown rendered page"
 
     js = ['/static/markitup/jquery.markitup.js', '/static/markitup/sets/markdown/set.js']
 

@@ -22,7 +22,8 @@ class Page(Model):
     # Model properties
 
     editable_fields = {
-        'title': drink.types.Text('Title')
+        'title': drink.types.Text('Title'),
+        'description': drink.types.Text('Description'),
     }
 
     owner_fields = {
@@ -50,9 +51,7 @@ class Page(Model):
 
     html = None
 
-    doc = 'An abstract page'
-
-    content = '' # FIXME: refactor content & doc to "description"
+    description = 'An abstract page'
 
     classes = drink.classes
 
@@ -247,7 +246,7 @@ class Page(Model):
 
 
 class ListPage(Page):
-    doc = "An ordered folder-like display"
+    description = "An ordered folder-like display"
 
     mime = "folder"
 
@@ -311,7 +310,7 @@ class StaticFile(Page):
 
     mime = "page"
     mimetype = "text/plain"
-    doc = "A generic file"
+    description = "Some file"
     classes = {}
 
     owner_fields = {

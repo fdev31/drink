@@ -6,11 +6,12 @@ import drink
 
 class TODO(drink.Page):
 
-    doc = "Something to do"
+    description = "Something to do"
 
     editable_fields = {
         'title': drink.types.Text("Title", group="a"),
         'content': drink.types.TextArea("Summary", group="b"),
+        'description': drink.types.Text('Description'),
         #'date': drink.types.Date,
     }
 
@@ -22,7 +23,7 @@ class TODO(drink.Page):
 
 class TODOList(drink.ListPage):
 
-    doc = "A TODO list"
+    description = "A TODO list"
 
     classes = {'TODO': TODO}
 
@@ -30,6 +31,7 @@ class TODOList(drink.ListPage):
 
     editable_fields = {
         'title': drink.types.Text("Title", group="a"),
+        'description': drink.types.Text('Description'),
     }
 
     html = """

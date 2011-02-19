@@ -43,8 +43,9 @@
     <fieldset class="toggler" id="commands">
         <legend onclick="$('.togglable').slideToggle('slow');">{{authenticated.id}}</legend>
         <div class="togglable" >
-        <a title="log out" href="/users/{{authenticated.id}}/edit"><img width="42px" src="/static/mime/user.png" /></a>
+        <a title="Account settings" href="/users/{{authenticated.id}}/edit"><img width="42px" src="/static/mime/user.png" /></a>
         <a title="log out" href="/logout"><img src="/static/img/exit.png" /></a>
+        <a title="Search" href="/search/"><img src="/static/img/search.png" /></a>
         {% if obj.id != '.' %}
             <a title="Back to parent element" href="{{obj.path}}../"><img src="/static/img/back.png" /></a>
         {% endif %}

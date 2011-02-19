@@ -8,7 +8,7 @@ class User(drink.Page):
 
     mime = "user"
 
-    doc = "User object"
+    description = "User object"
 
     password = ''
 
@@ -25,7 +25,7 @@ class User(drink.Page):
     admin_fields = drink.Page.admin_fields.copy()
 
     admin_fields.update( {
-        'doc': drink.types.Text(),
+        'description': drink.types.Text(),
         'groups': drink.types.GroupCheckBoxes(),
         'read_groups':
             drink.types.GroupCheckBoxes("Read-enabled groups", group="x_permissions"),
@@ -74,7 +74,7 @@ class User(drink.Page):
 
 
 class UserList(drink.ListPage):
-    doc = "Users folder"
+    description = "Users folder"
     mime = "group"
 
     classes = {'User': User}
@@ -84,7 +84,7 @@ class Group(drink.Page):
 
     mime = "group"
 
-    doc = "A group"
+    description = "A group"
 
     name = "unnamed group"
 
@@ -97,7 +97,7 @@ class Group(drink.Page):
 
 
 class GroupList(drink.ListPage):
-    doc = "Groups"
+    description = "Groups"
     mime = "group"
 
     classes = {'Group': Group}
