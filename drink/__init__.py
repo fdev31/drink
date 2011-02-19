@@ -66,7 +66,8 @@ class Authenticator(object):
             self.success = self.user.password == password
 
         if self.success:
-            self.groups = self.user.groups
+            self.groups = self.user.groups.copy()
+            self.groups.add('users')
             self.admin = 'admin' in self.groups or self.user.id == 'admin'
         else:
             self.user = db.db['users']['anonymous']
@@ -89,13 +90,13 @@ class Authenticator(object):
         groups = self.groups
         rights = ''
 
-        if self.id in ("admin", obj.owner.id):
+        if self.admin:
             rights = 'owart'
+        elif groups.intersection(obj.write_groups):
+            rights = 'wart'
         elif self.success and 'users' in obj.write_groups:
             rights = 'wrt'
-        elif any(grp in groups for grp in obj.write_groups):
-            rights = 'wrt'
-        elif any(grp in groups for grp in obj.read_groups):
+        elif groups.intersection(obj.read_groups):
             rights = 'rt'
 
         return rights+obj.min_rights
