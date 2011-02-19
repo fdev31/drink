@@ -4,7 +4,7 @@ import transaction
 from hashlib import md5
 
 
-class User(drink.Model):
+class User(drink.Page):
 
     mime = "user"
 
@@ -22,7 +22,7 @@ class User(drink.Model):
 
     default_write_groups = set()
 
-    admin_fields = drink.Model.admin_fields.copy()
+    admin_fields = drink.Page.admin_fields.copy()
 
     admin_fields.update( {
         'doc': drink.types.Text(),
@@ -50,7 +50,7 @@ class User(drink.Model):
     }
 
     def __init__(self, name, rootpath):
-        drink.Model.__init__(self, name, rootpath)
+        drink.Page.__init__(self, name, rootpath)
         name = self.id
         self.phones = {}
         self.groups = set()
@@ -70,10 +70,10 @@ class User(drink.Model):
         drink.rdr(self.path+'edit')
 
     def edit(self):
-        r = drink.Model._edit(self)
+        r = drink.Page._edit(self)
         uid = md5(self.email).hexdigest()
         self.mime = 'http://www.gravatar.com/avatar/%s?s=32'%uid
-        return drink.Model.edit(self, resume=r)
+        return drink.Page.edit(self, resume=r)
 
 
 class UserList(drink.ListPage):
