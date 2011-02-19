@@ -19,6 +19,13 @@ else:
 
 qparser = QueryParser("title", schema=indexer.schema)
 
+def extract_obj(o):
+    return {'path': unicode(o.path),
+        'title': unicode(o.title),
+        'content': "%s %s"%(unicode(o.description),
+            unicode(getattr(o, 'content', ''))),
+        }
+
 class ObjectBrowser(drink.Page):
     mime = "search"
 
@@ -36,13 +43,13 @@ class ObjectBrowser(drink.Page):
             objs = [objs]
 
         for obj in objs:
-            w.add_document(path=unicode(obj.path), title=unicode(obj.title), content=unicode(obj.content))
+            w.add_document(**extract_obj(obj))
 
         w.commit()
 
     def _update_object(self, obj):
         w = indexer.writer()
-        w.update_document(path=unicode(obj.path), title=unicode(obj.title), content=unicode(obj.content))
+        w.update_document(**extract_obj(obj))
         w.commit()
 
     def query(self, full=False):
