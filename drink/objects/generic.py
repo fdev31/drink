@@ -193,22 +193,33 @@ class Page(Model):
                 form.insert(0, '<form class="auto_edit_form" id="auto_edit_form" action="edit" %s method="post">'%(' '.join(form_opts)))
             return drink.template('main.html', obj=self, html='\n'.join(form), css=self.css, js=self.js, classes=self.classes, authenticated=request.identity)
 
+    upload_map = {
+        '*': 'File',
+    }
+
+    def _upload(self, obj):
+        self.editable_fields['content'].set(self, 'content', obj)
+
     def upload(self):
         filename = request.GET.get('qqfile', 'uploaded')
-        o = self._add(filename, 'File',
+
+        factory = self.upload_map.get(filename.rsplit('.')[-1], 'File')
+
+        o = self._add(filename, factory,
             request.identity.user.default_read_groups,
             request.identity.user.default_write_groups)
+        o.mimetype = get_type(filename)
+
         fake_post_obj = _Mock()
+
         fake_post_obj.file = request.body
         fake_post_obj.filename = filename
-        o.editable_fields['content'].set(o, 'content', fake_post_obj)
-        o.mimetype = get_type(fake_post_obj.filename)
-        return {
-            # for upload function
-            'success': True,
-            # following describes the object:
-            'path': o.rootpath, 'id': o.id, 'mime': 'page', 'title': o.title
-        }
+
+        o._upload(fake_post_obj)
+
+        data = o.struct()
+        data['success'] = True
+        return data
 
     def rm(self):
         name = request.GET.get('name')

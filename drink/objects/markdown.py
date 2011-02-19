@@ -48,5 +48,11 @@ class MarkdownPage(drink.Page):
              classes=self.classes,
              )
 
-exported = {'Web page (markdown)': MarkdownPage}
+    def _upload(self, obj):
+        self.content = obj.file.read()
+
+_title = 'Web page (markdown)'
+
+exported = {_title: MarkdownPage}
+drink.Page.upload_map['md'] = _title
 
