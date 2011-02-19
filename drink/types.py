@@ -27,6 +27,23 @@ class _Editable(object):
 
     set = setattr
 
+class EasyPermissions(_Editable):
+    def html(self, name, value, _template=None):
+        return """
+        <h3>Quick permissions</h3>
+
+        <div onclick="$('#edit_read_groups input').each( function() { $(this).attr('checked', false ) } ) ; $('#edit_write_groups input').each( function() { $(this).attr('checked', false ) } )">
+        Private document</div>
+        <div onclick="$('#edit_read_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/^users|admin$/) ) } ) ; $('#edit_write_groups input').each( function() { $(this).attr('checked', false ) } ) ">
+        Users can only see</div>
+        <div onclick="$('#edit_read_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/^users|admin$/) ) } ) ; $('#edit_write_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/^users|admin$/) ) } ) ">
+        Users can see and change content</div>
+        <div onclick="$('#edit_read_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/^users|anonymous|admin$/) ) } ) ">
+        Everybody can see</div>
+        """
+
+    def set(self, obj, name, val):
+        return
 
 class Text(_Editable):
 

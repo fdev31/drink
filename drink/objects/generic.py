@@ -26,6 +26,8 @@ class Page(Model):
     }
 
     owner_fields = {
+        'easy_permissions':
+            drink.types.EasyPermissions("EZ !", group="x_permissiona"),
         'read_groups':
             drink.types.GroupCheckBoxes("Read-enabled groups", group="x_permissions"),
         'min_rights':
