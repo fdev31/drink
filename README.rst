@@ -57,6 +57,7 @@ Issues
 Release changes
 ---------------
 
+* UPdate to Jquery 1.5
 * Update the indexer to use Whoosh
-* Fix on Group objects (wrong owner)
+* Fixes about Groups objects
 
