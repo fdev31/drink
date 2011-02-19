@@ -102,10 +102,6 @@ var startcode = function(data, status, req) {
 
 $(document).ready(
     function(){
-        $.ajax({url: "struct",
-            dataType: 'json',
-            data: {format: "json"},
-            success: startcode ,
-        });
+        $.ajax({url: "struct", dataType: "text json"}).success(startcode);
     }
 );
