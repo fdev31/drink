@@ -90,7 +90,7 @@ class Authenticator(object):
         groups = self.groups
         rights = ''
 
-        if self.admin:
+        if self.admin or self.id == obj.owner.id:
             rights = 'owart'
         elif groups.intersection(obj.write_groups):
             rights = 'wart'
