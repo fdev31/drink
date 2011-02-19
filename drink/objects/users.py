@@ -56,7 +56,7 @@ class User(drink.Page):
         self.groups = set()
         self.name = "no name"
         self.surname = "no surname"
-        new_grp = group_list._add(name, Group, {}, {})
+        new_grp = drink.db.db['groups']._add(name, Group, {}, {})
         self.groups.add(new_grp.id)
         self.write_groups.add(new_grp.id)
         self.owner = self
