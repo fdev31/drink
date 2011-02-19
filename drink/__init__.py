@@ -93,9 +93,9 @@ class Authenticator(object):
             rights = 'owart'
         elif self.success and 'users' in obj.write_groups:
             rights = 'wrt'
-        elif any(grp.id in groups for grp in obj.write_groups):
+        elif any(grp in groups for grp in obj.write_groups):
             rights = 'wrt'
-        elif any(grp.id in groups for grp in obj.read_groups):
+        elif any(grp in groups for grp in obj.read_groups):
             rights = 'rt'
 
         return rights+obj.min_rights

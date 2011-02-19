@@ -82,22 +82,39 @@ class GroupListArea(TextArea):
         groups = drink.db.db['groups']
         setattr(obj, name, set(groups[line.strip()] for line in val.split('\n') if line.strip() in groups))
 
+class CheckboxSet(_Editable):
 
-class GroupCheckBoxes(_Editable):
+    def __init__(self, caption=None, group=None, values=[]):
+        """ values: dict-like object with keys & getitem
+                OR a callable returning this object """
+        _Editable.__init__(self, caption, group)
+        self.values = values
 
-    def html(self, name, value):
-        groups = [g for g in drink.db.db['groups']]
-        values = [v.id for v in value]
+    @property
+    def v(self):
+        return self.values() if callable(self.values) else self.values
+
+    def html(self, name, values):
+        all_ids = self.v
 
         opts = [r'<input type="checkbox" name=%(name)s value="'+o+'" '+\
-            ('checked="checked" />' if o in values else '/><span class="label">')+o+'</span>' for o in groups]
-        return _Editable.html(self, name, value, '\n'.join(opts))
-
+            ('checked="checked" />' if o in values else '/>')+'<span class="label">'+o+'</span>' for o in all_ids]
+        return _Editable.html(self, name, None, '\n'.join(opts))
 
     def set(self, obj, name, val):
-        groups = request.forms.getall(name)
-        dgroups = drink.db.db['groups']
-        setattr(obj, name, set(dgroups[g] for g in groups))
+        values = request.forms.getall(name)
+        all_values = set(self.v)
+        all_values.intersection_update(values)
+        setattr(obj, name, all_values)
+
+
+class GroupCheckBoxes(CheckboxSet):
+
+    def __init__(self, caption=None, group=None):
+        CheckboxSet.__init__(self, caption, group, self._group_list)
+
+    def _group_list(self):
+        return drink.db.db['groups'].keys()
 
 
 class Id(Text):
@@ -107,9 +124,11 @@ class Id(Text):
         setattr(obj, name, val)
         parent[val] = obj
 
+
 class Int(Text):
     def set(self, obj, name, val):
         setattr(obj, name, int(val))
+
 
 class Password(Text):
     _template = r'''<input type="password" size="%(size)d" id="%(id)s" name="%(name)s" value="%(value)s" />'''

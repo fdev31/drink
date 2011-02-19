@@ -192,6 +192,8 @@ class Model(persistent.Persistent):
 
     html = None
 
+    content = '' # FIXME: refactor content & doc to "description"
+
     mime = 'model'
 
     classes = drink.classes
