@@ -76,6 +76,7 @@ class ObjectBrowser(drink.Page):
                 html.append('<li><a href="%(path)s">%(title)s</a></li>'%item)
         html.append('</ul>')
         self.lastlog[auth.id] = (pat, items)
+        drink.transaction.commit()
         return drink.template('main.html', obj=self, html='\n'.join(html), authenticated=auth, classes=self.classes)
 
     def view(self):
@@ -87,11 +88,12 @@ class ObjectBrowser(drink.Page):
             pat = ''
             items = None
 
-
         form = ['<form class="query_form" id="query_form" action="query" method="post">',
             drink.types.Text('Look for').html('pattern', pat),
             '<input class="submit" type="submit" value="GO!"/></form>']
         if items:
+            form.append('<h2>Last search</h2>')
+
             form.extend('<li><a href="%s">%s</a></li>'%(i.path, i.title) for i in items)
 
         return drink.template('main.html', obj=self, html='\n'.join(form), authenticated=auth, classes=self.classes)
