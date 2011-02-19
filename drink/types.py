@@ -30,8 +30,6 @@ class _Editable(object):
 class EasyPermissions(_Editable):
     def html(self, name, value, _template=None):
         return """
-        <h3>Quick permissions</h3>
-
         <div class="option" onclick="$('#edit_read_groups input').each( function() { $(this).attr('checked', false ) } ) ; $('#edit_write_groups input').each( function() { $(this).attr('checked', false ) } )">
         Private document</div>
         <div class="option" onclick="$('#edit_read_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/^users|admin$/) ) } ) ; $('#edit_write_groups input').each( function() { $(this).attr('checked', false ) } ) ">

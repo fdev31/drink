@@ -1,5 +1,6 @@
 body {
-	padding:50px;
+	padding:0;
+	margin: 0 1ex 0 1ex;
 	background-color: #A0A0A0;
 	font-family:Georgia,"Times New Roman","Bitstream Charter",Times,serif;
 	color:#093E56;
@@ -71,8 +72,13 @@ a img {
     -moz-border-radius: 1ex;
 }
 
+.x_permissiona_grp:before {
+   content:"Quick permissions:";
+   font-weight: bold;
+}
+
 .x_permissions_grp:before {
-    content:"Permissions:";
+   content:"Permissions:";
    font-weight: bold;
 }
 
@@ -89,7 +95,7 @@ div.option {
 }
 
 div.option:hover {
-    background-color: #789;
+    text-shadow: 1px 1px 5px #555;
 }
 
 #login_form {
