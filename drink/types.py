@@ -85,7 +85,7 @@ class GroupListArea(TextArea):
 class CheckboxSet(_Editable):
 
     def __init__(self, caption=None, group=None, values=[]):
-        """ values: dict-like object with keys & getitem
+        """ values: set of valid Ids
                 OR a callable returning this object """
         _Editable.__init__(self, caption, group)
         self.values = values
