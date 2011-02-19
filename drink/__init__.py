@@ -66,7 +66,7 @@ class Authenticator(object):
             self.success = self.user.password == password
 
         if self.success:
-            self.groups = set(g.id for g in self.user.groups)
+            self.groups = self.user.groups
             self.admin = 'admin' in self.groups or self.user.id == 'admin'
         else:
             self.user = db.db['users']['anonymous']
