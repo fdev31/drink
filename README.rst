@@ -58,14 +58,9 @@ Issues
 Release changes
 ---------------
 
-Bugfix release.
-
-Previous release changelog is:
-
-
-* Update to Jquery 1.5
-* Update the indexer to use Whoosh
-* Fixes about Groups & ACLs
-* Add a link to the search object in tool bar
-* Easy to use (high-level) permissions options
+* Allow [[wiki pages]] in Markdown pages
+* Css & icons update
+* Simplified user workflow for edition  
+* All objects can be listed now
+* Very simple factory to automatically create Markdown objects
 
