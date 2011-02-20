@@ -27,6 +27,7 @@ $(document).ready(function(){
                 url:'rm?name='+item,
             });
 			ui.draggable.hide();
+			// FIXME: does not work ?! only replaces one value...
 			var safe_name = item.replace('"', '\\"');
 			$('#edit_form select option[value="'+safe_name+'"]').remove();
 			$('#rm_form select option[value="'+safe_name+'"]').remove();
