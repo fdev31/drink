@@ -16,6 +16,7 @@ save_doc = function(h) {
 }
 
 mySettings = {
+    nameSpace: "markdown",
     previewParserPath:  './process',
     previewAutoRefresh: true,
 	onCtrlEnter:		{afterInsert: save_doc, keepDefault: false},

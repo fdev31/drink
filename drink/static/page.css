@@ -39,7 +39,9 @@ a img {
 
     padding-left: 1ex;
 }
-
+.entry {
+margin-bottom: 0.5ex;
+}
 .sortable {
     list-style-type: none;
 }
@@ -191,4 +193,19 @@ a:hover {
     width: 32px;
     margin-right: 1ex;
     margin-bottom: -8px;
+}
+
+.minicon {
+    width: 20px;
+    margin-right: 1ex;
+    margin-bottom: -8px;
+}
+
+div.objects_forms {
+    margin: 1ex auto 0 2ex;
+}
+
+
+li.entry > img {
+    vertical-align: bottom;
 }
