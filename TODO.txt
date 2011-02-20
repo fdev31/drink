@@ -1,4 +1,5 @@
 before 0.1:
+- /help object with instructions (markdown + general usage)
 - allow user-site creation
 - allow custom extensions
 - default content for every user
