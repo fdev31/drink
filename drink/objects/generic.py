@@ -154,7 +154,6 @@ class Page(Model):
                 elif attr in editable:
                     caster.set(self, attr, forms.get(attr))
 
-            transaction.commit()
             database = drink.db.db
             if 'search' in database:
                 database['search']._update_object(self)
@@ -253,7 +252,7 @@ class Page(Model):
         if None == cls:
             cls = request.GET.get('class')
 
-        return drink.rdr(self._add(name, cls, auth.user.default_read_groups, auth.user.default_write_groups).rootpath)
+        return drink.rdr(self._add(name, cls, auth.user.default_read_groups, auth.user.default_write_groups).path+'edit')
 
     def list(self):
         return template('list.html', obj=self, css=self.css, js=self.js,
