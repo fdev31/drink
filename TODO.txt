@@ -1,4 +1,7 @@
 before 0.1:
+- allow user-site creation
+- allow custom extensions
+- default content for every user
 - allow rss via http://www.freewisdom.org/projects/python-markdown/RSS
 - auto-wikilinks via http://www.freewisdom.org/projects/python-markdown/WikiLinks
 - refactor welcome & login page
