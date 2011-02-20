@@ -8,6 +8,8 @@ class TODO(drink.Page):
 
     description = "Something to do"
 
+    mime = "note"
+
     editable_fields = {
         'title': drink.types.Text("Title", group="a"),
         'content': drink.types.TextArea("Summary", group="b"),

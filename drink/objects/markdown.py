@@ -25,8 +25,7 @@ class MarkdownPage(drink.Page):
     js = drink.Page.js + ['/static/markitup/jquery.markitup.js',
         '/static/markitup/sets/markdown/set.js']
 
-    css = drink.Page.css + ['/static/markitup/skins/markitup/style.css',
-        '/static/markitup/sets/markdown/style.css']
+    css = drink.Page.css + ['/static/markitup/sets/markdown/style.css', '/static/markitup/skins/markitup/style.css']
 
     markup_name = ''
 

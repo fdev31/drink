@@ -98,7 +98,7 @@ class Group(drink.Page):
 
 class GroupList(drink.ListPage):
     description = "Groups"
-    mime = "group"
+    mime = "groups"
 
     classes = {'Group': Group}
 
