@@ -33,9 +33,9 @@ a img {
     background: #be8;
     border-radius: 1ex;
     -moz-border-radius: 1ex;
-    -moz-box-shadow: 10px 10px 5px #444;
+    -moz-box-shadow: 3px 1px 5px #444;
     -webkit-box-shadow: 3px 1px 5px #444;
-    box-shadow: 10px 10px 5px #444;
+    box-shadow:  3px 1px 5px #444;
 
     padding-left: 1ex;
 }
@@ -62,9 +62,9 @@ margin-bottom: 0.5ex;
     color: #bbc;
 }
 .x_permissions_grp:hover {
-    -moz-box-shadow: 10px 10px 5px #444;
     -webkit-box-shadow: 3px 1px 5px #444;
-    box-shadow: 10px 10px 5px #444;
+    -moz-box-shadow:  3px 1px 5px #444;
+    box-shadow:  3px 1px 5px #444;
 }
 .x_permissions_grp span.toggler:hover {
     color: #520;
@@ -148,9 +148,9 @@ div.input input[type="file"] {
 input:hover , div.editable > textarea:hover {
     background: #be8;
     color: #456;
-    -moz-box-shadow: 10px 10px 5px #444;
     -webkit-box-shadow: 3px 1px 5px #444;
-    box-shadow: 10px 10px 5px #444;
+    -moz-box-shadow: 3px 1px 5px #444;
+    box-shadow: 3px 1px 5px #444;
 }
 
 textarea.markItUpEditor:hover {
@@ -159,9 +159,9 @@ textarea.markItUpEditor:hover {
 
 div.editable span.label:hover {
     background: #be8;
-    -moz-box-shadow: 10px 10px 5px #444;
     -webkit-box-shadow: 3px 1px 5px #444;
-    box-shadow: 10px 10px 5px #444;
+    -moz-box-shadow: 3px 1px 5px #444;
+    box-shadow:  3px 1px 5px #444;
 }
 
 label > img {
@@ -177,9 +177,9 @@ a:hover {
     background: #dde;
     text-decoration: none;
     color: black;
-    -moz-box-shadow: 10px 10px 5px #444;
     -webkit-box-shadow: 0px 2px 5px #444;
-    box-shadow: 10px 10px 5px #444;
+    -moz-box-shadow: 0px 2px 5px #444;
+    box-shadow: 0px 2px 5px #444;
     border-radius: 3px;
     -moz-border-radius: 3px;
 }
@@ -195,8 +195,6 @@ a:hover {
 
 .icon {
     width: 32px;
-    margin-right: 1ex;
-    margin-bottom: -8px;
 }
 
 .minicon {

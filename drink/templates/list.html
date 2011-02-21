@@ -15,7 +15,7 @@
 <ul class="sortable">
 {% for name in obj.iterkeys() %}
     {% if 'r' in authenticated.access(obj[name]) %}
-    <li class="entry"><a title="{{obj[name].description}}" href="{{obj.path}}{{name}}/"><img class="icon" src="{% if obj[name].mime.startswith('http') %}{{obj[name].mime}}{% else %}/static/mime/{{ obj[name].mime }}.png{% endif %}"/>{{ obj[name].title }}</a>
+    <li class="entry"><img class="icon" src="{% if obj[name].mime.startswith('http') %}{{obj[name].mime}}{% else %}/static/mime/{{ obj[name].mime }}.png{% endif %}"/><a title="{{obj[name].description}}" href="{{obj.path}}{{name}}/">{{ obj[name].title }}</a>
     {% if authenticated and obj[name].__len__() %} ({{ obj[name].__len__() }} item{% if obj[name].__len__() > 1 %}s{% endif %})
     {% endif %}
     </li>
