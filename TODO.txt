@@ -1,4 +1,5 @@
 before 0.1:
+- only accept object move if it succeded on server
 - /help object with instructions (markdown + general usage)
 - allow user-site creation
 - allow custom extensions
