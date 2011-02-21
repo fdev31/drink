@@ -8,9 +8,12 @@ from whoosh.query import *
 from whoosh.qparser import QueryParser
 
 INDEX_DIR = os.path.join(drink.DB_PATH, 'whoosh')
+qparser = indexer = None
 
 
 def init():
+    global qparser, indexer
+
     if os.path.exists(INDEX_DIR):
         indexer = open_dir(INDEX_DIR)
     else:
