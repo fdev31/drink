@@ -145,6 +145,8 @@ def glob_index(objpath="/"):
         return o.view()
 
 def init():
+    from drink.objects.finder import reset
+    reset()
     with db as root:
         root.clear()
 

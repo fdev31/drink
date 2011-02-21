@@ -8,16 +8,25 @@ from whoosh.query import *
 from whoosh.qparser import QueryParser
 
 INDEX_DIR = os.path.join(drink.DB_PATH, 'whoosh')
-if os.path.exists(INDEX_DIR):
-    indexer = open_dir(INDEX_DIR)
-else:
-    os.mkdir(INDEX_DIR)
-    indexer = create_in(
-        INDEX_DIR,
-        Schema(path=ID(stored=True, unique=True), title=TEXT(stored=True), content=TEXT)
-    )
 
-qparser = QueryParser("title", schema=indexer.schema)
+
+def init():
+    if os.path.exists(INDEX_DIR):
+        indexer = open_dir(INDEX_DIR)
+    else:
+        os.mkdir(INDEX_DIR)
+        indexer = create_in(
+            INDEX_DIR,
+            Schema(path=ID(stored=True, unique=True), title=TEXT(stored=True), content=TEXT)
+        )
+
+    qparser = QueryParser("title", schema=indexer.schema)
+
+def reset():
+    import shutil
+    if os.path.exists(INDEX_DIR):
+        shutil.rmtree(INDEX_DIR)
+    init()
 
 def extract_obj(o):
     return {'path': unicode(o.path),
@@ -25,6 +34,7 @@ def extract_obj(o):
         'content': "%s %s"%(unicode(o.description),
             unicode(getattr(o, 'content', ''))),
         }
+
 
 class ObjectBrowser(drink.Page):
     mime = "search"
@@ -98,4 +108,7 @@ class ObjectBrowser(drink.Page):
 
         return drink.template('main.html', obj=self, html='\n'.join(form), authenticated=auth, classes=self.classes)
 
+init()
+
 exported = {"Finder": ObjectBrowser}
+
