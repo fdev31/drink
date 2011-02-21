@@ -58,9 +58,4 @@ Issues
 Release changes
 ---------------
 
-* Allow [[wiki pages]] in Markdown pages
-* Css & icons update
-* Simplified user workflow for edition  
-* All objects can be listed now
-* Very simple factory to automatically create Markdown objects
-
+* As always: Fixes & Bugs
