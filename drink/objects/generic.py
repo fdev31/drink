@@ -222,6 +222,11 @@ class Page(Model):
             parent_path = '.'
         del self[name]
         transaction.commit()
+
+        database = drink.db.db
+        if 'search' in database:
+            database['search']._del_object(new_obj)
+
         return drink.rdr(parent_path)
 
     def _add(self, name, cls, read_groups, write_groups):

@@ -57,6 +57,11 @@ class ObjectBrowser(drink.Page):
 
         w.commit()
 
+    def _del_object(self, obj):
+        w = indexer.writer()
+        w.delete_by_term("path", obj.path)
+        w.commit()
+
     def _update_object(self, obj):
         w = indexer.writer()
         w.update_document(**extract_obj(obj))
