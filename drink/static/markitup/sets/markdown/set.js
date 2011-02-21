@@ -15,6 +15,43 @@ save_doc = function(h) {
     return false;
 }
 
+untabber = function(mid) {
+      var textarea = mid.textarea,  
+      selStart = textarea.selectionStart,  
+      selEnd = textarea.selectionEnd,  
+      selText = textarea.value.substring(selStart, selEnd),  
+      lines = [],   
+      charsAdded = 0;  
+
+      lines = selText.split(/\r?\n/);  
+      for (var i = 0, len = lines.length; i < len; i++) {  
+          re = /^\s{4}/;
+          if (lines[i].match(re)) {
+              lines[i] = lines[i].replace(re, '');
+              charsAdded -= 4;
+          }
+      }  
+      textarea.selectionEnd = selEnd + charsAdded;
+      return lines.join('\n');  
+}
+
+tabber = function(mid) {
+      var textarea = mid.textarea,  
+      selStart = textarea.selectionStart,  
+      selEnd = textarea.selectionEnd,  
+      selText = textarea.value.substring(selStart, selEnd),  
+      lines = [],   
+      charsAdded = 0;  
+
+      lines = selText.split(/\r?\n/);  
+      for (var i = 0, len = lines.length; i < len; i++) {  
+          lines[i] = "    "+lines[i];
+          charsAdded += 4;
+      }  
+      textarea.selectionEnd = selEnd + charsAdded;
+      return lines.join('\n');  
+}
+
 mySettings = {
     nameSpace: "markdown",
     previewParserPath:  './process',
@@ -31,6 +68,9 @@ mySettings = {
 		{name:'Bold', key:'B', openWith:'**', closeWith:'**'},
 		{name:'Italic', key:'I', openWith:'_', closeWith:'_'},
 		{separator:'---------------' },
+		{name:'Deindent', replaceWith: untabber},
+		{name:'Indent', replaceWith: tabber},
+		{separator:'---------------' },
 		{name:'Bulleted List', openWith:'- ' },
 		{name:'Numeric List', openWith:function(markItUp) {
 			return markItUp.line+'. ';
@@ -43,7 +83,7 @@ mySettings = {
 		{name:'Code Block / Code', openWith:'(!(\t|!|`)!)', closeWith:'(!(`)!)'},
 		{separator:'---------------'},
 		{name:'Preview', call:'preview', className:"preview"}
-	]
+	],
 }
 
 // mIu nameSpace to avoid conflict.
