@@ -145,12 +145,16 @@ div.input input[type="file"] {
     border: none;
 }
 
-input:hover , textarea:hover {
+input:hover , div.editable > textarea:hover {
     background: #be8;
     color: #456;
     -moz-box-shadow: 10px 10px 5px #444;
     -webkit-box-shadow: 3px 1px 5px #444;
     box-shadow: 10px 10px 5px #444;
+}
+
+textarea.markItUpEditor:hover {
+    border: solid 2px #be8;
 }
 
 div.editable span.label:hover {
