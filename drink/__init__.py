@@ -199,6 +199,14 @@ def init():
             elt = classes[ name ](pagename, '/')
             root[pagename] = elt
 
+        if 'pages' in root:
+            mdown = classes['Web page (markdown)']('help', '/pages/')
+            help = os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, "HELP.md"))
+            mdown.content = open(help).read()
+            mdown.owner = admin
+            mdown.min_rights = 'r'
+            root['pages']['help'] = mdown
+
 
 def startup():
     import sys

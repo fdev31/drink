@@ -67,7 +67,8 @@ class MarkdownPage(drink.Page):
 
     def process(self, data=None):
         md = wikifier_cache.get(self.path, None) or Markdown(
-            extensions = ['tables', 'wikilinks', 'fenced_code', 'codehilite(force_linenos=True)'],
+            extensions = ['tables', 'wikilinks', 'fenced_code',
+            'toc', 'def_list', 'codehilite(force_linenos=True)'],
             extension_configs = {
             "codehilite":
                  ("force_linenos", True),
