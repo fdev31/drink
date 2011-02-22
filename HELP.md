@@ -1,76 +1,210 @@
 # Drink! Quickstart
 
-## General usage
+[TOC]
 
-### Top icons
+Drink! is a generic web+database framework, CMS oriented. It allows you to run a full website serving web pages, files of arbitrary size and dynamic applications.
 
-#### General
+It includes simple (but efficient) objects that can be configured and extended.
 
-* ![](/static/actions/exit.png) logout
-* ![](/static/actions/personal.png) edit user profile
-* ![](/static/actions/find.png) search site
-* ![](/static/actions/top.png) one level up
-* ![](/static/actions/edit.png) edit current page
-* ![](/static/actions/open.png) list current page content
+In the program, **page** and **element** are the same thing; for clarity I will refer to *currently displayed element/page* as **current page** and *"children" elements/pages* as **page's elements**.
 
-#### Children elements
+## Standard actions (top banner icons)
 
-* ![](/static/actions/new.png) add some element
-* ![](/static/actions/edit.png) edit some element (you can drop some element over it)
-* ![](/static/actions/delete.png) delete some element (you can drop some element over it)
+### General
 
-## Elements
+![](/static/actions/exit.png) Log out
+:  Closes your user session.
 
-### ![](/static/mime/tasks.png) TODO list
- Holds a list of things to do
+![](/static/actions/personal.png) Account settings
+:  Edit your settings (name, password, email, etc...).
 
-### ![](/static/mime/folder.png) Folder index
-Folder-like display, with user-defined order (you can drag & drop elements to change their order).
+![](/static/actions/find.png) Search
+:  Perform a full text search on the whole website.
 
-** WARNING **:
-    Press `Ctrl` key to apply re-order change
+![](/static/actions/top.png) Back to parent element
+:  Jumps one level up.
 
-### ![](/static/mime/markdown.png) Web page
-This is a generic HTML or  [Markdown](http://daringfireball.net/projects/markdown/basics "Markdown") page.
+![](/static/actions/edit.png) Edit current page
+:  Edit currently displayed page.
 
-Get a complete description of the syntax [here](http://daringfireball.net/projects/markdown/syntax)
+![](/static/actions/open.png) List content
+:  View currently displayed page in *list* mode.
 
-**Tip**: You can automatically create a new *web page* by using double brackets-wiki-links like `[[this one]]`.
-It will create a page called "this one" & and show you an edition formular on first access. On next access, it will be a simple link to the page.
+> **NOTE**: In *list* mode, you can add any computer-file content directly by drag & dropping it to the web page (over the *"you can drop files here"* text).
 
-Example: [[sample link]]
+### Children elements
 
-#### Editor
+![](/static/actions/new.png)
+:  Adds a new children element to currently displayed page.
 
-Click on the ![V](/static/markitup/sets/markdown/images/preview.png) to see a realtime preview.
+![](/static/actions/edit.png)
+:  Edit some element of this page (you can drag&drop some element over it).
 
-Most icons are self-explicit, feel free to try them, here is a list of most common shortcuts:
+![](/static/actions/delete.png)
+:  Removes an element from current page (you can drag&drop some element over it).
 
-* `Ctrl+ENTER` : Save & Exit
-* `Ctrl+B` : Bold
-* `Ctrl+I` : Italic
+> **NOTE**: In *list* mode, you can drag & drop listed elements over **edit** or **delete** icons instead of choosing an element's name in the list.
+
+## Element types
+
+![](/static/mime/tasks.png) TODO list
+:  Contains a list of tasks to complete
+
+![](/static/mime/folder.png) Folder index
+:  Folder-like display, with user-defined order.
+:  You can drag & drop elements to change their order.
+:  Beware `Ctrl` key must be pressed while you release left mouse button,
+:  this is to prevent wrong moves.
+
+
+![](/static/mime/markdown.png) Web page
+:  This is a generic HTML or  [Markdown](http://daringfireball.net/projects/markdown/basics "Markdown") page.
+:  Read [editor help](#editor) to know more about document edition.
+
+![](/static/mime/page.png) File
+:  This Element can store any uploaded file from your computer, and attaches a description to it.
+:  By default, it shows the user a download link, which is just a link to `/raw` URL element.
+:  It can display some files too like images and texts.
+
+
+<a id="editor"></a>
+## Web page (Markdown) Editor
+
+Click on the ![V](/static/markitup/sets/markdown/images/preview.png) to see an almost realtime preview.
+
+Most icons are self-explicit, feel free to try them.
+
+### Shortcuts
+Here is a list of most common shortcuts:
+
+* `Ctrl+B` : **Bold**
+* `Ctrl+I` : *Italic*
 * `Ctrl+P` : Insert picture
 * `Ctrl+L` : Insert link
-* `Ctrl+1` : Make level 1 title
+* `Ctrl+1` : Make level 1 title (top level)
 * `Ctrl+2` : Make level 2 title
-* `Ctrl+3` : etc... until 6
+* `Ctrl+3` : etc... (until 6, the lowest, less important level)
+* `Ctrl+ENTER` : Save & Exit
+
+### Syntax
+
+Get a complete description of the syntax [here](http://daringfireball.net/projects/markdown/syntax).
+
+### Extensions to markdown
+
+**Wiki mode**
+
+You can automatically create a new *web page* by using *double brackets wiki-links like:
+
+    [[this one]]
+
+displayed like
+
+[[this one]]
+
+It will create a page called "this one" & and show you a page to edit the content on first access. On next access, it will be a simple link to the page.
+
+**Descriptions**
+
+With this syntax:
+
+    definition of life
+    : Life is quite complex
+    : It can contains multi-line texts
+
+You get:
+
+definition of life
+: Life is quite complex
+: It can contains multi-line texts
+
+**litteral blocks**
+
+You can use this syntax:
+
+    ~~~~~
+    THIS SHOULD BE fixed case text
+    ~~~~~
+
+    ~~~
+    iiiiiiiiOOOOOOOOiiiiiiOOOOO
+    ~~~
 
 
-### ![](/static/mime/page.png) File
+To get:
 
-This Element can store any uploaded file.
+~~~~~
+THIS SHOULD BE fixed case text
+~~~~~
+
+~~~
+iiiiiiiiOOOOOOOOiiiiiiOOOOO
+~~~
+
+Or, alternatively, you can enable highlight to standard code block mode (just indent the code):
+
+~~~
+    #!python
+    def drink_is_fun():
+        print "Oh yeah!"
+~~~
+
+Will produce
+
+    #!python
+    def drink_is_fun():
+        print "Oh yeah!"
+
+**TOC**
+
+You can produce a simple *Table of contents* from your document's headings using:
+
+    [TOC]
+
+It's preferable to keep this at the beginning of the document but you are totally free.
 
 ## Access control
 
-### Quick
-#### Private document
-#### Users can only consult
-#### Users can change content
-#### Everybody can see
+### Presentation
 
-### Full
+Access is granted by some simple rules, applied **per element**:
 
-#### Write
-#### Read
-#### Traverse
-#### Add (or append)
+* **O**wner can do anything
+* People in **r**ead group can view document/element
+* People in **w**rite group can change document and **a**dd elements (but not its access rules)
+* The special group **users** means *"any recognized user"*
+* The special group **anonymous** means *"anybody connecting to the website"*
+* Every user have his own group
+* If someone is not explicitly listed in *write group*, then he can't **a**dd something but only **w**rite the current document.
+
+Last but not least, after the common **r**ead, **w**rite, **a**ppend permissions, there is the **t**raversal access for people that can only access to children elements without permission to view traversed elements...
+
+### Quick settings
+
+This is some commonly used shortcuts to quickly set most of the access.
+
+Private document
+:  Nobody can access this document
+
+Users can only consult
+:  Any user recognized by the system can view the content
+
+Users can change content
+:  Any user recognized by the system can edit the document
+
+Everybody can see
+:  Any user (even anonymous - not logged in) can view the document
+
+### Every user's permissions (wrta)
+This is a world containing letters from **wrta**
+
+**w**
+:  write
+**r**
+:  read
+**t**
+:  traverse
+**a**
+:  add / append
+
+Those permissions will be given to anybody, unconditionally.
