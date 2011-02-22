@@ -113,7 +113,8 @@ class CheckboxSet(_Editable):
         all_ids = self.v
 
         opts = [r'<input type="checkbox" name=%(name)s value="'+o+'" '+\
-            ('checked="checked" />' if o in values else '/>')+'<span class="label">'+o+'</span>' for o in all_ids]
+            ('checked="checked" />' if o in values else '/>')+'<span class="label">'+o+'</span>'
+            for o in all_ids]
         return _Editable.html(self, name, None, '\n'.join(opts))
 
     def set(self, obj, name, val):

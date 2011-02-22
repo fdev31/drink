@@ -74,20 +74,19 @@ class ObjectBrowser(drink.Page):
         w.update_document(**extract_obj(obj))
         w.commit()
 
-    def query(self, full=False):
-        pat = drink.request.forms.get('pattern')
+    def query(self, pattern=None, query_type=None):
+        pattern = pattern if pattern != None else drink.request.forms.get('pattern')
+        query_type = query_type if query_type != None else drink.request.forms.get('qtype')
         searcher = indexer.searcher()
         auth = drink.request.identity
 
-        q = qparser.parse(unicode(pat))
-        '''
-        if full:
-            q = Or([Term("content", pat), Term("title", pat)])
+        if query_type == 'fast':
+            pat = pattern.strip()
         else:
-            q = Or([Term("title", pat)])
-        '''
+            pat = 'title:%(p)s OR content:%(p)s'%dict(p=pattern.strip())
 
-        res = searcher.search(q)
+        res = searcher.search(qparser.parse(unicode(pat)))
+
         items = []
         html = ['<ul>']
         root = drink.db.db
@@ -99,7 +98,8 @@ class ObjectBrowser(drink.Page):
         html.append('</ul>')
         self.lastlog[auth.id] = (pat, items)
         drink.transaction.commit()
-        return drink.template('main.html', obj=self, html='\n'.join(html), authenticated=auth, classes=self.classes)
+        return drink.template('main.html', obj=self, html='\n'.join(html),
+                    authenticated=auth, classes=self.classes)
 
     def view(self):
         auth = drink.request.identity
@@ -112,6 +112,7 @@ class ObjectBrowser(drink.Page):
 
         form = ['<form class="query_form" id="query_form" action="query" method="post">',
             drink.types.Text('Look for').html('pattern', pat),
+            drink.types.CheckboxSet("Search type", values=['fast']).html('qtype', ['fast']),
             '<input class="submit" type="submit" value="GO!"/></form>']
         if items:
             form.append('<h2>Last search</h2>')
