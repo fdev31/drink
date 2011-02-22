@@ -2,7 +2,9 @@
 
 ## General usage
 
-### Action icons
+### Top icons
+
+#### General
 
 * ![](/static/actions/exit.png) logout
 * ![](/static/actions/personal.png) edit user profile
@@ -11,7 +13,7 @@
 * ![](/static/actions/edit.png) edit current page
 * ![](/static/actions/open.png) list current page content
 
-### Other actions
+#### Children elements
 
 * ![](/static/actions/new.png) add some element
 * ![](/static/actions/edit.png) edit some element (you can drop some element over it)
@@ -23,17 +25,18 @@
  Holds a list of things to do
 
 ### ![](/static/mime/folder.png) Folder index
-Folder-like display, with user-defined order (you can drag & drop elements to change their order.
+Folder-like display, with user-defined order (you can drag & drop elements to change their order).
 
 ** WARNING **:
-    You have to press `Ctrl`  key to apply re-order change
+    Press `Ctrl` key to apply re-order change
 
 ### ![](/static/mime/markdown.png) Web page
 This is a generic HTML or  [Markdown](http://daringfireball.net/projects/markdown/basics "Markdown") page.
 
 Get a complete description of the syntax [here](http://daringfireball.net/projects/markdown/syntax)
 
-**Tip**: You can automatically create a new *web page* by using double brackets-wiki-links like `[[this one]]` which will create & edit a page called "this one" on first access, then it will just point to the page.
+**Tip**: You can automatically create a new *web page* by using double brackets-wiki-links like `[[this one]]`.
+It will create a page called "this one" & and show you an edition formular on first access. On next access, it will be a simple link to the page.
 
 Example: [[sample link]]
 
@@ -43,7 +46,7 @@ Click on the ![V](/static/markitup/sets/markdown/images/preview.png) to see a re
 
 Most icons are self-explicit, feel free to try them, here is a list of most common shortcuts:
 
-* `Ctrl+Return` : Save & Exit
+* `Ctrl+ENTER` : Save & Exit
 * `Ctrl+B` : Bold
 * `Ctrl+I` : Italic
 * `Ctrl+P` : Insert picture
