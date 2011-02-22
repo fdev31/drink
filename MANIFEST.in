@@ -6,3 +6,4 @@ include database/zodb.conf
 include bottle.py
 include runserver.py
 include README.rst
+include HELP.md
