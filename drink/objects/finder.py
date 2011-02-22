@@ -46,6 +46,10 @@ class ObjectBrowser(drink.Page):
 
     classes = {}
 
+    hidden_class = True # TODO: add non-hidden finder that is not whoosh related but more
+                        # like the old "Dumb" indexer, with local (but recursive) lookup
+                        # OR : "find" method on any page, with optional recursive attr
+
     def __init__(self, name, rootpath):
         drink.Page.__init__(self, name, rootpath)
         self.lastlog = {}

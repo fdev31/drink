@@ -202,6 +202,10 @@ def init():
 def startup():
     import sys
 
+    for name, klass in classes.items():
+        if getattr(klass, 'hidden_class', False):
+            del classes[name]
+
     try:
         import setproctitle
     except ImportError:
