@@ -8,6 +8,7 @@ from drink.config import config, BASE_DIR
 
 import bottle
 import os
+
 bottle.TEMPLATE_PATH.append(os.path.join(BASE_DIR,'templates'))
 STATIC_PATH = os.path.abspath(os.path.join(BASE_DIR, "static"))
 DB_PATH = config.get('server', 'database') or os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, "database"))
@@ -156,7 +157,7 @@ def init():
             user = None
 
             def access(self, obj):
-                return 'rw'
+                return 'rowat'
 
         request.identity = FakeId()
         groups = root['groups'] = obj.GroupList('groups', '/')
@@ -202,10 +203,6 @@ def init():
 def startup():
     import sys
 
-    for name, klass in classes.items():
-        if getattr(klass, 'hidden_class', False):
-            del classes[name]
-
     try:
         import setproctitle
     except ImportError:
@@ -227,6 +224,9 @@ def startup():
             set_trace()
     else:
         dbg_in_env = 'DEBUG' in os.environ
+        for name, klass in classes.items():
+            if getattr(klass, 'hidden_class', False):
+                del classes[name]
 
         if not dbg_in_env and 'BOTTLE_CHILD' not in os.environ:
 
