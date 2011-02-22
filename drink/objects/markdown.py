@@ -2,6 +2,25 @@ from __future__ import absolute_import
 import drink
 from markdown import Markdown
 
+DEFAULT_CONTENT = """
+<!- hehe, you can add html tags directly too: -->
+
+<a href="../"><img src="/static/actions/back.png" /></a>
+
+Main title of the document
+==========================
+
+Getting started
+---------------
+
+You can add your content here... [Edit me](edit)
+
+Get a quick overview of the syntax [here](http://daringfireball.net/projects/markdown/basics)
+
+or something more complete [here](http://daringfireball.net/projects/markdown/syntax).
+
+"""
+
 class MarkdownEditor(drink.types._Editable):
     def html(self, caption, group):
         return drink.types._Editable.html(self, caption, group, '''
@@ -16,7 +35,7 @@ class MarkdownEditor(drink.types._Editable):
 wikifier_cache = {}
 
 class MarkdownPage(drink.Page):
-    content = "# Your document title\n\n[Edit me](edit)"
+    content = DEFAULT_CONTENT
 
     mime = "markdown"
 
