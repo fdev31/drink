@@ -59,6 +59,7 @@ Release changes
 ---------------
 
 * Add a nice Help by default
+* Add a custom wsgi loader that gracefully loads the fastest compatible wsgi backend available
 * Finder now also deletes traces of old objects
 * Add support for "full" search in finder
 * add Indent/Deindent support to Markdown editor
