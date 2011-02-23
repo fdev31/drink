@@ -6,7 +6,7 @@ Drink! is a generic web+database framework, CMS oriented. It allows you to run a
 
 It includes simple (but efficient) objects that can be configured and extended.
 
-In the program, **page** and **element** are the same thing; for clarity I will refer to *currently displayed element/page* as **current page** and *"children" elements/pages* as **page's elements**.
+In the program, **page** and **element** are the same thing -- for clarity I will refer to *currently displayed element/page* as **current page** and *"children" elements/pages* as **page's elements**.
 
 ## Standard actions (top banner icons)
 
@@ -19,7 +19,8 @@ In the program, **page** and **element** are the same thing; for clarity I will 
 :  Edit your settings (name, password, email, etc...).
 
 ![](/static/actions/find.png) Search
-:  Perform a full text search on the whole website.
+:  Performs a full text search on the whole website.
+:  The "fast" search will only match titles, otherwise it will search the content as well.
 
 ![](/static/actions/top.png) Back to parent element
 :  Jumps one level up.
