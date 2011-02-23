@@ -68,10 +68,11 @@ class DrinkServer(bottle.ServerAdapter):
             if bjoern.version >= (1, 1, 0):
                 adapters.insert(0, bottle.BjoernServer)
 
+
         for sa in adapters:
             try:
                 print "* Trying %s"%sa.__name__
-                r = sa(self.host, self.port, **self.options).run(handler)
+                return sa(self.host, self.port, **self.options).run(handler)
             except ImportError:
                 pass
 
