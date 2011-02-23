@@ -49,6 +49,34 @@ from .zdb import Database
 db = Database(bottle.app(), DB_CONFIG)
 import transaction
 
+# Declare "drink" wsgi loader
+class DrinkServer(bottle.ServerAdapter):
+    """ Drink-flavored bottle runner.
+    Will try bjoern >=1.1, paste, gevent, rocket, fapws3 or wsgiref (in this order)
+    """
+    adapters = [bottle.PasteServer, bottle.GeventServer,
+        bottle.RocketServer, bottle.FapwsServer, bottle.WSGIRefServer]
+
+    def run(self, handler):
+        adapters = list(self.adapters)
+
+        try:
+            import bjoern
+        except ImportError:
+            pass
+        else:
+            if bjoern.version >= (1, 1, 0):
+                adapters.insert(0, bottle.BjoernServer)
+
+        for sa in adapters:
+            try:
+                print "* Trying %s"%sa.__name__
+                r = sa(self.host, self.port, **self.options).run(handler)
+            except ImportError:
+                pass
+
+bottle.server_names['drink'] = DrinkServer
+
 # Real code starts here
 
 class Authenticator(object):
