@@ -1,4 +1,6 @@
 before 0.1:
+- rename File to Meta File
+- add calltips everywhere
 - change cookie on password change
 - pack should call http://packages.python.org/Whoosh/api/index.html?highlight=optimize#whoosh.index.Index.optimize on whoosh
 - only accept object move if it succeded on server

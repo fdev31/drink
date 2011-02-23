@@ -58,4 +58,9 @@ Issues
 Release changes
 ---------------
 
+* Add a nice Help by default
+* Finder now also deletes traces of old objects
+* Add support for "full" search in finder
+* add Indent/Deindent support to Markdown editor
 * As always: Fixes & Bugs
+
