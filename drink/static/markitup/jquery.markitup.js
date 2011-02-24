@@ -300,6 +300,11 @@
 					len = string.block.length - string.openWith.length - string.closeWith.length;
 					len = len - (string.block.match(/ $/) ? 1 : 0);
 					len -= fixIeBug(string.block);
+                } else if (shiftKey = true) {
+                        string = build(selection);
+                        start = caretPosition + string.block.length ;
+                        len = 0;
+                        start -= fixIeBug(string.block);
 				} else {
 					string = build(selection);
 					start = caretPosition;
@@ -501,7 +506,7 @@
 
 				if (e.type === 'keydown') {
 					if (ctrlKey === true) {
-						li = $("a[accesskey="+String.fromCharCode(e.keyCode)+"]", header).parent('li');
+                        li = $('a[accesskey="'+String.fromCharCode(e.keyCode)+'"]', header).parent('li');
 						if (li.length !== 0) {
 							ctrlKey = false;
 							setTimeout(function() {

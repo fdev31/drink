@@ -68,8 +68,26 @@ mySettings = {
 		{name:'Bold', key:'B', openWith:'**', closeWith:'**'},
 		{name:'Italic', key:'I', openWith:'_', closeWith:'_'},
 		{separator:'---------------' },
+
+        {name:'Un-indent selection', replaceWith:function(miu) {
+            return miu.selection.replace(/^    /mg, '');
+        }, beforeInsert:function(miu) {
+            var e = jQuery.Event("keydown");
+            e.shiftKey = true;
+            e.ctrlKey = true;
+            $(miu.textarea).trigger(e);
+        }},
+        {name:'Indent selection', openWith:'    ', beforeInsert:function(miu) {
+            var e = jQuery.Event("keydown");
+            e.shiftKey = true;
+            e.ctrlKey = true;
+            $(miu.textarea).trigger(e);
+        }},
+
+/*
 		{name:'Deindent', replaceWith: untabber},
 		{name:'Indent', replaceWith: tabber},
+*/
 		{separator:'---------------' },
 		{name:'Bulleted List', openWith:'- ' },
 		{name:'Numeric List', openWith:function(markItUp) {
