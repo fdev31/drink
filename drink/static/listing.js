@@ -94,7 +94,7 @@ var startcode = function(data, status, req) {
             },
         });
     } catch (ReferenceError) {
-        console.debug('Uploader code not available');
+        //console.debug('Uploader code not available');
     }
 
 } // End of startup code
