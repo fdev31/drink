@@ -1,4 +1,5 @@
 before 0.1:
+- add items count in javascript too
 - make custom Bottle starter
 - abstract all low-level models (blobs...)
 - edit goes back to object's URL
