@@ -220,12 +220,12 @@ class Page(Model):
             parent_path = self.path
         except AttributeError: # XXX: unclean
             parent_path = '.'
-        del self[name]
+        old_obj = self[name]
         transaction.commit()
 
         database = drink.db.db
         if 'search' in database:
-            database['search']._del_object(new_obj)
+            database['search']._del_object(old_obj)
 
         return drink.rdr(parent_path)
 
