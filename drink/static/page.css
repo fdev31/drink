@@ -27,21 +27,28 @@ a img {
     font-family: sans-serif;
     color: #dde;
 }
+
 .entry input {
     border: dashed 2px white;
-    width: 90%;
+    width: 66%;
     background: #be8;
     border-radius: 1ex;
     -moz-border-radius: 1ex;
     -moz-box-shadow: 3px 1px 5px #444;
     -webkit-box-shadow: 3px 1px 5px #444;
     box-shadow:  3px 1px 5px #444;
-
     padding-left: 1ex;
+    color: #456;
 }
+
 .entry {
-margin-bottom: 0.5ex;
+    margin-bottom: 0.5ex;
 }
+
+span.infos {
+    margin-left: 1ex;
+}
+
 .sortable {
     list-style-type: none;
 }

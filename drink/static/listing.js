@@ -23,7 +23,21 @@ var startcode = function(data, status, req) {
         e.data('item', obj.id);
         e.disableSelection();
 		e.dblclick(enter_edit_func);
+		$.ajax({url: obj.path+obj.id+"/struct", context: e,  dataType: "text json"}).success(got_item_details);
         return e;
+    }
+
+    // called whenever make_li is called
+    // (prints the number of items)
+    var got_item_details = function(obj) {
+        if (!! $(this).has('.infos') ) {
+            if (obj.items.length == 0) {
+            } else if (obj.items.length == 1) {
+                $(this).append(jQuery('&nbsp;<span class="infos">(1 item)</span>'))
+            } else {
+                $(this).append(jQuery('&nbsp;<span class="infos">('+obj.items.length+' items)</span>'))
+            }
+        }
     }
 
    // handle sortables
@@ -57,10 +71,13 @@ var startcode = function(data, status, req) {
 		$(this).replaceWith($('<a href="./'+uid+'/view">'+txt+'</a>'));
 		$(this).parent().dblclick(enter_edit_func);
 	}
+
     var enter_edit_func = function(){
-		txt = $(this).text();
+        if ( $(this).has('input').length != 0 ) { return; }
+
+		txt = $(this).find('a').last().text();
 		// set an input field up, with focus
-        var inp = $("<input value='"+txt+"' />");
+        var inp = $("<input class=\"inline_edit\" value='"+txt+"' />");
 
         // replace second children
         $($(this)[0].children[1]).replaceWith(inp);
