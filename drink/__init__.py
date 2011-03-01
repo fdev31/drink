@@ -172,7 +172,7 @@ def glob_index(objpath="/"):
         response.content_type = "text/plain"
         return o
     else:
-        return o.view()
+        return getattr(o, o.default_action)()
 
 def init():
     from drink.objects.finder import reset

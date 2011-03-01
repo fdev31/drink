@@ -10,6 +10,8 @@ class TODO(drink.Page):
 
     mime = "note"
 
+    default_action = "edit"
+
     editable_fields = {
         'title': drink.types.Text("Title", group="a"),
         'content': drink.types.TextArea("Summary", group="b"),
@@ -18,9 +20,6 @@ class TODO(drink.Page):
     }
 
     content = ''
-
-    def view(self):
-        drink.rdr(self.path+'edit')
 
 
 class TODOList(drink.ListPage):
