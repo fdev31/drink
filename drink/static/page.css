@@ -112,10 +112,13 @@ div.option:hover {
 }
 
 fieldset {
-    border: solid 2px #bbc;
-    margin-top: 1em;
-    border-radius: 3em 10em 10em 3em;
-    -moz-border-radius: 3em 10em 10em 3em;
+    border-top: solid 2px #eef;
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
+    margin: 1em 0 1em 0;
+    background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ffd), to(#A0A0A0));
+    padding: 0 1em 0 1em;
 }
 
 .buttons {
@@ -243,4 +246,12 @@ div.codehilite {
     border: solid 1px black;
     border-radius: 1ex;
     -moz-border-radius: 1ex;
+}
+
+#user_actions {
+    text-align: right;
+}
+
+#page_actions {
+    margin-top: -32px;
 }

@@ -56,4 +56,7 @@ $(document).ready(function(){
     });
 
     $('.editable span').addClass('toggler');
+
+    $('#commands .togglable').slideUp(0);
+
 });

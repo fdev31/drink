@@ -41,14 +41,19 @@
     </form>
     {% elif not no_admin and authenticated %}
     <fieldset class="toggler" id="commands">
-        <legend onclick="$('.togglable').slideToggle('slow');">{{authenticated.id}}</legend>
+        <legend onclick="$('#commands .togglable').slideToggle('slow');">{{authenticated.id}}</legend>
         <div class="togglable" >
-        <a title="log out" href="/logout"><img  class="icon" src="/static/actions/exit.png" /></a>
+        <div id="user_actions" >
         <a title="Account settings" href="/users/{{authenticated.id}}/edit"><img class="icon" src="/static/actions/personal.png" /></a>
         <a title="Search" href="/search/"><img  class="icon" src="/static/actions/find.png" /></a>
         {% if obj.id != '.' %}
             <a title="Back to parent element" href="{{obj.path}}../"><img  class="icon" src="/static/actions/top.png" /></a>
         {% endif %}
+        <a title="log out" href="/logout"><img  class="icon" src="/static/actions/exit.png" /></a>
+        </div> <!-- /user actions -->
+        <div id="page_actions">
+        <a title="View/Reload current element" href="{{obj.path}}view"><img  class="icon" src="/static/actions/view.png" /></a>
+
         {% if obj.id != '.' and 'w' in authenticated.access(obj) %}
             <a title="Edit current element" href="{{obj.path}}edit"><img  class="icon" src="/static/actions/edit.png" /></a>
             <a title="List content" href="{{obj.path}}list"><img  class="icon" src="/static/actions/open.png" /></a>
@@ -95,7 +100,8 @@
             </form>
             </div>
             {% endif %}
-            </div>
+            </div> <!-- page actions -->
+            </div> <!-- end of toggleable -->
         {% endif %}
     </fieldset>
     {% endif %}
