@@ -52,56 +52,59 @@
         <a title="log out" href="/logout"><img  class="icon" src="/static/actions/exit.png" /></a>
         </div> <!-- /user actions -->
         <div id="page_actions">
-        <a title="View/Reload current element" href="{{obj.path}}view"><img  class="icon" src="/static/actions/view.png" /></a>
+        {% if obj.id != '.' %}
+            <a title="View/Reload current element" href="{{obj.path}}view"><img  class="icon" src="/static/actions/view.png" /></a>
 
-        {% if obj.id != '.' and 'w' in authenticated.access(obj) %}
-            <a title="Edit current element" href="{{obj.path}}edit"><img  class="icon" src="/static/actions/edit.png" /></a>
-            <a title="List content" href="{{obj.path}}list"><img  class="icon" src="/static/actions/open.png" /></a>
-            {% if classes and 'a' in authenticated.access(obj) %}
-            <div class="objects_forms">
 
-            <form id="add_form" class="autovalidate" action="add" method="get">
-                <label for="selected_class"><img  class="minicon" src="/static/actions/new.png" /></label>
-                <select id="selected_class" class="required" name="class" size="0">
-                {% for k in classes.iterkeys() %}
-                    <option value="{{k}}" label="{{k}}">{{k}}</option>
-                {% endfor %}
-                </select>
-                <label for="obj_name">as</label>
-                <input id="obj_name" type="text" name="name" class="required identifier" minlength="2" />
-                <input class="submit" type="submit" value="Create!"/>
-            </form>
-            {% endif %}
-            {% if obj and 'a' in authenticated.access(obj) %}
-            <form id="rm_form" action="rm" class="autovalidate" method="get" enctype="text/plain">
-                <label for="selected_rm_key"><img  class="minicon" id="rm_form_image" class="droppable" src="/static/actions/delete.png" /></label>
-                <select id="selected_rm_key" name="name" size="0" class="required">
-                    <option value="" label="-nothing-"></option>
-                {% for k in obj.iterkeys() %}
-                    {% if authenticated.access(obj[k]) %}
-                    <option value="{{k}}" label="{{k}}">{{k}}</option>
-                    {% endif %}
-                {% endfor %}
-                </select>
-                <input class="submit" type="submit" value="Delete!"/>
-            </form>
+            {% if 'w' in authenticated.access(obj) %}
+                <a title="Edit current element" href="{{obj.path}}edit"><img  class="icon" src="/static/actions/edit.png" /></a>
+                <a title="List content" href="{{obj.path}}list"><img  class="icon" src="/static/actions/open.png" /></a>
+                {% if classes and 'a' in authenticated.access(obj) %}
+                <div class="objects_forms">
 
-            <form id="edit_form" class="autovalidate" action="edit" method="get" enctype="text/plain">
-                <label for="selected_edit_key"><img  class="minicon" src="/static/actions/edit.png" /></label>
-                <select id="selected_edit_key" size="0" class="required">
-                    <option value="" label="-none-"></option>
-                {% for k in obj.iterkeys() %}
-                    {% if authenticated.access(obj[k]) %}
-                    <option value="{{k}}" label="{{k}}">{{k}}</option>
-                    {% endif %}
-                {% endfor %}
-                </select>
-                <input class="submit" type="submit" value="Go!!"/>
-            </form>
-            </div>
-            {% endif %}
-            </div> <!-- page actions -->
-            </div> <!-- end of toggleable -->
+                <form id="add_form" class="autovalidate" action="add" method="get">
+                    <label for="selected_class"><img  class="minicon" src="/static/actions/new.png" /></label>
+                    <select id="selected_class" class="required" name="class" size="0">
+                    {% for k in classes.iterkeys() %}
+                        <option value="{{k}}" label="{{k}}">{{k}}</option>
+                    {% endfor %}
+                    </select>
+                    <label for="obj_name">as</label>
+                    <input id="obj_name" type="text" name="name" class="required identifier" minlength="2" />
+                    <input class="submit" type="submit" value="Create!"/>
+                </form>
+                {% endif %}
+                {% if obj and 'a' in authenticated.access(obj) %}
+                <form id="rm_form" action="rm" class="autovalidate" method="get" enctype="text/plain">
+                    <label for="selected_rm_key"><img  class="minicon" id="rm_form_image" class="droppable" src="/static/actions/delete.png" /></label>
+                    <select id="selected_rm_key" name="name" size="0" class="required">
+                        <option value="" label="-nothing-"></option>
+                    {% for k in obj.iterkeys() %}
+                        {% if authenticated.access(obj[k]) %}
+                        <option value="{{k}}" label="{{k}}">{{k}}</option>
+                        {% endif %}
+                    {% endfor %}
+                    </select>
+                    <input class="submit" type="submit" value="Delete!"/>
+                </form>
+
+                <form id="edit_form" class="autovalidate" action="edit" method="get" enctype="text/plain">
+                    <label for="selected_edit_key"><img  class="minicon" src="/static/actions/edit.png" /></label>
+                    <select id="selected_edit_key" size="0" class="required">
+                        <option value="" label="-none-"></option>
+                    {% for k in obj.iterkeys() %}
+                        {% if authenticated.access(obj[k]) %}
+                        <option value="{{k}}" label="{{k}}">{{k}}</option>
+                        {% endif %}
+                    {% endfor %}
+                    </select>
+                    <input class="submit" type="submit" value="Go!!"/>
+                </form>
+                </div>
+                {% endif %}
+                </div> <!-- page actions -->
+                </div> <!-- end of toggleable -->
+        {% endif %}
         {% endif %}
     </fieldset>
     {% endif %}
