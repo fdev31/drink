@@ -1,9 +1,5 @@
 before 0.1:
-- suppport default view
-- add items count in javascript too
-- make custom Bottle starter
 - abstract all low-level models (blobs...)
-- edit goes back to object's URL
 - rename File to "WebFile"
 - add calltips everywhere
 - change cookie on password change
