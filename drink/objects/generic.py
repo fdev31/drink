@@ -230,6 +230,7 @@ class Page(Model):
         except AttributeError: # XXX: unclean
             parent_path = '.'
         old_obj = self[name]
+        del self[name]
         transaction.commit()
 
         database = drink.db.db
