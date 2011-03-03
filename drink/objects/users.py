@@ -49,6 +49,8 @@ class User(drink.Page):
     editable_fields = {
     }
 
+    default_action = "edit"
+
     def __init__(self, name, rootpath):
         drink.Page.__init__(self, name, rootpath)
         name = self.id
@@ -62,9 +64,6 @@ class User(drink.Page):
         self.owner = self
         new_grp.owner = self
         transaction.commit()
-
-    def view(self):
-        drink.rdr(self.path+'edit')
 
     def edit(self):
         r = drink.Page._edit(self)
@@ -93,7 +92,7 @@ class Group(drink.Page):
     editable_fields = {}
 
     def view(self):
-        return 'keep out'
+        return "Hi! I'm the %r(%r) group :)"%(self.name, self.id)
 
 
 class GroupList(drink.ListPage):

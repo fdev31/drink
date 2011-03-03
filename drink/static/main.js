@@ -21,7 +21,7 @@ $(document).ready(function(){
 
     $('#rm_form').droppable({
         drop: function(event, ui) {
-            var item = ui.draggable.data('item');
+            var item = ui.draggable.data('item').replace(/&/g, '%26').replace(/\?/g, '%3f');
             $(this).removeClass("selected");
             $.ajax({
                 url:'rm?name='+item,
@@ -43,7 +43,7 @@ $(document).ready(function(){
     $('#edit_form').droppable({
         drop: function(event, ui) {
             $(this).removeClass("selected");
-    		$($(this)[0][0]).val(ui.draggable.data('item'));
+    		$($(this)[0][0]).val(ui.draggable.data('item').replace(/&/g, '%26').replace(/\?/g, '%3f'));
             $(this).attr("action", ui.draggable.data('item')+"/edit");
 			$(this).submit();
         },
@@ -56,4 +56,7 @@ $(document).ready(function(){
     });
 
     $('.editable span').addClass('toggler');
+
+    $('#commands .togglable').slideUp(0);
+
 });

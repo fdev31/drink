@@ -27,6 +27,8 @@ class Page(Model):
     }
 
     owner_fields = {
+        'default_action':
+            drink.types.Text("Default action (ex: view, list, edit, ...)"),
         'easy_permissions':
             drink.types.EasyPermissions("EZ !", group="x_permissiona"),
         'read_groups':
@@ -44,6 +46,14 @@ class Page(Model):
     js = ['/static/listing.js']
     description = 'An abstract page'
     classes = drink.classes
+
+    #: default action if none specified
+    default_action = "view"
+
+    #: map used for upload action, to bind extensions to factories
+    upload_map = {
+        '*': 'File',
+    }
 
     # Model methods
 
@@ -85,7 +95,7 @@ class Page(Model):
         return Model.__setitem__(self, key, item)
 
     def view(self):
-        return "Not viewable"
+        return "Nothing to view"
 
     def struct(self, childs=True):
 
@@ -178,15 +188,14 @@ class Page(Model):
                         form.append('<div class="%s_grp">'%current_group)
                     val = getattr(self, field, '')
                     form.append('<div class="input">%s</div>'%factory.html(field, val))
-                form.append('</div><div class="buttons"><input class="submit" type="submit" value="Save changes please"/></div></form>')
-                form.insert(0, '<form class="auto_edit_form" id="auto_edit_form" action="edit" %s method="post">'%(
-                    ' '.join(form_opts)))
+                form.append('''</div>
+                <div class="buttons">
+                <input class="submit" type="submit" value="Save changes please"/>
+                </div></form>''')
+                form.insert(0, '''<form
+                 class="auto_edit_form" id="auto_edit_form" action="edit" %s method="post">'''%(' '.join(form_opts)))
             return drink.template('main.html', obj=self, html='\n'.join(form), css=self.css, js=self.js,
                  classes=self.classes, authenticated=request.identity)
-
-    upload_map = {
-        '*': 'File',
-    }
 
     def _upload(self, obj):
         self.editable_fields['content'].set(self, 'content', obj)
@@ -221,6 +230,7 @@ class Page(Model):
         except AttributeError: # XXX: unclean
             parent_path = '.'
         old_obj = self[name]
+        del self[name]
         transaction.commit()
 
         database = drink.db.db

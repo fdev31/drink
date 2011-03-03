@@ -59,6 +59,7 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 ## Release changes
 
 -   Add a nice Help by default
+-   Support for web-editable default actions on objects (avoids redirects)
 -   Add a custom wsgi loader that gracefully loads the fastest
     compatible wsgi backend available
 -   Finder now also deletes traces of old objects
