@@ -1,0 +1,413 @@
+/* opts */
+// @option compress: no;
+$experimental-support-for-mozilla: 1;
+$experimental-support-for-webkit: 1;
+
+/* variables */
+
+$shadow_weight: 3px;
+$shadow_down: 1px;
+$shadow_right: 1px;
+$shadow_color: rgba(#444, 0.6);
+$radius: 8px;
+$hi_color: #be8;
+$contour: #dde;
+$main_color: #093E56;
+
+
+/* mixins */
+
+@import "compass/css3/gradient";
+@import "compass/css3/box-shadow";
+@import "compass/css3/text-shadow";
+@import "compass/css3/border-radius";
+@import "compass/reset";
+@import "compass/utilities";
+
+// @import "compass/css3/box-shadow"
+
+@mixin shadowed {
+    color: black;
+    @include border-radius($radius);
+    @include single-box-shadow($shadow_color, $shadow_right, $shadow_down, $shadow_weight, 2px);
+}
+
+@mixin entryfont {
+	outline:none;
+    font-size: 16pt;
+    color: $contour;
+}
+
+@mixin edit_hover {
+    background: $hi_color;
+    @include shadowed;
+}
+
+@mixin editable {
+    margin: 0 0 0.7ex 0;
+    border: solid 2px #fff;
+    @include border-radius($radius);
+}
+
+/* real CSS here */
+
+body {
+	padding:0;
+	margin: 0 1ex 0 1ex;
+	background-color: #A0A0A0;
+	font-family: Helvetica, sans-serif;
+	color: $main_color;
+}
+
+ul {
+    margin-left: 1em;
+}
+
+legend {
+    padding-bottom: 1ex;
+}
+
+h1 {
+  font-style: italic;
+  font-weight: normal;
+  font-size: 300%;
+  text-align: center;
+  @include text-shadow(rgba(#000, 0.4) 5px 2px 5px);
+}
+
+h2 {
+  font-size: 300%;
+  margin: 1em 0 0.5em 0;
+  color: $contour;
+}
+
+h3 {
+  font-size: 250%;
+  margin: 1em 0 0.5em 1ex;
+}
+
+h4 {
+  font-size: 200%;
+  margin: 1em 0 0.5em 1em;
+}
+
+h5 {
+  font-size: 150%;
+  margin: 1em 0 0.5em 1.5em;
+  color: rgba($main_color, 0.8);
+}
+
+h6 {
+  font-size: 150%;
+  margin: 1em 0 0.5em 1.5em;
+  color: rgba($main_color, 0.6);
+}
+
+a {
+   text-decoration: none;
+   padding: 0;
+   &:hover {
+        @include shadowed;
+        text-decoration: none;
+        color: black;
+        @include border-radius($radius);
+   }
+   img {
+      border: none;
+   }
+}
+
+.entry {
+    margin-bottom: 0.5ex;
+    input {
+        @include shadowed;
+        @include entryfont;
+        border: dashed 2px white;
+        width: 66%;
+        background: $hi_color;
+        padding-left: 1ex;
+    }
+    a {
+        @include entryfont;
+        &:hover {
+            color: black;
+        }
+    }
+}
+
+span.infos {
+    margin-left: 1ex;
+}
+
+.sortable {
+    list-style-type: none;
+}
+
+.selected {
+    @include border-radius($radius);
+    @include background-image(linear-gradient(#91be15 0%, #84b710 100%));
+    background: $hi_color;
+}
+
+.x_permissions_grp {
+    background: #6a1b23;
+    padding: 1em;
+    width: 25em;
+    @include border-radius($radius);
+    color: #bbc;
+    &:hover {
+        @include shadowed;
+        color: black;
+        background-color: #e89;
+    }
+}
+
+.x_permissions_grp span.toggler:hover {
+    @include edit_hover;
+}
+.x_permissions_grp span.toggler {
+    @include border-radius($radius);
+}
+
+.x_permissiona_grp:before {
+   content:"Quick permissions:";
+   font-weight: bold;
+}
+
+.x_permissions_grp:before {
+   content:"Permissions:";
+   font-weight: bold;
+}
+
+label.autoform {
+    display: block;
+    margin-top: 1ex;
+    padding: 0 1ex 0 0;
+}
+
+div.option {
+    font-family: sans-serif;
+    cursor: pointer;
+    padding-left: 1em;
+    &:hover {
+        @include single-text-shadow($hi_color, 1px, 1px, 2px);
+        color: black;
+    }
+}
+
+#login_form {
+    margin-bottom: 2em;
+}
+
+fieldset {
+    border: {
+        bottom: {
+            style: dashed;
+            color: #eee;
+            width: 2px;
+        }
+
+        right: {
+            style: none;
+        }
+
+        left: {
+            style: none;
+        }
+        top: {
+            style: solid;
+            width: 2px;
+            color: #eef
+        }
+    }
+    margin: 1em 0 1em 0;
+    padding: 0 1em 0 1em;
+}
+
+.buttons {
+    margin: 1ex auto;
+    text-align: left;
+}
+
+.auto_edit_form {
+    width: 80%;
+    margin: 1em auto 0 auto;
+}
+
+div.editable {
+    flush: left;
+}
+
+form input , div.input input , div.input textarea {
+    @include editable;
+}
+
+form input:focus , div.input input:focus , div.input:focus textarea:focus {
+    border: solid 2px #ff0;
+}
+
+
+div.input input[type="file"] {
+    border: none;
+}
+
+div.editable {
+    > textarea:hover {
+        @include shadowed;
+        @include edit_hover;
+    }
+}
+
+input:hover {
+    @include edit_hover;
+}
+
+textarea.markItUpEditor:hover {
+    border: solid 2px $hi_color;
+}
+
+div.editable {
+    span.label:hover {
+        @include edit_hover;
+    }
+}
+
+label {
+    > img {
+        margin-bottom: -10px;
+    }
+}
+
+.error_message {
+    font-size: 300%;
+    color: #a55;
+}
+
+.toggler {
+    cursor: pointer;
+}
+
+.icon {
+    width: 32px;
+}
+
+.minicon {
+    width: 20px;
+    margin-right: 1ex;
+    margin-bottom: -8px;
+}
+
+div.objects_forms {
+    margin: 1ex auto 0 2ex;
+}
+
+
+li.entry {
+    > img {
+        vertical-align: bottom;
+    }
+}
+
+.toc {
+    border-left: solid 7px #567;
+    width: 80%;
+    margin: 1em 15% 1em 5%;
+    a {
+        color: #022;
+        &:hover {
+            color: #eff;
+        }
+    }
+}
+
+dl {
+    dt {
+        font-weight: bold;
+        margin: 1em 0 0 1em;
+        font-size: 120;
+        font-style: oblique;
+    }
+    dd {
+        margin-left: 2em;
+    }
+}
+
+table.codehilitetable {
+    margin: 1em;
+}
+
+
+div.codehilite {
+    padding: 1ex;
+    border: solid 1px $contour;
+    @include border-radius(1ex);
+    > pre {
+        background: none;
+    }
+}
+
+p {
+    margin: 1ex;
+}
+
+pre {
+    font-family: monospace;
+    background-color: $contour;
+    padding: 0.5ex;
+    margin: 1ex;
+}
+
+strong {
+    font-weight: bold;
+}
+
+#user_actions {
+    text-align: right;
+}
+
+#page_actions {
+    margin-top: -32px;
+}
+
+// fileuploader
+
+.qq-uploader { position:relative; width: 100%;}
+
+.qq-upload-button {
+    display:block; /* or inline-block */
+    width: 105px;
+     padding: 7px 0;
+     text-align:center;
+    /*background:#880000;
+    */
+    border-bottom:2px solid #ddd;
+    color:#755;
+}
+.qq-upload-button-hover {color:#000; border:2px solid #ffa; }
+.qq-upload-button-focus {outline:1px dotted black;}
+
+.qq-upload-drop-area {
+    position:absolute; top:0; left:0; width:100%; height:100%; min-height: 70px; z-index:2;
+    border: dashed 5px #ffa;
+    text-align:center;
+}
+.qq-upload-drop-area span {
+    display:block; position:absolute; top: 50%; width:100%;
+    margin-top:-45%;
+    font-size:250%;
+}
+.qq-upload-drop-area-active {background:#FF7171;}
+
+.qq-upload-list {margin:15px 35px; padding:0; list-style:disc;}
+.qq-upload-list li { margin:0; padding:0; line-height:15px; font-size:12px;}
+.qq-upload-file, .qq-upload-spinner, .qq-upload-size, .qq-upload-cancel, .qq-upload-failed-text {
+    margin-right: 7px;
+}
+
+.qq-upload-file {}
+.qq-upload-spinner {display:inline-block; background: url("/static/loading.gif"); width:15px; height:15px; vertical-align:text-bottom;}
+.qq-upload-size,.qq-upload-cancel {font-size:11px;}
+
+.qq-upload-failed-text {display:none;}
+.qq-upload-fail .qq-upload-failed-text {display:inline;}
+
