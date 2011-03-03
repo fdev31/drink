@@ -79,6 +79,7 @@ h2 {
   font-size: 300%;
   margin: 1em 0 0.5em 0;
   color: $contour;
+  @include text-shadow(rgba(#000, 0.6) 2px 2px 5px);
 }
 
 h3 {
@@ -115,6 +116,18 @@ a {
    img {
       border: none;
    }
+}
+
+em {
+    font-style: italic;
+
+    &:before {
+        content: "«";
+    }
+
+    &:after {
+        content: "»";
+    }
 }
 
 .entry {
@@ -160,22 +173,20 @@ span.infos {
         color: black;
         background-color: #e89;
     }
-}
-
-.x_permissions_grp span.toggler:hover {
-    @include edit_hover;
-}
-.x_permissions_grp span.toggler {
-    @include border-radius($radius);
+    &:before {
+      content:"Permissions:";
+      font-weight: bold;
+    }
+    span.toggler {
+        @include border-radius($radius);
+        &:hover {
+          @include edit_hover;
+        }
+    }
 }
 
 .x_permissiona_grp:before {
    content:"Quick permissions:";
-   font-weight: bold;
-}
-
-.x_permissions_grp:before {
-   content:"Permissions:";
    font-weight: bold;
 }
 
@@ -202,7 +213,7 @@ div.option {
 fieldset {
     border: {
         bottom: {
-            style: dashed;
+            style: dotted;
             color: #eee;
             width: 2px;
         }
