@@ -199,12 +199,25 @@ div.option {
     margin-bottom: 2em;
 }
 
-fieldset {
+div.togglable {
+    border-bottom: {
+        style: dashed;
+        color: #eee;
+        width: 2px;
+    }
+}
+
+fieldset.toggler {
+
+    > legend {
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
     border: {
         bottom: {
-            style: dashed;
-            color: #eee;
-            width: 2px;
+            style: none;
         }
 
         right: {
@@ -281,10 +294,6 @@ label {
 .error_message {
     font-size: 300%;
     color: #a55;
-}
-
-.toggler {
-    cursor: pointer;
 }
 
 .icon {
