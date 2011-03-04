@@ -46,9 +46,6 @@
         <div id="user_actions" >
         <a title="Account settings" href="/users/{{authenticated.id}}/edit"><img class="icon" src="/static/actions/personal.png" /></a>
         <a title="Search" href="/search/"><img  class="icon" src="/static/actions/find.png" /></a>
-        {% if obj.id != '.' %}
-            <a title="Back to parent element" href="{{obj.path}}../"><img  class="icon" src="/static/actions/top.png" /></a>
-        {% endif %}
         <a title="log out" href="/logout"><img  class="icon" src="/static/actions/exit.png" /></a>
         </div> <!-- /user actions -->
         <div id="page_actions">
@@ -108,6 +105,10 @@
         {% endif %}
     </fieldset>
     {% endif %}
+    {% if obj.id != '.' %}
+        <a title="Back to parent element" href="{{obj.path}}../"><strong>..</strong></a>
+    {% endif %}
+
     {% block body %}
         {% if html %}
             {{ html|safe }}
