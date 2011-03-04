@@ -20,10 +20,16 @@ class _Editable(object):
         self.id = str(id(self))
         self.group = group if group else self.__class__.__name__
 
-    def html(self, name, value, _template=None):
+    def html(self, name, value, _template=None, no_label=False):
         d = self.__dict__.copy()
         d.update({'id': self.id, 'name': name, 'caption': self.caption or name, 'value': value})
-        return ('<div id="edit_%(name)s" class="editable"><label class="autoform" for="%(id)s">%(caption)s:</label>'+(_template or self._template)+'</div>')%d
+        if no_label:
+            pfx = '<div id="edit_%(name)s" class="editable">'
+        else:
+            pfx = '<div id="edit_%(name)s" class="editable">\
+                <label class="autoform" for="%(id)s">%(caption)s:</label>'
+
+        return (pfx+(_template or self._template)+'</div>')%d
 
     set = setattr
 
@@ -97,6 +103,15 @@ class GroupListArea(TextArea):
         groups = drink.db.db['groups']
         setattr(obj, name, set(groups[line.strip()] for line in val.split('\n') if line.strip() in groups))
 
+class BoolOption(_Editable):
+    def html(self, name, value):
+        html = r'<input type="checkbox" name=%(name)s value="%(name)s"'+\
+            ('checked="checked" />' if value else '/>')+'<span class="label">%(caption)s</span>'
+        return _Editable.html(self, name, None, _template=html, no_label=True)
+
+    def set(self, obj, name, val):
+        setattr(obj, name, bool(val))
+
 class CheckboxSet(_Editable):
 
     def __init__(self, caption=None, group=None, values=[]):
@@ -104,7 +119,6 @@ class CheckboxSet(_Editable):
                 OR a callable returning this object """
         _Editable.__init__(self, caption, group)
         self.values = values
-
     @property
     def v(self):
         return self.values() if callable(self.values) else self.values

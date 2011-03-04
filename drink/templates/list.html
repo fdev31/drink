@@ -11,6 +11,7 @@
  <h1>{{ obj.path }} content:</h1>
 {% endif %}
 <ul class="sortable">
+{% if obj.disable_ajax %}
 {% for name in obj.iterkeys() %}
     {% if 'r' in authenticated.access(obj[name]) %}
     <li class="entry"><img class="icon" src="{% if obj[name].mime.startswith('http') %}{{obj[name].mime}}{% else %}/static/mime/{{ obj[name].mime }}.png{% endif %}"/><a title="{{obj[name].description}}" href="{{obj.path}}{{name}}/">{{ obj[name].title }}</a>
@@ -26,9 +27,12 @@
         you may want to add some object...
     {% endif %}
 {% endfor %}
+{% endif %}
 </ul>
 
+{% if not obj.disable_ajax %}
 <div id="file-uploader">
 </div>
+{% endif %}
 
 {% endblock %}

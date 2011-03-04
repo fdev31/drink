@@ -36,12 +36,14 @@ class Page(Model):
         'min_rights':
             drink.types.Text("Every user's permissions (wrta)", group="x_permissions"),
         'write_groups':
-            drink.types.GroupCheckBoxes("Write-enabled groups", group="x_permissions")
+            drink.types.GroupCheckBoxes("Write-enabled groups", group="x_permissions"),
+        'disable_ajax' : drink.types.BoolOption('Disable Js')
     }
 
     admin_fields = {}
     min_rights = ''
     mime = 'page'
+    disable_ajax = False
     css = []
     js = ['/static/listing.js']
     description = 'An abstract page'

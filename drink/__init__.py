@@ -140,7 +140,9 @@ class Authenticator(object):
 @route('/')
 def main_index():
     request.identity = Authenticator()
-    return classes[config.get('server', 'index')](db.db).view()
+    o = classes[config.get('server', 'index')](db.db)
+    o.disable_ajax = True
+    return o.view()
 
 @route('/static/:filename#.*#')
 def server_static(filename):
