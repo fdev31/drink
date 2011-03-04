@@ -52,9 +52,9 @@ import transaction
 # Declare "drink" wsgi loader
 class DrinkServer(bottle.ServerAdapter):
     """ Drink-flavored bottle runner.
-    Will try bjoern >=1.1, paste, gevent, rocket, fapws3 or wsgiref (in this order)
+    Will try gevent, paste, bjoern >=1.1, rocket, fapws3 or wsgiref (in this order)
     """
-    adapters = [bottle.PasteServer, bottle.GeventServer,
+    adapters = [bottle.GeventServer, bottle.PasteServer,
         bottle.RocketServer, bottle.FapwsServer, bottle.WSGIRefServer]
 
     def run(self, handler):
@@ -66,7 +66,7 @@ class DrinkServer(bottle.ServerAdapter):
             pass
         else:
             if bjoern.version >= (1, 1, 0):
-                adapters.insert(0, bottle.BjoernServer)
+                adapters.insert(1, bottle.BjoernServer)
 
 
         for sa in adapters:
@@ -247,12 +247,11 @@ def startup():
     else:
         setproctitle.setproctitle('drink')
 
-
+    # handle commands
+    # TODO: create "update" command
     if len(sys.argv) == 2 and sys.argv[1] == "init":
         init()
         db.pack()
-    # TODO: rename __init_
-    # TODO: create "update" command
     elif len(sys.argv) == 2 and sys.argv[1] == "pack":
         db.pack()
     elif len(sys.argv) == 2 and sys.argv[1] == "debug":
@@ -261,9 +260,6 @@ def startup():
             set_trace()
     else:
         dbg_in_env = 'DEBUG' in os.environ
-        for name, klass in classes.items():
-            if getattr(klass, 'hidden_class', False):
-                del classes[name]
 
         if not dbg_in_env and 'BOTTLE_CHILD' not in os.environ:
 
@@ -276,10 +272,15 @@ def startup():
             if reset_required:
                 init()
 
+        for name, klass in classes.items():
+            if getattr(klass, 'hidden_class', False):
+                del classes[name]
+
+        # And now, http/wsgi part
+
         host = config.get('server', 'host')
         port = int(config.get('server', 'port'))
         mode = config.get('server', 'backend')
-
 
         # try some (optional) asynchronous optimization
 
