@@ -1,4 +1,5 @@
 before 0.1:
+- Fix Ctrl+ENTER keystroke
 - abstract all low-level models (blobs...)
 - rename File to "WebFile"
 - add calltips everywhere
