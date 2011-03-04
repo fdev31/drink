@@ -5,8 +5,10 @@ import os
 
 s = scss.Scss()
 
-for fname in 'page.sass'.split():
+for fname in 'page.scss'.split():
     print "Processing %s..."%fname
     txt = s.compile(open(fname).read())
-    open(os.path.join(os.pardir, 'static', fname.rsplit('.', 1)[0]+'.css'), 'w').write(txt)
+    out = os.path.join(os.pardir, 'drink', 'static', fname.rsplit('.', 1)[0]+'.css')
+    open(out, 'w').write(txt)
+    print "Written %s."%out
 
