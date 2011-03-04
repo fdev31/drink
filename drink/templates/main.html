@@ -1,17 +1,17 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr" lang="fr">
     <head>
-        <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon">
-        <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+        <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon" />
+        <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
         <!-- Cascading Style Sheets -->
         <link href="/static/page.css" rel="stylesheet" type="text/css" />
         <link href="/static/pygments.css" rel="stylesheet" type="text/css" />
         {% if css %}
-        {% for url in css %}
-        <link href="{{url}}" rel="stylesheet" type="text/css" />
-        {% endfor %}
+            {% for url in css %}
+            <link href="{{url}}" rel="stylesheet" type="text/css" />
+            {% endfor %}
         {% endif %}
         <!-- Javascript -->
         <script type="text/javascript" src="/static/jquery-1.5.min.js"></script>
@@ -28,11 +28,11 @@
         <title>Drink!</title>
         {% endblock %}
 
-    <body>
     </head>
+    <body>
 
     {% if not authenticated and obj.id == '.' and obj.rootpath == '/' %}
-    <form id="login_form" class="autovalidate" action="/login" method="POST">
+    <form id="login_form" class="autovalidate" action="/login" method="post">
         <label for="ilogin">Authenticate as:</label>
         <input type="text" class="required" name="login_name" id="ilogin" />
         <label for="ipasswd">Password:</label>
