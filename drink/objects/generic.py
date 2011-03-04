@@ -99,35 +99,42 @@ class Page(Model):
     def view(self):
         return "Nothing to view"
 
-    def struct(self, childs=True):
+    def struct(self, childs=True, full=None):
+
+        k = request.params.keys()
+        if None == full:
+            full = 'full' in k
+
+        if 'childs' in k:
+            childs = request.params['childs'].lower() in ('yes', 'true')
 
         a = request.identity.access
 
         d = dict()
 
         if 'r' in a(self):
-            for k in self.editable_fields.keys():
-                v = getattr(self, k, None)
-                if isinstance(v, Model):
-                    if not 'r' in a(v):
-                        continue
-                    v = v.struct(False)
-                    v['id'] = k
-                elif isinstance(v, (basestring, int, float)):
-                    pass # serializes well in json
-                else:
-                    v = "N/A"
-                d[k] = v
-
+            if full:
+                for k in self.editable_fields.keys():
+                    v = getattr(self, k, None)
+                    if isinstance(v, Model):
+                        if not 'r' in a(v):
+                            continue
+                        v = v.struct(False)
+                        v['id'] = k
+                    elif isinstance(v, (basestring, int, float)):
+                        pass # serializes well in json
+                    else:
+                        v = "N/A"
+                    d[k] = v
 
             if childs:
                 it = [v.struct() for v in self.itervalues() if 'r' in a(v)]
                 d['items'] = it
 
-        d['id'] = self.id
-        d['title'] = self.title
-        d['path'] = self.rootpath
-        d['mime'] = self.mime
+            d['id'] = self.id
+            d['title'] = self.title
+            d['path'] = self.rootpath
+            d['mime'] = self.mime
 
         return d
 
