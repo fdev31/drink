@@ -5,8 +5,6 @@ from markdown import Markdown
 DEFAULT_CONTENT = """
 <!- hehe, you can add html tags directly too: -->
 
-<a href="../"><img src="/static/actions/back.png" /></a>
-
 Main title of the document
 ==========================
 
