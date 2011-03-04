@@ -1,5 +1,7 @@
 recursive-include drink/static *.css *.js *.png *.gif *.html
 recursive-include drink/templates *.html
+recursive-include scss *.scss make *.py
+recursive-include tests *.py *.txt
 include drink/settings.ini
 include database/blobs/keep_me.txt
 include database/zodb.conf
