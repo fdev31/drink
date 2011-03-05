@@ -140,11 +140,12 @@ em {
 
 .entry {
     margin-bottom: 0.5ex;
-    input {
+    > input {
         @include shadowed;
         @include entryfont;
         border: dashed 2px white;
         width: 66%;
+        color: #555;
         background: $hi_color;
         padding-left: 1ex;
     }
