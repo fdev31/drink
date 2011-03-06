@@ -106,7 +106,11 @@
     </fieldset>
     {% endif %}
     {% if obj.id != '.' %}
-        <a title="Back to parent element" href="{{obj.path}}../"><strong>..</strong></a>
+        {% if req.url.endswith(obj.path) %}
+        <a title="Back to parent element" href="{{obj.rootpath}}"><img class="icon" src="/static/actions/undo.png" /></a>
+        {% else %}
+        <a title="Back to element" href="{{obj.path}}"><img class="icon" src="/static/actions/undo.png" /></a>
+        {% endif %}
     {% endif %}
 
     {% block body %}

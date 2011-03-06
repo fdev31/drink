@@ -31,7 +31,8 @@ if i >= 0:
 # http
 from bottle import route, static_file, request, response, redirect as rdr, abort
 # templating
-from bottle import jinja2_view as view, jinja2_template as template
+import functools
+template = functools.partial(bottle.template, req=request, template_adapter=bottle.Jinja2Template)
 
 # Load Basic objects
 from .objects import classes, get_object, init as init_objects
