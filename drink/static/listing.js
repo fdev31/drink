@@ -37,8 +37,8 @@ var startcode = function(data, status, req) {
             $(this).data('edit_called', setTimeout(function() {
                 var item_name = me.data('item');
                 var edit_span = $('<div class="actions"></div>');
-                edit_span.append('<a title="Delete" href="./rm?name='+item_name+'"><img class="minicon" src="/static/actions/delete.png" /></a>');
                 edit_span.append('<a title="Edit" href="./'+item_name+'/edit"><img class="minicon" src="/static/actions/edit.png" /></a>');
+                edit_span.append('<a title="Delete" href="./rm?name='+item_name+'"><img class="minicon" src="/static/actions/delete.png" /></a>');
                 edit_span.fadeIn('slow');
                 me.append(edit_span);
 
