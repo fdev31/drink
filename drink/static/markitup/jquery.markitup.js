@@ -506,18 +506,6 @@
 
 				if (e.type === 'keydown') {
 
-					if (ctrlKey === true) {
-					    if ( e.keyCode > 32 ) {
-                            li = $('a[accesskey="'+String.fromCharCode(e.keyCode)+'"]', header).parent('li');
-						    if (li.length !== 0) {
-							    ctrlKey = false;
-							    setTimeout(function() {
-								    li.triggerHandler('mousedown');
-							    },1);
-							    return false;
-						    }
-						}
-					}
 					if (e.keyCode === 13 || e.keyCode === 10) { // Enter key
 						if (ctrlKey === true) {  // Enter + Ctrl
 							ctrlKey = false;
@@ -545,6 +533,16 @@
 						} else {
 							markup(options.onTab);
 							return options.onTab.keepDefault;
+						}
+					}
+					if (ctrlKey === true) {
+                        li = $('a[accesskey="'+String.fromCharCode(e.keyCode)+'"]', header).parent('li');
+						if (li.length !== 0) {
+							ctrlKey = false;
+							setTimeout(function() {
+								li.triggerHandler('mousedown');
+							},1);
+							return false;
 						}
 					}
 				}
