@@ -6,7 +6,7 @@ $experimental-support-for-webkit: 1;
 /* variables */
 
 $shadow_weight: 3px;
-$shadow_down: 1px;
+$shadow_down: 3px;
 $shadow_right: 1px;
 $shadow_color: rgba(#444, 0.6);
 $radius: 8px;
@@ -138,8 +138,13 @@ em {
     }
 }
 
-.entry {
+li.entry {
     margin-bottom: 0.5ex;
+    > div.actions {
+      display: inline;
+      margin-left: 1em;
+      vertical-align: 5px;
+    }
     > input {
         @include shadowed;
         @include entryfont;

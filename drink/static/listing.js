@@ -30,20 +30,23 @@ var startcode = function(data, status, req) {
 
     var popup_actions = function(event) {
         if (event.type == "mouseenter") {
-            if ( $(this).has('span.actions').length != 0 ) { return; }
             var me = $(this);
+            if ( me.data('edit_called') ) {
+                return;
+            }
             $(this).data('edit_called', setTimeout(function() {
                 var item_name = me.data('item');
                 var edit_span = $('<div class="actions"></div>');
                 edit_span.append('<a title="Delete" href="./rm?name='+item_name+'"><img class="minicon" src="/static/actions/delete.png" /></a>');
                 edit_span.append('<a title="Edit" href="./'+item_name+'/edit"><img class="minicon" src="/static/actions/edit.png" /></a>');
-                edit_span.animate({'height': '32px'});
+                edit_span.fadeIn('slow');
                 me.append(edit_span);
 
                 }, 500));
         } else if (event.type == "mouseleave") {
             clearTimeout($(this).data('edit_called'));
-            $(this).find('.actions').animate({'height': '0px'}, 'slow', 'swing', function() {$(this).remove()});
+            $(this).data('edit_called', false);
+            $(this).find('.actions').fadeOut('slow', function() {$(this).remove()});
         }
     }
     // called whenever make_li is called
