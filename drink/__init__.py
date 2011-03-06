@@ -60,13 +60,13 @@ class DrinkServer(bottle.ServerAdapter):
     def run(self, handler):
         adapters = list(self.adapters)
 
-        try:
-            import bjoern
-        except ImportError:
-            pass
-        else:
-            if bjoern.version >= (1, 1, 0):
-                adapters.insert(1, bottle.BjoernServer)
+#        try:
+#            import bjoern
+#        except ImportError:
+#            pass
+#        else:
+#            if bjoern.version >= (1, 1, 0):
+#                adapters.insert(1, bottle.BjoernServer)
 
 
         for sa in adapters:
