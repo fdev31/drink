@@ -113,8 +113,16 @@ class Page(Model):
         d = dict()
 
         if 'r' in a(self):
+            d['id'] = self.id
+            d['title'] = self.title
+            d['description'] = self.description
+            d['path'] = self.rootpath
+            d['mime'] = self.mime
+
             if full:
                 for k in self.editable_fields.keys():
+                    if k in d:
+                        continue
                     v = getattr(self, k, None)
                     if isinstance(v, Model):
                         if not 'r' in a(v):
@@ -131,10 +139,6 @@ class Page(Model):
                 it = [v.struct() for v in self.itervalues() if 'r' in a(v)]
                 d['items'] = it
 
-            d['id'] = self.id
-            d['title'] = self.title
-            d['path'] = self.rootpath
-            d['mime'] = self.mime
 
         return d
 
