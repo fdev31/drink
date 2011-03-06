@@ -19,6 +19,18 @@ $(document).ready(function(){
         o.attr('checked', ! o.is(':checked'));
     });
 
+    var validate_new_obj = function(e) {
+        if (e.keyCode == 13) {
+            $('#name_choice').hide();
+            $.post('add', {'class': $('#new_obj_class').val(), 'name': $('#new_obj_name').val()});
+            // TODO: send AJAX call + reload
+            // TODO/ do it in full ajax later (no reload)
+            window.location.reload();
+        }
+    }
+
+    $('#new_obj_name').keyup(validate_new_obj);
+
     $('#rm_form').droppable({
         drop: function(event, ui) {
             var item = ui.draggable.data('item').replace(/&/g, '%26').replace(/\?/g, '%3f');
@@ -57,6 +69,6 @@ $(document).ready(function(){
 
     $('.editable span').addClass('toggler');
 
-    $('#commands .togglable').slideUp(0);
+//    $('#commands .togglable').slideUp(0);
 
 });

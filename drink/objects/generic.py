@@ -272,9 +272,10 @@ class Page(Model):
 
         if 'a' not in auth.access(self):
             return abort(401, "Not authorized")
-        name = name or request.GET.get('name')
+        name = name or request.params.get('name')
+
         if None == cls:
-            cls = request.GET.get('class')
+            cls = request.params.get('class')
 
         return drink.rdr(self._add(name, cls, auth.user.default_read_groups, auth.user.default_write_groups).path+'edit')
 

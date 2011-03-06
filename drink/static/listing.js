@@ -23,19 +23,38 @@ var startcode = function(data, status, req) {
         e.data('item', obj.id);
         e.disableSelection();
 		e.dblclick(enter_edit_func);
+		e.hover(popup_actions);
 		$.ajax({url: obj.path+obj.id+"/struct", context: e,  dataType: "text json"}).success(got_item_details);
         return e;
     }
 
+    var popup_actions = function(event) {
+        if (event.type == "mouseenter") {
+            if ( $(this).has('span.actions').length != 0 ) { return; }
+            var me = $(this);
+            $(this).data('edit_called', setTimeout(function() {
+                var item_name = me.data('item');
+                var edit_span = $('<div class="actions"></div>');
+                edit_span.append('<a href="./rm?name='+item_name+'"><img class="minicon" src="/static/actions/delete.png" /></a>');
+                edit_span.append('<a href="./'+item_name+'/edit"><img class="minicon" src="/static/actions/edit.png" /></a>');
+                edit_span.animate({'height': '32px'});
+                me.append(edit_span);
+
+                }, 500));
+        } else if (event.type == "mouseleave") {
+            clearTimeout($(this).data('edit_called'));
+            $(this).find('.actions').animate({'height': '0px'}, 'slow', 'swing', function() {$(this).remove()});
+        }
+    }
     // called whenever make_li is called
     // (prints the number of items)
     var got_item_details = function(obj) {
         if (!! $(this).has('.infos') ) {
             if (obj.items.length == 0) {
             } else if (obj.items.length == 1) {
-                $(this).append(jQuery('&nbsp;<span class="infos">(1 item)</span>'))
+                $(this).append($('&nbsp;<span class="infos">(1 item)</span>'))
             } else {
-                $(this).append(jQuery('&nbsp;<span class="infos">('+obj.items.length+' items)</span>'))
+                $(this).append($('&nbsp;<span class="infos">('+obj.items.length+' items)</span>'))
             }
         }
     }
@@ -75,12 +94,12 @@ var startcode = function(data, status, req) {
     var enter_edit_func = function(){
         if ( $(this).has('input').length != 0 ) { return; }
 
-		txt = $(this).find('a').last().text();
+        var orig = $(this).find('a').first();
 		// set an input field up, with focus
-        var inp = $("<input class=\"inline_edit\" value='"+txt+"' />");
+        var inp = $("<input class=\"inline_edit\" value='"+orig.txt+"' />");
 
         // replace second children
-        $($(this)[0].children[1]).replaceWith(inp);
+        orig.replaceWith(inp);
 		inp = $(this).find("input");
         inp.select();
 
