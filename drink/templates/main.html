@@ -41,7 +41,7 @@
         <input type="password" class="required" name="login_password" id="ipassword" />
         <input class="submit" type="submit" value="Log in!"/>
     </form>
-    {% elif not no_admin and authenticated %}
+    {% elif not no_admin and authenticated and obj.id != '.' %}
     <fieldset class="toggler" id="commands">
         <legend onclick="$('#commands .togglable').slideToggle('slow');">{{authenticated.id}}</legend>
         <div class="togglable" >
@@ -51,9 +51,7 @@
         <a title="log out" href="/logout"><img  class="icon" src="/static/actions/exit.png" /></a>
         </div> <!-- /user actions -->
         <div id="page_actions">
-        {% if obj.id != '.' %}
             <a title="View/Reload current element" href="{{obj.path}}view"><img  class="icon" src="/static/actions/view.png" /></a>
-
 
             {% if 'w' in authenticated.access(obj) %}
                 <a title="Edit current element" href="{{obj.path}}edit"><img  class="icon" src="/static/actions/edit.png" /></a>
@@ -119,7 +117,6 @@
                 {% endif %} <!-- edit & rm form -->
                 </div> <!-- page actions -->
                 </div> <!-- end of toggleable -->
-        {% endif %}
         {% endif %}
     </fieldset>
     {% endif %}
