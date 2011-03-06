@@ -121,7 +121,7 @@
     </fieldset>
     {% endif %}
     {% if obj.id != '.' %}
-        {% if req.url.endswith(obj.path) %}
+        {% if req.url.endswith('/') %}
         <a title="Back to parent element" href="{{obj.rootpath}}"><img class="minicon" src="/static/actions/undo.png" /></a>
         {% else %}
         <a title="Back to element" href="{{obj.path}}"><img class="minicon" src="/static/actions/undo.png" /></a>
