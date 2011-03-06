@@ -486,7 +486,7 @@ qq.FileUploader = function(o){
 
         template: '<div class="qq-uploader">' +
                 '<div class="qq-upload-drop-area"><span>Drop files here to upload</span></div>' +
-                '<div class="qq-upload-button">You can drop files here...</div>' +
+                '<div class="qq-upload-button">Click or drop to add a new file</div>' +
                 '<ul class="qq-upload-list"></ul>' +
              '</div>',
 
@@ -697,7 +697,6 @@ qq.UploadDropZone.prototype = {
     },
     _attachEvents: function(){
         var self = this;
-
         qq.attach(self._element, 'dragover', function(e){
             if (!self._isValidFileDrag(e)) return;
 
@@ -744,6 +743,7 @@ qq.UploadDropZone.prototype = {
 
         // dt.effectAllowed is none in Safari 5
         // dt.types.contains check is for firefox
+
         return dt && dt.effectAllowed != 'none' &&
             (dt.files || (!isWebkit && dt.types.contains && dt.types.contains('Files')));
 

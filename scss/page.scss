@@ -266,7 +266,6 @@ form input:focus , div.input input:focus , div.input:focus textarea:focus {
     border: solid 2px #ff0;
 }
 
-
 div.input input[type="file"] {
     border: none;
 }
@@ -416,7 +415,7 @@ strong {
 }
 .qq-upload-drop-area span {
     display:block; position:absolute; top: 50%; width:100%;
-    margin-top:-45%;
+    margin-top:-0.5em;
     font-size:250%;
 }
 .qq-upload-drop-area-active {background:#FF7171;}

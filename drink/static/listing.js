@@ -35,8 +35,8 @@ var startcode = function(data, status, req) {
             $(this).data('edit_called', setTimeout(function() {
                 var item_name = me.data('item');
                 var edit_span = $('<div class="actions"></div>');
-                edit_span.append('<a href="./rm?name='+item_name+'"><img class="minicon" src="/static/actions/delete.png" /></a>');
-                edit_span.append('<a href="./'+item_name+'/edit"><img class="minicon" src="/static/actions/edit.png" /></a>');
+                edit_span.append('<a title="Delete" href="./rm?name='+item_name+'"><img class="minicon" src="/static/actions/delete.png" /></a>');
+                edit_span.append('<a title="Edit" href="./'+item_name+'/edit"><img class="minicon" src="/static/actions/edit.png" /></a>');
                 edit_span.animate({'height': '32px'});
                 me.append(edit_span);
 
@@ -116,9 +116,11 @@ var startcode = function(data, status, req) {
 
     // Integration of http://valums.com/ajax-upload/
     try {
+        qq.UploadDropZone.prototype._isValidFileDrag = function(e){ return true; }
         var uploader = new qq.FileUploader({
             element: $('#file-uploader')[0],
             action: 'upload',
+
             onComplete: function(id, fileName, data){
                 if ( data.id ) {
                     sortable.append(make_li(data));
