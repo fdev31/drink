@@ -21,11 +21,19 @@ $(document).ready(function(){
     var item_added = function(data, status) {
         if ( !! sortable ) {
             sortable.append(make_li(data));
+            $('#new_obj_class').val('');
+            $('#new_obj_name').val('')
+            $('#add_object').data('edited', false);
         }
     }
 
     var validate_new_obj = function(e) {
-        if (e.keyCode == 13) {
+        if (e.keyCode == 27) {
+            $('#name_choice').hide();
+            $('#new_obj_class').val('');
+            $('#new_obj_name').val('')
+            $('#add_object').data('edited', false);
+        } else if (e.keyCode == 13) {
             $('#name_choice').hide();
             $.post('add', {'class': $('#new_obj_class').val(), 'name': $('#new_obj_name').val()}, item_added);
         }
