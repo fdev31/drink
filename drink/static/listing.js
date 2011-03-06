@@ -19,7 +19,7 @@ var startcode = function(data, status, req) {
             mime = "/static/mime/page.png";
         }
 
-        var e = $('<li class="entry"><img width="32px" src="'+mime+'" /><a href="'+obj.path+obj.id+'/" title="'+obj.description+'">'+(obj.title || obj.id)+'</a></li>');
+        var e = $('<li class="entry"><img width="32px" src="'+mime+'" /><a class="item_name" href="'+obj.path+obj.id+'/" title="'+obj.description+'">'+(obj.title || obj.id)+'</a></li>');
         e.data('item', obj.id);
         e.disableSelection();
 		e.dblclick(enter_edit_func);
@@ -87,16 +87,16 @@ var startcode = function(data, status, req) {
 		uid = $(this).parent().data('item');
 		if (uid == undefined) { return; }
 		$.post(''+uid+'/edit', {title: txt} );
-		$(this).replaceWith($('<a href="./'+uid+'/">'+txt+'</a>'));
+		$(this).replaceWith($('<a class="item_name" href="./'+uid+'/">'+txt+'</a>'));
 		$(this).parent().dblclick(enter_edit_func);
 	}
 
     var enter_edit_func = function(){
         if ( $(this).has('input').length != 0 ) { return; }
 
-        var orig = $(this).find('a').first();
+        var orig = $(this).find('a.item_name').first();
 		// set an input field up, with focus
-        var inp = $("<input class=\"inline_edit\" value='"+orig.txt+"' />");
+        var inp = $("<input class=\"inline_edit\" value='"+orig.text()+"' />");
 
         // replace second children
         orig.replaceWith(inp);
