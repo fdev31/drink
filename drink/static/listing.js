@@ -1,8 +1,7 @@
+child_items = {};
+
 var startcode = function(data, status, req) {
-   var sortable = $(".sortable");
-   data.items.length;
-   sortable.data('items', data.items)
-   sortable.html('');
+   var sortable = $("#main_list");
    var i;
    var url_regex = /^(\/|http).+/;
 
@@ -34,6 +33,10 @@ var startcode = function(data, status, req) {
             if ( me.data('edit_called') ) {
                 return;
             }
+
+            var elt = child_items[me.data('item')];
+            if(!elt._perm.match(/w/)) { return; }
+
             $(this).data('edit_called', setTimeout(function() {
                 var item_name = me.data('item');
                 var edit_span = $('<div class="actions"></div>');
@@ -72,7 +75,7 @@ var startcode = function(data, status, req) {
         revert: true,
         stop: function(event, ui) {
             if ( event.ctrlKey ) {
-                var pat = $('.sortable').find('li').map( function() { return $(this).data('item') } ).get().join('/');
+                var pat = $('#main_list').find('li').map( function() { return $(this).data('item') } ).get().join('/');
                 $.post('move', {'set': pat});
                 return true;
             } else {
@@ -95,6 +98,8 @@ var startcode = function(data, status, req) {
 	}
 
     var enter_edit_func = function(){
+        var elt = child_items[$(this).data('item')];
+        if(!elt._perm.match(/w/)) { return; }
         if ( $(this).has('input').length != 0 ) { return; }
 
         var orig = $(this).find('a.item_name').first();
@@ -115,6 +120,7 @@ var startcode = function(data, status, req) {
 
    for(n=0; n<data.items.length; n++) {
         sortable.append(make_li(data.items[n]));
+        child_items[data.items[n].id] = data.items[n];
    }
 
     // Integration of http://valums.com/ajax-upload/

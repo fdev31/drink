@@ -10,7 +10,7 @@
 {% if obj.id != '.' %}
  <h1>{{ obj.title }}</h1>
 {% endif %}
-<ul class="sortable">
+<ul id="main_list" class="sortable">
 {% if obj.disable_ajax %}
 {% for name in obj.iterkeys() %}
     {% if 'r' in authenticated.access(obj[name]) %}

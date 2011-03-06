@@ -111,13 +111,15 @@ class Page(Model):
         a = request.identity.access
 
         d = dict()
+        auth = a(self)
 
-        if 'r' in a(self):
+        if 'r' in auth:
             d['id'] = self.id
             d['title'] = self.title
             d['description'] = self.description
             d['path'] = self.rootpath
             d['mime'] = self.mime
+            d['_perm'] = auth
 
             if full:
                 for k in self.editable_fields.keys():
@@ -136,9 +138,14 @@ class Page(Model):
                     d[k] = v
 
             if childs:
-                it = [v.struct() for v in self.itervalues() if 'r' in a(v)]
-                d['items'] = it
-
+                items = []
+                for v in self.itervalues():
+                    auth = a(v)
+                    if 'r' in auth:
+                        c = v.struct(childs=False)
+                        c['_perm'] = auth
+                        items.append(c)
+                d['items'] = items
 
         return d
 
@@ -281,7 +288,11 @@ class Page(Model):
         if None == cls:
             cls = request.params.get('class')
 
-        return drink.rdr(self._add(name, cls, auth.user.default_read_groups, auth.user.default_write_groups).path+'edit')
+        o = self._add(name, cls, auth.user.default_read_groups, auth.user.default_write_groups)
+        if request.is_ajax:
+            return o.struct()
+        else:
+            return drink.rdr(o.path+'edit')
 
     def list(self):
         return template('list.html', obj=self, css=self.css, js=self.js,
