@@ -23,7 +23,14 @@ class TODO(drink.Page):
 
     @property
     def description(self):
-        return self.content[:100]
+        if len(self.content) > 100:
+            txt = self.content[:100].rsplit(None, 1)+" ..."
+        else:
+            txt = self.content
+        if self.date:
+            txt = "(%s) %s"%(self.date, txt)
+
+        return txt
 
     date = ''
 
