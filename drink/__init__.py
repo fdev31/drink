@@ -252,7 +252,20 @@ def startup():
 
     # handle commands
     # TODO: create "update" command
-    if len(sys.argv) == 2 and sys.argv[1] == "init":
+    if len(sys.argv) == 2 and sys.argv[1] == "help":
+        print """
+Drink help
+
+commands:
+    init: reset database
+    pack: pack database (more compact/faster)
+    debug: run a debugger after loading
+    help: this help :)
+
+Without any argument, it will just run the server.
+if DEBUG environment variable is set, it will start in debug mode.
+        """
+    elif len(sys.argv) == 2 and sys.argv[1] == "init":
         init()
         db.pack()
     elif len(sys.argv) == 2 and sys.argv[1] == "pack":
