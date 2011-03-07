@@ -12,14 +12,20 @@ class TODO(drink.Page):
 
     default_action = "edit"
 
+    content = ''
+
     editable_fields = {
         'title': drink.types.Text("Title", group="a"),
-        'content': drink.types.TextArea("Summary", group="b"),
-        'description': drink.types.Text('Description'),
-        #'date': drink.types.Date,
+        'date': drink.types.Date("Scheduled for", group="b"),
+        'content': drink.types.TextArea("Summary", group="c"),
+        #'description': drink.types.Text('Short description', group="a"),
     }
 
-    content = ''
+    @property
+    def description(self):
+        return self.content[:100]
+
+    date = ''
 
 
 class TODOList(drink.ListPage):

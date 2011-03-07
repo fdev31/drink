@@ -28,7 +28,7 @@ class Page(Model):
 
     owner_fields = {
         'default_action':
-            drink.types.Text("Default action (ex: view, list, edit, ...)"),
+            drink.types.Text("Default action (ex: view, list, edit, ...)", group="w"),
         'easy_permissions':
             drink.types.EasyPermissions("EZ !", group="x_permissiona"),
         'read_groups':

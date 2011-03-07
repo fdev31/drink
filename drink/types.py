@@ -55,7 +55,14 @@ class Text(_Editable):
 
     def __init__(self, caption=None, group=None, size=40):
         _Editable.__init__(self, caption, group)
-        self.size = 40
+        self.size = size
+
+class Date(Text):
+
+    _template = r'''<input class="auto_date" type="text" size="%(size)d" id="%(id)s" value="%(value)s" name="%(name)s" />'''
+
+    def __init__(self, caption=None, group=None, size=10):
+        Text.__init__(self, caption, group, size)
 
 
 class TextArea(_Editable):
