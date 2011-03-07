@@ -13,7 +13,7 @@ $radius: 8px;
 $hi_color: #be8;
 $contour: #dde;
 $main_color: #093E56;
-
+$background: #A0A0A0;
 
 /* mixins */
 
@@ -30,6 +30,11 @@ $main_color: #093E56;
     color: black;
     @include border-radius($radius);
     @include single-box-shadow($shadow_color, $shadow_right, $shadow_down, $shadow_weight, 2px);
+}
+
+@mixin inner_shadowed {
+    @include single-box-shadow($shadow_color, $shadow_right, $shadow_down, $shadow_weight, 0, false);
+    @include border-radius($radius);
 }
 
 @mixin entryfont {
@@ -54,7 +59,7 @@ $main_color: #093E56;
 body {
 	padding:0;
 	margin: 0 1ex 0 1ex;
-	background-color: #A0A0A0;
+	background-color: $background;
 	font-family: Helvetica, sans-serif;
 	color: $main_color;
 }
@@ -365,11 +370,9 @@ table.codehilitetable {
     margin: 1em;
 }
 
-
 div.codehilite {
     padding: 1ex;
-    border: solid 1px $contour;
-    @include border-radius(1ex);
+    @include inner_shadowed;
     > pre {
         background: none;
     }
