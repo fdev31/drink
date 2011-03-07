@@ -162,6 +162,12 @@ li.entry {
     }
 }
 
+fieldset.toggler {
+    > legend {
+        cursor: pointer;
+    }
+}
+
 span.infos {
     margin-left: 1ex;
 }
@@ -305,10 +311,6 @@ label {
 .error_message {
     font-size: 300%;
     color: #a55;
-}
-
-.toggler {
-    cursor: pointer;
 }
 
 .icon {
