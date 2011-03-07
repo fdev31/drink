@@ -1,5 +1,4 @@
 before 0.1:
-- In AJAX mode, replace add/edit/remove forms with nice icon + popup
 - abstract all low-level models (blobs...)
 - rename File to "WebFile"
 - add calltips everywhere
