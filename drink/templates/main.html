@@ -45,16 +45,16 @@
         <legend onclick="$('#commands .togglable').slideToggle('slow');">{{authenticated.id}}</legend>
         <div class="togglable" >
         <div id="user_actions" >
-        <a title="Account settings" href="/users/{{authenticated.id}}/edit"><img class="icon" src="/static/actions/personal.png" /></a>
+        <a title="Account settings" href="/users/{{authenticated.id|e}}/edit"><img class="icon" src="/static/actions/personal.png" /></a>
         <a title="Search" href="/search/"><img  class="icon" src="/static/actions/find.png" /></a>
         <a title="log out" href="/logout"><img  class="icon" src="/static/actions/exit.png" /></a>
         </div> <!-- /user actions -->
         <div id="page_actions">
-            <a title="View/Reload current element" href="{{obj.path}}view"><img  class="icon" src="/static/actions/view.png" /></a>
+            <a title="View/Reload current element" href="{{obj.path|e}}view"><img  class="icon" src="/static/actions/view.png" /></a>
 
             {% if 'w' in authenticated.access(obj) %}
-                <a title="Edit current element" href="{{obj.path}}edit"><img  class="icon" src="/static/actions/edit.png" /></a>
-                <a title="List content" href="{{obj.path}}list"><img  class="icon" src="/static/actions/open.png" /></a>
+                <a title="Edit current element" href="{{obj.path|e}}edit"><img  class="icon" src="/static/actions/edit.png" /></a>
+                <a title="List content" href="{{obj.path|e}}list"><img  class="icon" src="/static/actions/open.png" /></a>
                 {% if classes and 'a' in authenticated.access(obj) %}
                 <a id="add_object" title="Add object" onclick="if($(this).data('edited')) {} else {$(this).data('edited', true); $('#new_obj_class').css('visibility', 'visible').show()}"><img  class="icon" src="/static/actions/new.png" /></a>
                 <select id="new_obj_class" style="visibility: hidden" class="required" name="class" onchange="$('#new_obj_class').hide(); $('#name_choice').css('visibility', 'visible').show(); $('#new_obj_name').focus()">
@@ -121,9 +121,9 @@
     {% endif %}
     {% if obj.id != '.' %}
         {% if req.url.endswith('/') %}
-        <a title="Back to parent element" href="{{obj.rootpath}}"><img class="minicon" src="/static/actions/undo.png" /></a>
+        <a title="Back to parent element" href="{{obj.rootpath|e}}"><img class="minicon" src="/static/actions/undo.png" /></a>
         {% else %}
-        <a title="Back to element" href="{{obj.path}}"><img class="minicon" src="/static/actions/undo.png" /></a>
+        <a title="Back to element" href="{{obj.path|e}}"><img class="minicon" src="/static/actions/undo.png" /></a>
         {% endif %}
     {% endif %}
 

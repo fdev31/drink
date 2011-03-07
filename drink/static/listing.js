@@ -68,7 +68,7 @@ var make_li = function (obj) {
         mime = "/static/mime/page.png";
     }
 
-    var e = $('<li class="entry"><img width="32px" src="'+mime+'" /><a class="item_name" href="'+obj.path+obj.id+'/" title="'+obj.description+'">'+(obj.title || obj.id)+'</a></li>');
+    var e = $('<li class="entry"><img width="32px" src="'+mime+'" /><a class="item_name" href="'+encodeURI(obj.path+obj.id)+'/" title="'+obj.description+'">'+(obj.title || obj.id)+'</a></li>');
     e.data('item', obj.id);
     e.disableSelection();
 	e.dblclick(enter_edit_func);
@@ -90,8 +90,8 @@ var popup_actions = function(event) {
         $(this).data('edit_called', setTimeout(function() {
             var item_name = me.data('item');
             var edit_span = $('<span class="actions"></span>');
-            edit_span.append('<a title="Edit" href="./'+item_name+'/edit"><img class="minicon" src="/static/actions/edit.png" /></a>');
-            edit_span.append('<a title="Delete" href="./rm?name='+item_name+'"><img class="minicon" src="/static/actions/delete.png" /></a>');
+            edit_span.append('<a title="Edit" href="./'+encodeURI(item_name)+'/edit"><img class="minicon" src="/static/actions/edit.png" /></a>');
+            edit_span.append('<a title="Delete" href="./rm?name='+encodeURI(item_name)+'"><img class="minicon" src="/static/actions/delete.png" /></a>');
             edit_span.fadeIn('slow');
             me.append(edit_span);
 
@@ -123,8 +123,8 @@ var exit_edit_func = function(){
 	txt = $(this).val().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 	uid = $(this).parent().data('item');
 	if (uid == undefined) { return; }
-	$.post(''+uid+'/edit', {title: txt} );
-	$(this).replaceWith($('<a class="item_name" href="./'+uid+'/">'+txt+'</a>'));
+	$.post(''+encodeURI(uid)+'/edit', {title: txt} );
+	$(this).replaceWith($('<a class="item_name" href="./'+encodeURI(uid)+'/">'+txt+'</a>'));
 	$(this).parent().dblclick(enter_edit_func);
 }
 
