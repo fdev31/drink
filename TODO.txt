@@ -24,6 +24,9 @@ before 0.1:
 - find the cleanest way to make all incoming URLs ends with /
 - add proper checks at server side too (in add  & edit methods mostly)
 - Form object?
+Fixes:
+- http://drink.gnux.info/users as user => 401
+- search => 401
 
 0.2:
 - zip importer
