@@ -137,13 +137,26 @@ var popup_actions = function(event) {
 
 // handle inline title edition
 var blur_on_validate = function(e) {
-    if (e.keyCode == 13) { $(this).trigger('blur'); };
+    if (e.keyCode == 27) {
+         $(this).data('canceled', true);
+         $(this).trigger('blur');
+    } else if (e.keyCode == 13) {
+         $(this).trigger('blur');
+    }
+
 }
-var exit_edit_func = function(){
-	txt = $(this).val().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+var exit_edit_func = function() {
+    var txt = null;
 	uid = $(this).parent().data('item');
-	if (uid == undefined) { return; }
-	$.post(''+encodeURI(uid)+'/edit', {title: txt} );
+	if (uid == undefined ) { return; }
+
+    if ( $(this).data('canceled') != true && $(this).val() != $(this).data('orig_text') ) {
+        txt = $(this).val().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+	    $.post(''+encodeURI(uid)+'/edit', {title: txt} );
+    } else {
+        txt = $(this).data('orig_text');
+    }
+
 	$(this).replaceWith($('<a class="item_name" href="./'+encodeURI(uid)+'/">'+txt+'</a>'));
 	$(this).parent().dblclick(enter_edit_func);
 }
@@ -156,6 +169,7 @@ var enter_edit_func = function(){
     var orig = $(this).find('a.item_name').first();
 	// set an input field up, with focus
     var inp = $("<input class=\"inline_edit\" value='"+orig.text()+"' />");
+    inp.data('orig_text', orig.text());
 
     // replace second children
     orig.replaceWith(inp);
