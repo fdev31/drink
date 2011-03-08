@@ -18,12 +18,13 @@ $(document).ready(function(){
         var o = $(this).prev();
         o.attr('checked', ! o.is(':checked'));
     });
+
     var item_added = function(data, status) {
+        $('#new_obj_class').val('');
+        $('#new_obj_name').val('');
+        $('#add_object').data('edited', false);
         if ( !! sortable ) {
-            add_item(data);
-            $('#new_obj_class').val('');
-            $('#new_obj_name').val('');
-            $('#add_object').data('edited', false);
+            sortable.add_entry(data);
         }
     }
 
@@ -43,10 +44,10 @@ $(document).ready(function(){
 
     $('#rm_form').droppable({
         drop: function(event, ui) {
-            var item = ui.draggable.data('item').replace(/&/g, '%26').replace(/\?/g, '%3f');
+            var item = ui.draggable.data('item');
             $(this).removeClass("selected");
+			sortable.remove_entry(ui.draggable.remove());
 			ui.draggable.remove();
-			remove_item(ui.draggable.data('item'));
         },
         over: function(event, ui) {
             $(this).addClass('selected');

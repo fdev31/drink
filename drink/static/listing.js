@@ -28,7 +28,7 @@ var startcode = function(data, status, req) {
 
 
    for(n=0; n<data.items.length; n++) {
-        add_item(data.items[n]);
+        sortable.add_entry(data.items[n]);
    }
 
     // Integration of http://valums.com/ajax-upload/
@@ -40,7 +40,7 @@ var startcode = function(data, status, req) {
 
             onComplete: function(id, fileName, data){
                 if ( data.id ) {
-                    add_item(data);
+                    sortable.add_entry(data);
                 }
             },
         });
@@ -51,27 +51,30 @@ var startcode = function(data, status, req) {
 
 } // End of startup code
 
-function add_item(data) {
-    var e = make_li(data)
-    sortable.append(e);
-    $('#edit_form select').append(
-        '<option value="'+data.id+'" label="'+data.id+'">'+data.id+'</option>'
-    );
-    child_items[data.id] = data;
-    return e;
-}
-function remove_item(item) {
-    $.ajax({
-        url:'rm?name='+encodeURI(item),
-    }).success(function() {
-        var safe_name = item.replace( /"/g, '\\"');
-        $('#edit_form select option[value="'+safe_name+'"]').remove();
-        $('#rm_form select option[value="'+safe_name+'"]').remove();
-        $('#rm_form select option[value="'+safe_name+'"]').remove();
-        $('ul > li.entry:data(item='+item+')').remove();
-        delete child_items[item];
+$.fn.extend({
+    add_entry: function(data) {
+        var e = make_li(data)
+        sortable.append(e);
+        $('#edit_form select').append(
+            '<option value="'+data.id+'" label="'+data.id+'">'+data.id+'</option>'
+        );
+        child_items[data.id] = data;
+        return e;
+    },
+    remove_entry: function(item) {
+        $.ajax({
+            url:'rm?name='+encodeURI(item),
+        }).success(function() {
+            var safe_name = item.replace( /"/g, '\\"');
+            $('#edit_form select option[value="'+safe_name+'"]').remove();
+            $('#rm_form select option[value="'+safe_name+'"]').remove();
+            $('#rm_form select option[value="'+safe_name+'"]').remove();
+            $('ul > li.entry:data(item='+item+')').remove();
+            delete child_items[item];
         }).error(function(){alert('Error removing "'+item+'"')});
-}
+
+    }
+});
 
 var make_li = function (obj) {
     var mime = "";
@@ -120,7 +123,7 @@ var popup_actions = function(event) {
             var item_name = me.data('item');
             var edit_span = $('<span class="actions"></span>');
             edit_span.append('<a title="Edit" href="./'+encodeURI(item_name)+'/edit"><img class="minicon" src="/static/actions/edit.png" /></a>');
-            edit_span.append('<a title="Delete" onclick="remove_item(\''+item_name+'\')" ><img class="minicon" src="/static/actions/delete.png" /></a>');
+            edit_span.append('<a title="Delete" onclick="sortable.remove_entry(\''+item_name+'\')" ><img class="minicon" src="/static/actions/delete.png" /></a>');
             edit_span.fadeIn('slow');
             me.append(edit_span);
 
