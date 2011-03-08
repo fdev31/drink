@@ -28,8 +28,7 @@ var startcode = function(data, status, req) {
 
 
    for(n=0; n<data.items.length; n++) {
-        sortable.append(make_li(data.items[n]));
-        child_items[data.items[n].id] = data.items[n];
+        add_item(data.items[n]);
    }
 
     // Integration of http://valums.com/ajax-upload/
@@ -41,11 +40,7 @@ var startcode = function(data, status, req) {
 
             onComplete: function(id, fileName, data){
                 if ( data.id ) {
-                    sortable.append(make_li(data));
-            	    $('#edit_form select').append(
-            	     '<option value="'+data.id+'" label="'+data.id+'">'+data.id+'</option>'
-            	     );
-
+                    add_item(data);
                 }
             },
         });
@@ -55,6 +50,16 @@ var startcode = function(data, status, req) {
 
 
 } // End of startup code
+
+function add_item(data) {
+    var e = make_li(data)
+    sortable.append(e);
+    $('#edit_form select').append(
+        '<option value="'+data.id+'" label="'+data.id+'">'+data.id+'</option>'
+    );
+    child_items[data.id] = data;
+    return e;
+}
 
 var make_li = function (obj) {
     var mime = "";
@@ -76,6 +81,19 @@ var make_li = function (obj) {
 	$.ajax({url: obj.path+obj.id+"/struct", context: e,  dataType: "text json"}).success(got_item_details);
     return e;
 }
+// called whenever make_li is called
+// (prints the number of items)
+var got_item_details = function(obj) {
+    if (!! $(this).has('.infos') ) {
+        if (obj.items.length == 0) {
+        } else if (obj.items.length == 1) {
+            $(this).append($('&nbsp;<span class="infos">(1 item)</span>'))
+        } else {
+            $(this).append($('&nbsp;<span class="infos">('+obj.items.length+' items)</span>'))
+        }
+    }
+}
+
 
 var popup_actions = function(event) {
     if (event.type == "mouseenter") {
@@ -100,18 +118,6 @@ var popup_actions = function(event) {
         clearTimeout($(this).data('edit_called'));
         $(this).data('edit_called', false);
         $(this).find('.actions').fadeOut('slow', function() {$(this).remove()});
-    }
-}
-// called whenever make_li is called
-// (prints the number of items)
-var got_item_details = function(obj) {
-    if (!! $(this).has('.infos') ) {
-        if (obj.items.length == 0) {
-        } else if (obj.items.length == 1) {
-            $(this).append($('&nbsp;<span class="infos">(1 item)</span>'))
-        } else {
-            $(this).append($('&nbsp;<span class="infos">('+obj.items.length+' items)</span>'))
-        }
     }
 }
 

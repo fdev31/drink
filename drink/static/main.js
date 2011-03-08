@@ -20,9 +20,9 @@ $(document).ready(function(){
     });
     var item_added = function(data, status) {
         if ( !! sortable ) {
-            sortable.append(make_li(data));
+            add_item(data);
             $('#new_obj_class').val('');
-            $('#new_obj_name').val('')
+            $('#new_obj_name').val('');
             $('#add_object').data('edited', false);
         }
     }
