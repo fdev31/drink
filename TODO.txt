@@ -5,7 +5,6 @@ before 0.1:
 - change cookie on password change
 - pack should call http://packages.python.org/Whoosh/api/index.html?highlight=optimize#whoosh.index.Index.optimize on whoosh
 - only accept object move if it succeded on server
-- allow user-site creation
 - allow custom extensions
 - default content for every user
 - allow rss via http://www.freewisdom.org/projects/python-markdown/RSS
@@ -25,10 +24,12 @@ before 0.1:
 - Form object?
 Fixes:
 - http://drink.gnux.info/users as user => 401
+- mask file upload widget if File not available here
 - search => 401
 
 0.2:
 - zip importer
+- pdf with pypdf
 - doc
 - project support (using drink as a base)
 - integrate imgviewer (image folder type)
