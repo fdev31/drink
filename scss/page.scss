@@ -1,5 +1,5 @@
 /* opts */
-// @option compress: no;
+//@option compress: no;
 $experimental-support-for-mozilla: 1;
 $experimental-support-for-webkit: 1;
 
@@ -17,14 +17,37 @@ $background: #A0A0A0;
 
 /* mixins */
 
-@import "compass/css3/gradient";
+@import "compass/reset";
 @import "compass/css3/box-shadow";
 @import "compass/css3/text-shadow";
 @import "compass/css3/border-radius";
-@import "compass/reset";
 @import "compass/utilities";
+@import "compass/css3/opacity";
+@import "compass/css3/images";
 
-// @import "compass/css3/box-shadow"
+@mixin editable {
+    margin: 0 0 0.7ex 0;
+    @include border-radius($radius);
+    color: #555;
+    border: none;
+    padding: 0 1ex 0 1ex;
+    background: #ffd;
+
+    &:hover {
+        color: black;
+        background: $hi_color;
+    }
+    &:focus {
+        background: white;
+    }
+}
+
+@mixin general_hover {
+    &:hover {
+        border-bottom: solid 3px #fa5;
+        color: black;
+    }
+}
 
 @mixin shadowed {
     color: black;
@@ -43,183 +66,51 @@ $background: #A0A0A0;
     color: $contour;
 }
 
-@mixin edit_hover {
-    background: $hi_color;
-    @include shadowed;
-}
-
-@mixin editable {
-    margin: 0 0 0.7ex 0;
-    border: solid 2px #fff;
-    @include border-radius($radius);
-}
-
 /* real CSS here */
-
-body {
-	padding:0;
-	margin: 0 1ex 0 1ex;
-	background-color: $background;
-	font-family: Helvetica, sans-serif;
-	color: $main_color;
-}
-
-ul {
-    margin-left: 1em;
-}
-
-legend {
-    color: white;
-    font-weight: bold;
-    padding-bottom: 1ex;
-}
-
-h1 {
-  font-style: italic;
-  font-weight: normal;
-  font-size: 300%;
-  text-align: center;
-  @include text-shadow(rgba(#000, 0.4) 5px 2px 5px);
-}
-
-h2 {
-  font-size: 300%;
-  margin: 1em 0 0.5em 0;
-  color: $contour;
-  @include text-shadow(rgba(#000, 0.6) 2px 2px 5px);
-}
-
-h3 {
-  font-size: 250%;
-  margin: 1em 0 0.5em 1ex;
-}
-
-h4 {
-  font-size: 200%;
-  margin: 1em 0 0.5em 1em;
-}
-
-h5 {
-  font-size: 150%;
-  margin: 1em 0 0.5em 1.5em;
-  color: rgba($main_color, 0.8);
-}
-
-h6 {
-  font-size: 150%;
-  margin: 1em 0 0.5em 1.5em;
-  color: rgba($main_color, 0.6);
-}
-
-li {
-        list-style-type: square;
-        list-style-position: inside;
-
-}
-
-a {
-   text-decoration: none;
-   padding: 0;
-   &:hover {
-        @include shadowed;
-        text-decoration: none;
-        color: black;
-        @include border-radius($radius);
-   }
-   img {
-      border: none;
-   }
-}
-
-em {
-    font-style: italic;
-
-    &:before {
-        content: "«";
-    }
-
-    &:after {
-        content: "»";
-    }
-}
 
 li.entry {
     margin-bottom: 0.5ex;
+    list-style-type: none;
     > span.actions {
       margin-left: 1em;
       vertical-align: 5px;
     }
     > input {
-        @include shadowed;
+        @include border-radius($radius);
         @include entryfont;
-        border: dashed 2px white;
+        @include editable;
+        margin: 0;
         width: 66%;
-        color: #555;
-        background: $hi_color;
-        padding-left: 1ex;
     }
     a {
         @include entryfont;
-        &:hover {
-            color: black;
-        }
+        @include general_hover;
     }
-}
+    > img {
+        vertical-align: bottom;
+        margin-right: 1ex;
+    }
 
+}
 fieldset.toggler {
     > legend {
         cursor: pointer;
     }
 }
-
 span.infos {
     margin-left: 1ex;
 }
-
-.sortable {
-    list-style-type: none;
-}
-
-.selected {
+span.toggler {
+    @include editable;
     @include border-radius($radius);
-    @include background-image(linear-gradient(#91be15 0%, #84b710 100%));
-    background: $hi_color;
+    cursor: pointer;
+    margin-right: 1ex;
 }
-
-.x_permissions_grp {
-    background: #6a1b23;
-    padding: 1em;
-    width: 25em;
-    @include border-radius($radius);
-    color: #bbc;
-    &:hover {
-        @include shadowed;
-        color: black;
-        background-color: #e89;
-    }
-    &:before {
-      content:"Permissions:";
-      font-weight: bold;
-    }
-    span.toggler {
-        @include border-radius($radius);
-        &:hover {
-          @include edit_hover;
-        }
-    }
-}
-
-.x_permissiona_grp:before {
-   content:"Quick permissions:";
-   font-weight: bold;
-}
-
 label.autoform {
     display: block;
     margin-top: 1ex;
     padding: 0 1ex 0 0;
 }
-
 div.option {
     font-family: sans-serif;
     cursor: pointer;
@@ -227,119 +118,108 @@ div.option {
     &:hover {
         @include single-text-shadow($hi_color, 1px, 1px, 2px);
         color: black;
+        text-decoration: underline;
     }
 }
-
+div.editable {
+    span.label, > input, > textarea {
+        @include editable;
+        padding: .5ex;
+        margin-top: 1ex;
+    }
+}
+div.download {
+    margin: 1em;
+}
+div.objects_forms {
+    margin: 1ex auto 0 2ex;
+}
+div.codehilite {
+    padding: 1ex;
+    @include inner_shadowed;
+    > pre {
+        background: none;
+    }
+}
 #login_form {
     margin-bottom: 2em;
 }
-
-fieldset {
-    border: {
-        bottom: {
-            style: dotted;
-            color: #eee;
-            width: 2px;
-        }
-
-        right: {
-            style: none;
-        }
-
-        left: {
-            style: none;
-        }
-        top: {
-            style: solid;
-            width: 2px;
-            color: #eef
-        }
-    }
-    margin: 1em 0 1em 0;
-    padding: 0 1em 0 1em;
-}
-
 .buttons {
     margin: 1ex auto;
     text-align: left;
 }
-
 .auto_edit_form {
     width: 80%;
     margin: 1em auto 0 auto;
 }
-
-div.editable {
-    flush: left;
+.sortable {
+    list-style-type: none;
 }
-
-form input , div.input input , div.input textarea {
+.selected {
+    @include border-radius($radius);
+    @include background-image(linear-gradient(#91be15 0%, #84b710 100%));
+    background: $hi_color;
+}
+.x_permissiona_grp {
+    margin-top: 2ex;
+    margin-bottom: 1ex;
+    &:before {
+        content:"Quick permissions:";
+        font-weight: bold;
+    }
+}
+.x_permissions_grp {
     @include editable;
-}
-
-form input:focus , div.input input:focus , div.input:focus textarea:focus {
-    border: solid 2px #ff0;
-}
-
-div.input input[type="file"] {
-    border: none;
-}
-
-div.editable {
-    > textarea:hover {
-        @include shadowed;
-        @include edit_hover;
+    @include border-radius($radius);
+    background: #6a1b23;
+    padding: 1em;
+    width: 25em;
+    color: #bbc;
+    &:hover {
+        background-color: #e89;
+    }
+    &:before {
+      content:"Permissions:";
+      font-weight: bold;
     }
 }
-
-input:hover {
-    @include edit_hover;
+input.submit {
+    padding: 1ex;
+	color: black;
+	border: solid 1px white;
+	font-weight: bold;
+	cursor: pointer;
+	@include shadowed;
+	@include background-image(linear-gradient(red, white));
+    @include text-shadow(rgba(#000, 0.4) 5px 2px 5px);
+    &:hover {
+        position: relative;
+        top: 3px;
+        @include single-box-shadow(none);
+    }
 }
-
 textarea.markItUpEditor:hover {
-    border: solid 2px $hi_color;
+    border: solid 3px $hi_color;
 }
-
-div.editable {
-    span.label:hover {
-        @include edit_hover;
+li.markItUpButton > a {
+    @include opacity(.5);
+    &:hover {
+        border: none;
+        @include opacity(1);
     }
 }
-
-label {
-    > img {
-        margin-bottom: -10px;
-    }
-}
-
 .error_message {
     font-size: 300%;
     color: #a55;
 }
-
 .icon {
     width: 32px;
 }
-
 .minicon {
     width: 20px;
     margin-right: 1ex;
     margin-bottom: -8px;
 }
-
-div.objects_forms {
-    margin: 1ex auto 0 2ex;
-}
-
-
-li.entry {
-    list-style-type: none;
-    > img {
-        vertical-align: bottom;
-        margin-right: 1ex;
-    }
-}
-
 .toc {
     border-left: solid 7px #567;
     width: 80%;
@@ -351,7 +231,113 @@ li.entry {
         }
     }
 }
+#user_actions {
+    text-align: right;
+}
 
+#page_actions {
+    margin-top: -32px;
+}
+table.codehilitetable {
+    margin: 1em;
+}
+
+/*
+STANDARD HTML SET
+*/
+
+body {
+	padding:0;
+	margin: 0 1ex 0 1ex;
+	background-color: $background;
+	font-family: Helvetica, sans-serif;
+	color: $main_color;
+}
+legend {
+    color: white;
+    font-weight: bold;
+    padding-bottom: 1ex;
+}
+h1 {
+    font-style: italic;
+    font-weight: normal;
+    font-size: 300%;
+    text-align: center;
+    @include text-shadow(rgba(#000, 0.4) 5px 2px 5px);
+}
+h2 {
+    font-size: 300%;
+    margin: 1em 0 0.5em 0;
+    color: $contour;
+    @include text-shadow(rgba(#000, 0.6) 2px 2px 5px);
+}
+h3 {
+    font-size: 250%;
+    margin: 1em 0 0.5em 1ex;
+}
+h4 {
+    font-size: 200%;
+    margin: 1em 0 0.5em 1em;
+}
+h5 {
+    font-size: 150%;
+    margin: 1em 0 0.5em 1.5em;
+    color: rgba($main_color, 0.8);
+}
+h6 {
+    font-size: 150%;
+    margin: 1em 0 0.5em 1.5em;
+    color: rgba($main_color, 0.6);
+}
+ul {
+    margin-left: 1em;
+}
+li {
+    list-style-type: square;
+    list-style-position: inside;
+}
+a {
+   text-decoration: none;
+   padding: 0;
+   @include general_hover;
+   /*
+   @include border-radius($radius);
+   */
+   img {
+      border: none;
+   }
+}
+fieldset {
+    margin: 1em 0 1em 0;
+    padding: 0 1em 0 1em;
+    border: {
+        bottom: {
+            style: dotted;
+            color: #eee;
+            width: 2px;
+        }
+        right: {
+            style: none;
+        }
+        left: {
+            style: none;
+        }
+        top: {
+            style: solid;
+            width: 2px;
+            color: #eef
+        }
+    }
+}
+input[type="file"] {
+    border: none !important;
+    background: none !important;
+}
+label {
+    > img {
+        margin-bottom: -10px;
+    }
+}
 dl {
     dt {
         font-weight: bold;
@@ -364,43 +350,33 @@ dl {
     }
     margin-bottom: 1em;
 }
-
-table.codehilitetable {
-    margin: 1em;
-}
-
-div.codehilite {
-    padding: 1ex;
-    @include inner_shadowed;
-    > pre {
-        background: none;
-    }
-}
-
 p {
     margin: 1ex;
 }
-
 pre {
     font-family: monospace;
     background-color: $contour;
     padding: 0.5ex;
     margin: 1ex;
 }
+em {
+    font-style: italic;
 
+    &:before {
+        content: "«";
+    }
+
+    &:after {
+        content: "»";
+    }
+}
 strong {
     font-weight: bold;
 }
 
-#user_actions {
-    text-align: right;
-}
-
-#page_actions {
-    margin-top: -32px;
-}
-
-// fileuploader
+/*
+fileuploader
+*/
 
 .qq-uploader { position:relative; width: 100%;}
 
