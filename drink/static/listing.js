@@ -59,6 +59,8 @@ $.fn.extend({
             '<option value="'+data.id+'" label="'+data.id+'">'+data.id+'</option>'
         );
         child_items[data.id] = data;
+        e.hide();
+        e.fadeIn('slow');
         return e;
     },
     remove_entry: function(item) {
@@ -69,7 +71,7 @@ $.fn.extend({
             $('#edit_form select option[value="'+safe_name+'"]').remove();
             $('#rm_form select option[value="'+safe_name+'"]').remove();
             $('#rm_form select option[value="'+safe_name+'"]').remove();
-            $('ul > li.entry:data(item='+item+')').remove();
+            $('ul > li.entry:data(item='+item+')').slideUp('slow', function() {$(this).remove()});
             delete child_items[item];
         }).error(function(){alert('Error removing "'+item+'"')});
 
