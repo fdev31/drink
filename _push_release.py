@@ -46,7 +46,8 @@ step('pandoc -f markdown -t rst --sanitize-html -S --strict README.md -o README.
 readme = open('README.rst').read()
 open('README.rst', 'w').write(readme.replace('DRINK_VERSION', new_tag))
 
-raise SystemExit()
+if 'DEBUG' in os.environ:
+    raise SystemExit()
 
 ## update setup.py according to new tag & commit this version
 open('setup.py', 'w').writelines(lines)
@@ -55,7 +56,6 @@ step(['hg', 'ci', '-m', 'Prepare version %s'%new_tag, 'setup.py', 'README.rst'])
 ## Note version & tag it
 uuid = step('hg id -i').rstrip('+ ')
 print uuid, ">", new_tag
-raise SystemExit()
 step('hg tag %s'%new_tag)
 # push code
 step('hg push')
