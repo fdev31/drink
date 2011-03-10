@@ -39,12 +39,10 @@ In the program, **page** and **element** are the same thing -- for clarity I wil
 :  Adds a new children element to currently displayed page.
 
 ![](/static/actions/edit.png)
-:  Edit some element of this page (you can drag&drop some element over it).
+:  Keep the mouse over an item in list mode and click on this icon to edit an element properties
 
 ![](/static/actions/delete.png)
-:  Removes an element from current page (you can drag&drop some element over it).
-
-> **NOTE**: In *list* mode, you can drag & drop listed elements over **edit** or **delete** icons instead of choosing an element's name in the list.
+:  Keep the mouse over an item in list mode and click on this icon to remove an element
 
 ## Element types
 
