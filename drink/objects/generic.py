@@ -221,7 +221,9 @@ class Page(Model):
         self.editable_fields['content'].set(self, 'content', obj)
 
     def upload(self):
-        filename = request.GET.get('qqfile', 'uploaded')
+        filename = request.GET.get('qqfile', None)
+        if not filename:
+            return {'error': True, 'message': 'Incorrect parameters. Action aborted.'}
 
         factory = self.upload_map.get(filename.rsplit('.')[-1], 'File')
 
@@ -416,7 +418,7 @@ class StaticFile(Page):
             if mime.startswith('image/'):
                 html.append('<img src="raw" />')
             elif mime in ('application/xml', ) or mime.startswith('text/'):
-                f = self.content.open()
+                f = self.content.open('rb')
                 html.append('<pre>')
                 html.append(f.read())
                 html.append('</pre>')
