@@ -52,7 +52,7 @@ $background: #A0A0A0;
 @mixin shadowed {
     color: black;
     @include border-radius($radius);
-    @include single-box-shadow($shadow_color, $shadow_right, $shadow_down, $shadow_weight, 2px);
+    @include single-box-shadow($shadow_color, $shadow_right, $shadow_down, $shadow_weight, 1px);
 }
 
 @mixin inner_shadowed {
@@ -186,16 +186,20 @@ div.codehilite {
 input.submit {
     padding: 1ex;
 	color: black;
-	border: solid 1px white;
+	border: solid 1px #555;
 	font-weight: bold;
 	cursor: pointer;
-	@include shadowed;
-	@include background-image(linear-gradient(red, white));
+    @include border-radius($radius);
+	@include background-image(linear-gradient(#223344, white, 0.6, #223344, 1.0));
     @include text-shadow(rgba(#000, 0.4) 5px 2px 5px);
+    @include single-box-shadow($shadow_color, 1px, 1px, 3px);
     &:hover {
         position: relative;
-        top: 3px;
+        top: 2px;
         @include single-box-shadow(none);
+        @include background-image(linear-gradient(#223344 30%, #AABBCC 50%, #ffddbb 90%, #223344));
+        @include text-shadow(none);
+        }
     }
 }
 textarea.markItUpEditor:hover {
@@ -332,6 +336,10 @@ fieldset {
 input[type="file"] {
     border: none !important;
     background: none !important;
+}
+input[type="text"], input[type="password"]  {
+    @include border-radius($radius);
+    @include editable;
 }
 label {
     > img {
