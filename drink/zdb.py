@@ -31,6 +31,7 @@ class Database(object):
         self._cleanup()
 
     def pack(self):
+        self.db # KEEPME: loads the database
         return self._db.pack()
 
     @property
