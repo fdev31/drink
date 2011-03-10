@@ -1,13 +1,10 @@
 # Drink
 
-Alpha Web framework & sample mini CMS application with little
-dependencies: ZODB , bottle & markdown.
+Alpha Web framework & sample mini CMS.
 
- Aims to be quite generic *all-in-one-but-minimalistic* web+database framework.
+Aims to be quite generic *all-in-one-but-minimalistic* web+database high-level framework.
 
-## Getting started
-
-### Install
+## Dependencies
 
 Use "easy_install" or "pip" to get 'jinja2', 'markdown', 'ZODB3' and 'whoosh' installed on your system.
 Additionally you can install *paste* or *gevent* for better performances.
@@ -26,7 +23,9 @@ Example (at the DOS/Console/Shell prompt):
      pip install -U ZODB3
      pip install -U whoosh
 
-Then, fetch the source archive and unpack it:
+### Install
+
+Just fetch the source archive and unpack it:
 
      wget http://pypi.python.org/packages/source/d/drink/drink-DRINK_VERSION.tar.bz2
      tar jxvf drink-DRINK_VERSION.tar.bz2

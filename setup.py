@@ -8,7 +8,7 @@ setup(
     author_email="fdev31@gmail.com",
     license="GPL",
     platform="all",
-    description="High-level micro CMS inspired by BlueBream (Zope) and Django, with simplicity of use & extend in mind. Based on ZODB & bottle.",
+    description="High-level Web Object-managing framework on top of ZODB and Jinja2",
     long_description=open('README.rst').read(),
     include_package_data=True,
     zip_safe=False,
