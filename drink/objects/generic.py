@@ -54,7 +54,7 @@ class Page(Model):
 
     #: map used for upload action, to bind extensions to factories
     upload_map = {
-        '*': 'File',
+        '*': 'WebFile',
     }
 
     # Model methods
@@ -225,7 +225,7 @@ class Page(Model):
         if not filename:
             return {'error': True, 'message': 'Incorrect parameters. Action aborted.'}
 
-        factory = self.upload_map.get(filename.rsplit('.')[-1], 'File')
+        factory = self.upload_map.get(filename.rsplit('.')[-1], 'WebFile')
 
         o = self._add(filename, factory,
             request.identity.user.default_read_groups,
@@ -365,7 +365,7 @@ class ListPage(Page):
     view = Page.list
 
 
-class StaticFile(Page):
+class WebFile(Page):
 
     mime = "page"
     mimetype = "text/plain"
@@ -426,4 +426,4 @@ class StaticFile(Page):
         return drink.template('main.html', obj=self, css=self.css, js=self.js, html='\n'.join(html),
              classes=self.classes, authenticated=request.identity)
 
-exported = {'Folder index': ListPage, 'File': StaticFile}
+exported = {'Folder index': ListPage, 'WebFile': WebFile}
