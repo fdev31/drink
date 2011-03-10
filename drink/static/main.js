@@ -16,7 +16,13 @@ $(document).ready(function(){
 
     $('.editable span').click( function() {
         var o = $(this).prev();
-        o.attr('checked', ! o.is(':checked'));
+        if ( ! o.is(':checked') ) {
+            o.attr('checked', true);
+            $(this).addClass('selected', 1000);
+        } else {
+            o.attr('checked', false);
+            $(this).removeClass('selected', 1000);
+        }
     });
 
     var item_added = function(data, status) {
