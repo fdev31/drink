@@ -4,7 +4,7 @@
 pyScss, a Scss compiler for Python
 
 @author     German M. Bravo (Kronuz) <german.mb@gmail.com>
-@version    1.0 rc3
+@version    1.0
 @see        https://github.com/Kronuz/pyScss
 @copyright  (c) 2011 German M. Bravo (Kronuz)
 @license    MIT License
@@ -36,12 +36,12 @@ xCSS:
 
 """
 
-VERSION_INFO = (1, 0, 3)
-BUILD_INFO = "pyScss v1.0 rc3 (20110301)"
+VERSION_INFO = (1, 0, 4)
+BUILD_INFO = "pyScss v1.0 (20110306)"
 AUTHOR = "German M. Bravo (Kronuz)"
 AUTHOR_EMAIL = 'german.mb@gmail.com'
 URL = 'http://github.com/Kronuz/pyScss'
-DOWNLOAD_URL = 'http://github.com/Kronuz/pyScss/tarball/v1.0rc3'
+DOWNLOAD_URL = 'http://github.com/Kronuz/pyScss/tarball/v1.0'
 LICENSE = "MIT"
 PROJECT = "pyScss"
 
@@ -55,14 +55,14 @@ __license__ = LICENSE
 import os
 PROJECT_ROOT = os.path.normpath(os.path.dirname(os.path.abspath(__file__)))
 # Sass @import load_paths:
-LOAD_PATHS = os.path.join(PROJECT_ROOT, 'sass', 'frameworks/')
-# Media base root path where images, fonts and other resources are located:
-MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'media/')
+LOAD_PATHS = os.path.join(PROJECT_ROOT, 'sass/frameworks/')
 # Assets path, where new sprite files are created:
-ASSETS_ROOT = os.path.join(PROJECT_ROOT, 'media', 'assets/')
-# Urls for the media and assets:
-MEDIA_URL = '/media/'
-ASSETS_URL = '/media/assets/'
+STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static/')
+# Assets path, where new sprite files are created:
+ASSETS_ROOT = os.path.join(PROJECT_ROOT, 'static/assets/')
+# Urls for the static and assets:
+STATIC_URL = '/static/'
+ASSETS_URL = '/static/assets/'
 VERBOSITY = 1
 ################################################################################
 
@@ -86,7 +86,7 @@ _units_weights = {
     'mm': 10,
     'ms': 10,
     'hz': 10,
-    '%': 0,
+    '%': 100,
 }
 _conv = {
     'size': {
@@ -264,6 +264,19 @@ _colors = {
     'yellowgreen': '#9acd32'
 }
 
+_safe_strings = {
+    '^doubleslash^': '//',
+    '^bigcopen^': '/*',
+    '^bigcclose^': '*/',
+    '^doubledot^': ':',
+    '^semicolon^': ';',
+    '^curlybracketopen^': '{',
+    '^curlybracketclosed^': '}',
+}
+_reverse_safe_strings = dict((v, k) for k, v in _safe_strings.items()) 
+_safe_strings_re = re.compile('|'.join(map(re.escape, _safe_strings)))
+_reverse_safe_strings_re = re.compile('|'.join(map(re.escape, _reverse_safe_strings)))
+
 _default_scss_vars = {
     # unsafe chars will be hidden as vars
     '$__doubleslash': '//',
@@ -319,9 +332,7 @@ _spaces_re = re.compile(r'\s+')
 _expand_rules_space_re = re.compile(r'\s*{')
 _collapse_properties_space_re = re.compile(r'([:#])\s*{')
 
-_reverse_default_scss_vars = dict((v, k) for k, v in _default_scss_vars.items())
-_reverse_default_scss_vars_re = re.compile(r'(content.*:.*(\'|").*)(' + '|'.join(map(re.escape, _reverse_default_scss_vars)) + ')(.*\2)')
-
+_strings_re = re.compile(r'([\'"]).*?\1')
 _blocks_re = re.compile(r'[{},;()\'"]|\n+|$')
 
 _prop_split_re = re.compile(r'[:=]')
@@ -370,6 +381,7 @@ SELECTORS = 6
 PROPERTIES = 7
 PATH = 8
 FINAL = 9
+MEDIA = 10
 
 def print_timing(level=0):
     def _print_timing(func):
@@ -448,7 +460,8 @@ class Scss(object):
     def longest_common_prefix(self, seq1, seq2):
         start = 0
         common = 0
-        while start < min(len(seq1), len(seq2)):
+        length = min(len(seq1), len(seq2))
+        while start < length:
             if seq1[start] != seq2[start]:
                 break
             if seq1[start] == ' ':
@@ -459,7 +472,19 @@ class Scss(object):
         return common
 
     def longest_common_suffix(self, seq1, seq2):
-        return self.longest_common_prefix(seq1[::-1], seq2[::-1])
+        seq1, seq2 = seq1[::-1], seq2[::-1]
+        start = 0
+        common = 0
+        length = min(len(seq1), len(seq2))
+        while start < length:
+            if seq1[start] != seq2[start]:
+                break
+            if seq1[start] == ' ':
+                common = start + 1
+            elif seq1[start] in ('#', ':', '.'):
+                common = start + 1
+            start += 1
+        return common
 
     def locate_blocks(self, str):
         """
@@ -589,7 +614,7 @@ class Scss(object):
             return ','.join(sorted(selectors)) + ' extends ' + '&'.join(sorted(parents))
         return ','.join(sorted(selectors))
 
-    def apply_vars(self, cont, context, options=None, _dequote=False):
+    def apply_vars(self, cont, context, options=None, rule=None, _dequote=False):
         if '$' in cont:
             if cont in context:
                 # Optimization: the full cont is a variable in the context,
@@ -632,7 +657,7 @@ class Scss(object):
                 cont = _interpolate_re.sub(_av, cont)
         if options is not None:
             # ...apply math:
-            cont = self.do_glob_math(cont, context, options, _dequote)
+            cont = self.do_glob_math(cont, context, options, rule, _dequote)
         return cont
 
     @print_timing(2)
@@ -671,13 +696,16 @@ class Scss(object):
 
     def load_string(self, str):
         # protects content: "..." strings
-        str = _reverse_default_scss_vars_re.sub(lambda m: m.group(0) + _reverse_default_scss_vars.get(m.group(2)) + m.group(3), str)
+        
+        str = _strings_re.sub(lambda m: _reverse_safe_strings_re.sub(lambda n: _reverse_safe_strings[n.group(0)], m.group(0)), str)
 
         # removes multiple line comments
         str = _ml_comment_re.sub('', str)
 
         # removes inline comments, but not :// (protocol)
         str = _sl_comment_re.sub('', str)
+
+        str = _safe_strings_re.sub(lambda m: _safe_strings[m.group(0)], str)
 
         # expand the space in rules
         str = _expand_rules_space_re.sub(' {', str)
@@ -695,7 +723,7 @@ class Scss(object):
 
     def parse_scss_string(self, fileid, str):
         str = self.load_string(str)
-        rule = [ fileid, None, str, set(), self.scss_vars, self.scss_opts, '', [], './', False ]
+        rule = [ fileid, None, str, set(), self.scss_vars, self.scss_opts, '', [], './', False, None ]
         self.children.append(rule)
         return str
 
@@ -715,7 +743,7 @@ class Scss(object):
 
             # manage children or expand children:
             _children = deque()
-            self.manage_children(rule, _selectors, _parents, _children)
+            self.manage_children(rule, _selectors, _parents, _children, None, rule[MEDIA])
             self.children.extendleft(_children)
 
             # prepare maps:
@@ -733,7 +761,7 @@ class Scss(object):
             #for r in [rule]+list(self.children)[:5]: print >>sys.stderr, repr(r[POSITION]), repr(r[SELECTORS]), repr(r[CODESTR][:80]+('...' if len(r[CODESTR])>80 else '')), dict((k, v) for k, v in r[CONTEXT].items() if k.startswith('$') and not k.startswith('$__')), dict(r[PROPERTIES]).keys()
 
     @print_timing(4)
-    def manage_children(self, rule, p_selectors, p_parents, p_children, scope=None):
+    def manage_children(self, rule, p_selectors, p_parents, p_children, scope, media):
         for c_property, c_codestr in self.locate_blocks(rule[CODESTR]):
             # Rules preprocessing...
             if c_property.startswith('+'): # expands a '+' at the beginning of a rule as @include
@@ -752,53 +780,56 @@ class Scss(object):
             if c_property.startswith('@'):
                 code, name = (c_property.split(None, 1)+[''])[:2]
                 if code == '@warn':
-                    name = self.calculate(name, rule[CONTEXT], rule[OPTIONS])
+                    name = self.calculate(name, rule[CONTEXT], rule[OPTIONS], rule)
                     err = "Warning: %s" % dequote(to_str(name))
                     print >>sys.stderr, err
                 elif code == '@option':
-                    self._settle_options(rule, p_selectors, p_parents, p_children, scope, c_property, c_codestr, code, name)
+                    self._settle_options(rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr, code, name)
                 elif code == '@import':
-                    self._do_import(rule, p_selectors, p_parents, p_children, scope, c_property, c_codestr, code, name)
+                    self._do_import(rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr, code, name)
                 elif code == '@extend':
+                    name = self.apply_vars(name, rule[CONTEXT], rule[OPTIONS], rule)
                     p_parents.update(p.strip() for p in name.replace(',', '&').split('&'))
                     p_parents.discard('')
                 elif c_codestr is not None and code in ('@mixin', '@function'):
-                    self._do_functions(rule, p_selectors, p_parents, p_children, scope, c_property, c_codestr, code, name)
+                    self._do_functions(rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr, code, name)
                 elif code == '@return':
-                    ret = self.calculate(name, rule[CONTEXT], rule[OPTIONS])
+                    ret = self.calculate(name, rule[CONTEXT], rule[OPTIONS], rule)
                     rule[OPTIONS]['@return'] = ret
                     return
                 elif code == '@include':
-                    self._do_include(rule, p_selectors, p_parents, p_children, scope, c_property, c_codestr, code, name)
+                    self._do_include(rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr, code, name)
                 elif c_codestr is not None and (code == '@if' or c_property.startswith('@else if ')):
-                    self._do_if(rule, p_selectors, p_parents, p_children, scope, c_property, c_codestr, code, name)
+                    self._do_if(rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr, code, name)
                 elif c_codestr is not None and code == '@else':
-                    self._do_else(rule, p_selectors, p_parents, p_children, scope, c_property, c_codestr, code, name)
+                    self._do_else(rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr, code, name)
                 elif c_codestr is not None and code == '@for':
-                    self._do_for(rule, p_selectors, p_parents, p_children, scope, c_property, c_codestr, code, name)
+                    self._do_for(rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr, code, name)
                 elif c_codestr is not None and code == '@each':
-                    self._do_each(rule, p_selectors, p_parents, p_children, scope, c_property, c_codestr, code, name)
+                    self._do_each(rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr, code, name)
                 elif c_codestr is not None and code in ('@variables', '@vars'):
-                    self._get_variables(rule, p_selectors, p_parents, p_children, scope, c_property, c_codestr)
-                # Any other rule simply adds the property
-                # TODO: add @media here (and c_codestr is nested to it)
+                    self._get_variables(rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr)
+                elif c_codestr is not None and code == '@media':
+                    _media = (media or []) +  [ name ]
+                    rule[CODESTR] = self.construct + ' {' + c_codestr + '}'
+                    self.manage_children(rule, p_selectors, p_parents, p_children, scope, _media)
                 else:
                     rule[PROPERTIES].append((c_property, None))
             ####################################################################
             # Properties
             elif c_codestr is None:
-                self._get_properties(rule, p_selectors, p_parents, p_children, scope, c_property, c_codestr)
+                self._get_properties(rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr)
             # Nested properties
             elif c_property.endswith(':'):
                 rule[CODESTR] = c_codestr
-                self.manage_children(rule, p_selectors, p_parents, p_children, (scope or '') + c_property[:-1] + '-')
+                self.manage_children(rule, p_selectors, p_parents, p_children, (scope or '') + c_property[:-1] + '-', media)
             ####################################################################
             # Nested rules
             elif scope is None: # needs to have no scope to crawl down the nested rules
-                self._nest_rules(rule, p_selectors, p_parents, p_children, scope, c_property, c_codestr)
+                self._nest_rules(rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr)
 
     @print_timing(10)
-    def _settle_options(self, rule, p_selectors, p_parents, p_children, scope, c_property, c_codestr, code, name):
+    def _settle_options(self, rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr, code, name):
         for option in name.split(','):
             option, value = (option.split(':', 1)+[''])[:2]
             option = option.strip().lower()
@@ -811,7 +842,7 @@ class Scss(object):
                 rule[OPTIONS][option] = value
 
     @print_timing(10)
-    def _do_functions(self, rule, p_selectors, p_parents, p_children, scope, c_property, c_codestr, code, name):
+    def _do_functions(self, rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr, code, name):
         """
         Implements @mixin and @function
         """
@@ -828,12 +859,15 @@ class Scss(object):
                 if param:
                     new_params.append(param)
                     if default:
-                        default = self.apply_vars(default, rule[CONTEXT], None)
+                        default = self.apply_vars(default, rule[CONTEXT], None, rule)
                         defaults[param] = default
-            mixin = [ list(new_params), defaults, self.apply_vars(c_codestr, rule[CONTEXT], None) ]
+            context = rule[CONTEXT].copy()
+            for p in new_params:
+                context.pop(p, None)
+            mixin = [ list(new_params), defaults, self.apply_vars(c_codestr, context, None, rule) ]
             if code == '@function':
                 def _call(mixin):
-                    def __call(*args, **kwargs):
+                    def __call(R, *args, **kwargs):
                         m_params = mixin[0]
                         m_vars = rule[CONTEXT].copy()
                         m_vars.update(mixin[1])
@@ -842,8 +876,8 @@ class Scss(object):
                             m_vars[m_params[i]] = str(a)
                         m_vars.update(kwargs)
                         _options = rule[OPTIONS].copy()
-                        _rule = [ '', None, m_codestr, set(), m_vars, _options, '', [], './', False ]
-                        self.manage_children(_rule, p_selectors, p_parents, p_children, (scope or '') + '')
+                        _rule = [ '', R[SELECTORS], m_codestr, set(), m_vars, _options, '', [], './', False, R[MEDIA] ]
+                        self.manage_children(_rule, p_selectors, p_parents, p_children, (scope or '') + '', R[MEDIA])
                         ret = _options.pop('@return', '')
                         return ret
                     return __call
@@ -860,7 +894,7 @@ class Scss(object):
                 rule[OPTIONS][code + ' ' + funct + ':0'] = mixin
 
     @print_timing(10)
-    def _do_include(self, rule, p_selectors, p_parents, p_children, scope, c_property, c_codestr, code, name):
+    def _do_include(self, rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr, code, name):
         """
         Implements @include, for @mixins
         """
@@ -891,24 +925,24 @@ class Scss(object):
                     m_param = m_params[varname]
                 except:
                     m_param = varname
-                value = self.calculate(value, rule[CONTEXT], rule[OPTIONS])
+                value = self.calculate(value, rule[CONTEXT], rule[OPTIONS], rule)
                 m_vars[m_param] = value
             for p in m_vars:
                 if p not in new_params:
                     if isinstance(m_vars[p], basestring):
-                        value = self.calculate(m_vars[p], m_vars, rule[OPTIONS])
+                        value = self.calculate(m_vars[p], m_vars, rule[OPTIONS], rule)
                         m_vars[p] = value
             _rule = list(rule)
             _rule[CODESTR] = m_codestr
             _rule[CONTEXT] = rule[CONTEXT].copy()
             _rule[CONTEXT].update(m_vars)
-            self.manage_children(_rule, p_selectors, p_parents, p_children, scope)
+            self.manage_children(_rule, p_selectors, p_parents, p_children, scope, media)
         else:
             err = "Error: Required mixin not found: %s:%d" % (funct, num_args)
             print >>sys.stderr, err
 
     @print_timing(10)
-    def _do_import(self, rule, p_selectors, p_parents, p_children, scope, c_property, c_codestr, code, name):
+    def _do_import(self, rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr, code, name):
         """
         Implements @import
         Load and import mixins and functions and rules
@@ -951,6 +985,8 @@ class Scss(object):
                                         load_paths.append(full_path)
                             if i_codestr is not None:
                                 break
+                        if i_codestr is None:
+                            i_codestr = self._do_magic_import(rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr, code, name)
                         i_codestr = self._scss_files[name] = i_codestr and self.load_string(i_codestr)
                     if i_codestr is None:
                         err = "Warning: File to import not found or unreadable: '" + filename + "'\nLoad paths:\n\t" + "\n\t".join(load_paths)
@@ -959,33 +995,108 @@ class Scss(object):
                         _rule = list(rule)
                         _rule[CODESTR] = i_codestr
                         _rule[PATH] = full_path
-                        self.manage_children(_rule, p_selectors, p_parents, p_children, scope)
+                        self.manage_children(_rule, p_selectors, p_parents, p_children, scope, media)
                         rule[OPTIONS]['@import ' + name] = True
         else:
             rule[PROPERTIES].append((c_property, None))
 
     @print_timing(10)
-    def _do_if(self, rule, p_selectors, p_parents, p_children, scope, c_property, c_codestr, code, name):
+    def _do_magic_import(self, rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr, code, name):
+        """
+        Implements @import for sprite-maps
+        Imports magic sprite map directories
+        """
+        if callable(STATIC_ROOT):
+            files = sorted(STATIC_ROOT(name))
+        else:
+            glob_path = os.path.join(STATIC_ROOT, name)
+            files = glob.glob(glob_path)
+            files = sorted( (file[len(STATIC_ROOT):], None) for file in files )
+
+        if files:
+            # Build magic context
+            map_name = os.path.normpath(os.path.dirname(name)).replace('/', '_')
+            kwargs = {}
+            def setdefault(var, val):
+                _var = '$' + map_name + '-' + var
+                if _var in rule[CONTEXT]:
+                    kwargs[var] = interpolate(rule[CONTEXT][_var], rule)
+                else:
+                    rule[CONTEXT][_var] = val
+                    kwargs[var] = interpolate(val, rule)
+                return rule[CONTEXT][_var]
+            setdefault('sprite-base-class', StringValue('.' + map_name + '-sprite'))
+            setdefault('sprite-dimensions', BooleanValue(False))
+            position = setdefault('position', NumberValue(0, '%'))
+            spacing = setdefault('spacing', NumberValue(0))
+            repeat = setdefault('repeat', StringValue('no-repeat'))
+            names = tuple( os.path.splitext(os.path.basename(file))[0] for file, storage in files )
+            for n in names:
+                setdefault(n + '-position', position)
+                setdefault(n + '-spacing', spacing)
+                setdefault(n + '-repeat', repeat)
+            sprite_map = _sprite_map(name, **kwargs)
+            rule[CONTEXT]['$' + map_name + '-' + 'sprites'] = sprite_map
+            ret = '''
+                @import "compass/utilities/sprites/base";
+                
+                // All sprites should extend this class
+                // The %(map_name)s-sprite mixin will do so for you.
+                #{$%(map_name)s-sprite-base-class} {
+                    background: $%(map_name)s-sprites;
+                }
+                
+                // Use this to set the dimensions of an element
+                // based on the size of the original image.
+                @mixin %(map_name)s-sprite-dimensions($name) {
+                    @include sprite-dimensions($%(map_name)s-sprites, $name);
+                }
+                
+                // Move the background position to display the sprite.
+                @mixin %(map_name)s-sprite-position($name, $offset-x: 0, $offset-y: 0) {
+                    @include sprite-position($%(map_name)s-sprites, $name, $offset-x, $offset-y);
+                }
+                
+                // Extends the sprite base class and set the background position for the desired sprite.
+                // It will also apply the image dimensions if $dimensions is true.
+                @mixin %(map_name)s-sprite($name, $dimensions: $%(map_name)s-sprite-dimensions, $offset-x: 0, $offset-y: 0) {
+                    @extend #{$%(map_name)s-sprite-base-class};
+                    @include sprite($%(map_name)s-sprites, $name, $dimensions, $offset-x, $offset-y);
+                }
+                
+                @mixin %(map_name)s-sprites($sprite-names, $dimensions: $%(map_name)s-sprite-dimensions) {
+                    @include sprites($%(map_name)s-sprites, $sprite-names, $%(map_name)s-sprite-base-class, $dimensions);
+                }
+                
+                // Generates a class for each sprited image.
+                @mixin all-%(map_name)s-sprites($dimensions: $%(map_name)s-sprite-dimensions) {
+                    @include %(map_name)s-sprites(%(sprites)s, $dimensions);
+                }
+            ''' % { 'map_name': map_name, 'sprites': ' '.join(names) }
+            return ret
+
+    @print_timing(10)
+    def _do_if(self, rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr, code, name):
         """
         Implements @if and @else if
         """
         if code != '@if':
             if '@if' not in rule[OPTIONS]:
                 print >>sys.stderr, "Warning: @else with no @if!"
-            val = rule[OPTIONS].get('@if', True)
+            val = not rule[OPTIONS].get('@if', True)
             name = c_property[9:].strip()
         else:
             val = True
         if val:
-            val = self.calculate(name, rule[CONTEXT], rule[OPTIONS])
+            val = self.calculate(name, rule[CONTEXT], rule[OPTIONS], rule)
             val = bool(False if not val or val in('0', 'false',) else val)
             if val:
                 rule[CODESTR] = c_codestr
-                self.manage_children(rule, p_selectors, p_parents, p_children, scope)
+                self.manage_children(rule, p_selectors, p_parents, p_children, scope, media)
             rule[OPTIONS]['@if'] = val
 
     @print_timing(10)
-    def _do_else(self, rule, p_selectors, p_parents, p_children, scope, c_property, c_codestr, code, name):
+    def _do_else(self, rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr, code, name):
         """
         Implements @else
         """
@@ -994,10 +1105,10 @@ class Scss(object):
         val = rule[OPTIONS].get('@if', True)
         if not val:
             rule[CODESTR] = c_codestr
-            self.manage_children(rule, p_selectors, p_parents, p_children, scope)
+            self.manage_children(rule, p_selectors, p_parents, p_children, scope, media)
 
     @print_timing(10)
-    def _do_for(self, rule, p_selectors, p_parents, p_children, scope, c_property, c_codestr, code, name):
+    def _do_for(self, rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr, code, name):
         """
         Implements @for
         """
@@ -1005,8 +1116,8 @@ class Scss(object):
         start, _, end = name.partition('through')
         if not end:
             start, _, end = start.partition('to')
-        start = self.calculate(start, rule[CONTEXT], rule[OPTIONS])
-        end = self.calculate(end, rule[CONTEXT], rule[OPTIONS])
+        start = self.calculate(start, rule[CONTEXT], rule[OPTIONS], rule)
+        end = self.calculate(end, rule[CONTEXT], rule[OPTIONS], rule)
         try:
             start = int(float(start))
             end = int(float(end))
@@ -1017,15 +1128,15 @@ class Scss(object):
             for i in range(start, end + 1):
                 rule[CODESTR] = c_codestr
                 rule[CONTEXT][var] = str(i)
-                self.manage_children(rule, p_selectors, p_parents, p_children, scope)
+                self.manage_children(rule, p_selectors, p_parents, p_children, scope, media)
 
     @print_timing(10)
-    def _do_each(self, rule, p_selectors, p_parents, p_children, scope, c_property, c_codestr, code, name):
+    def _do_each(self, rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr, code, name):
         """
         Implements @each
         """
         var, _, name = name.partition('in')
-        name = self.calculate(name, rule[CONTEXT], rule[OPTIONS])
+        name = self.calculate(name, rule[CONTEXT], rule[OPTIONS], rule)
         if name:
             var = var.strip()
             name = ListValue(name)
@@ -1035,20 +1146,20 @@ class Scss(object):
                 rule[CONTEXT][var] = v
                 if not isinstance(n, int):
                     rule[CONTEXT][n] = v
-                self.manage_children(rule, p_selectors, p_parents, p_children)
+                self.manage_children(rule, p_selectors, p_parents, p_children, scope, media)
 
     @print_timing(10)
-    def _get_variables(self, rule, p_selectors, p_parents, p_children, scope, c_property, c_codestr):
+    def _get_variables(self, rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr):
         """
         Implements @variables and @vars
         """
         _rule = list(rule)
         _rule[CODESTR] = c_codestr
         _rule[PROPERTIES] = rule[CONTEXT]
-        self.manage_children(_rule, p_selectors, p_parents, p_children, scope)
+        self.manage_children(_rule, p_selectors, p_parents, p_children, scope, media)
 
     @print_timing(10)
-    def _get_properties(self, rule, p_selectors, p_parents, p_children, scope, c_property, c_codestr):
+    def _get_properties(self, rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr):
         """
         Implements properties and variables extraction
         """
@@ -1061,7 +1172,7 @@ class Scss(object):
         if prop:
             if value:
                 value = value.strip()
-                value = self.calculate(value, rule[CONTEXT], rule[OPTIONS])
+                value = self.calculate(value, rule[CONTEXT], rule[OPTIONS], rule)
             _prop = (scope or '') + prop
             if is_var or prop.startswith('$') and value is not None:
                 if isinstance(value, basestring):
@@ -1079,19 +1190,19 @@ class Scss(object):
                 if value is not None:
                     rule[CONTEXT][_prop] = value
             else:
-                _prop = self.apply_vars(_prop, rule[CONTEXT], rule[OPTIONS], True)
+                _prop = self.apply_vars(_prop, rule[CONTEXT], rule[OPTIONS], rule, True)
                 rule[PROPERTIES].append((_prop, to_str(value) if value is not None else None))
 
     @print_timing(10)
-    def _nest_rules(self, rule, p_selectors, p_parents, p_children, scope, c_property, c_codestr):
+    def _nest_rules(self, rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr):
         """
         Implements Nested CSS rules
         """
-        if c_property == self.construct:
+        if c_property == self.construct and rule[MEDIA] == media:
             rule[CODESTR] = c_codestr
-            self.manage_children(rule, p_selectors, p_parents, p_children, scope)
+            self.manage_children(rule, p_selectors, p_parents, p_children, scope, media)
         else:
-            c_property = self.apply_vars(c_property, rule[CONTEXT], rule[OPTIONS], True)
+            c_property = self.apply_vars(c_property, rule[CONTEXT], rule[OPTIONS], rule, True)
 
             c_selectors = self.normalize_selectors(c_property)
             c_selectors, _, c_parents = c_selectors.partition(' extends ')
@@ -1116,7 +1227,7 @@ class Scss(object):
                 if parents:
                     better_selectors += ' extends ' + '&'.join(sorted(parents))
 
-            _rule = [ rule[FILEID], None, c_codestr, set(), rule[CONTEXT].copy(), rule[OPTIONS].copy(), better_selectors, [], rule[PATH], False ]
+            _rule = [ rule[FILEID], None, c_codestr, set(), rule[CONTEXT].copy(), rule[OPTIONS].copy(), better_selectors, [], rule[PATH], False, media ]
             p_children.appendleft(_rule)
 
     @print_timing(4)
@@ -1144,16 +1255,23 @@ class Scss(object):
                     # since selectors can be together, separated with # or . (i.e. something.parent) check that too:
                     for c_selector in c_selectors.split(','):
                         # Get whatever is different between the two selectors:
-                        lcp = self.longest_common_prefix(c_selector, p_selector)
-                        if lcp: c_selector = c_selector[lcp:]
-                        lcs = self.longest_common_suffix(c_selector, p_selector)
-                        if lcs: c_selector = c_selector[:-lcs]
-                        # Get the new selectors:
-                        prev_symbol = r'(?<![-\w])' if parent[0] not in ('#', '.', ':') else ''
-                        post_symbol = r'(?![-\w])'
-                        new_parent = re.sub(prev_symbol + parent + post_symbol, c_selector, p_selector)
-                        new_selectors.add(new_parent)
-                        found = True
+                        _c_selector, _parent = c_selector, parent
+                        lcp = self.longest_common_prefix(_c_selector, _parent)
+                        if lcp:
+                            _c_selector = _c_selector[lcp:]
+                            _parent = _parent[lcp:]
+                        lcs = self.longest_common_suffix(_c_selector, _parent)
+                        if lcs:
+                            _c_selector = _c_selector[:-lcs]
+                            _parent = _parent[:-lcs]
+                        if _c_selector and _parent:
+                            # Get the new selectors:
+                            prev_symbol = '(?<![#.:])' if _parent[0] in ('#', '.', ':') else r'(?<![-\w#.:])'
+                            post_symbol = r'(?![-\w])'
+                            new_parent = re.sub(prev_symbol + _parent + post_symbol, _c_selector, p_selector)
+                            if p_selector != new_parent:
+                                new_selectors.add(new_parent)
+                                found = True
 
             if found:
                 # add parent:
@@ -1219,21 +1337,23 @@ class Scss(object):
 
                     parents = self.link_with_parents(parent, selectors, rules)
 
-                    assert parents is not None, "Parent not found: %s (%s)" % (parent, selectors)
-
-                    # from the parent, inherit the context and the options:
-                    new_context = {}
-                    new_options = {}
-                    for parent in parents:
-                        new_context.update(parent[CONTEXT])
-                        new_options.update(parent[OPTIONS])
-                    for rule in rules:
-                        _new_context = new_context.copy()
-                        _new_context.update(rule[CONTEXT])
-                        rule[CONTEXT] = _new_context
-                        _new_options = new_options.copy()
-                        _new_options.update(rule[OPTIONS])
-                        rule[OPTIONS] = _new_options
+                    if parents is None:
+                        err = "Warning: Parent rule not found: %s" % parent
+                        print >>sys.stderr, err
+                    else:
+                        # from the parent, inherit the context and the options:
+                        new_context = {}
+                        new_options = {}
+                        for parent in parents:
+                            new_context.update(parent[CONTEXT])
+                            new_options.update(parent[OPTIONS])
+                        for rule in rules:
+                            _new_context = new_context.copy()
+                            _new_context.update(rule[CONTEXT])
+                            rule[CONTEXT] = _new_context
+                            _new_options = new_options.copy()
+                            _new_options.update(rule[OPTIONS])
+                            rule[OPTIONS] = _new_options
 
     @print_timing(3)
     def manage_order(self):
@@ -1253,7 +1373,7 @@ class Scss(object):
         old_fileid = None
         for rule in self.rules:
             if rule[POSITION] is not None:
-                fileid, position, codestr, deps, context, options, selectors, properties, path, final = rule
+                fileid, position, codestr, deps, context, options, selectors, properties, path, final, media = rule
                 #print >>sys.stderr, fileid, position, [ c for c in context if c[1] != '_' ], options.keys(), selectors, deps
                 if properties:
                     self._rules.setdefault(fileid, [])
@@ -1286,8 +1406,10 @@ class Scss(object):
     def _create_css(self, rules, scope=None, sc=True, sp=' ', tb='  ', nl='\n'):
         scope = set() if scope is None else scope
 
-        open = False
+        open_selectors = False
         old_selectors = None
+        open_media = False
+        old_media = None
         old_property = None
 
         wrap = textwrap.TextWrapper(break_long_words=False, break_on_hyphens=False)
@@ -1296,26 +1418,45 @@ class Scss(object):
 
         result = ''
         for rule in rules:
-            fileid, position, codestr, deps, context, options, selectors, properties, path, final = rule
-            #print >>sys.stderr, fileid, position, [ c for c in context if c[1] != '_' ], options.keys(), selectors, deps
+            fileid, position, codestr, deps, context, options, selectors, properties, path, final, media = rule
+            #print >>sys.stderr, fileid, media, position, [ c for c in context if not c.startswith('$__') ], options.keys(), selectors, deps
             if position is not None and properties:
-                if old_selectors != selectors and selectors:
-                    if open:
+                _tb = tb if old_media else ''
+                if old_media != media and media is not None:
+                    if open_selectors:
+                        if not sc:
+                            if result[-1] == ';':
+                                result = result [:-1]
+                        result += _tb + '}' + nl
+                        open_selectors = False
+                    if open_media:
                         if not sc:
                             if result[-1] == ';':
                                 result = result [:-1]
                         result += '}' + nl
-                    # feel free to modify the indentations the way you like it
-                    selector = (',' + sp).join(selectors.split(',')) + sp + '{'
-                    if nl: selector = nl.join(wrap(selector)).replace('\n,' + sp, ',\n')
-                    result += selector + nl
+                        open_media = False
+                    if media:
+                        result += '@media ' + (' and ').join(set(media)) + sp + '{' + nl
+                        open_media = True
+                    old_media = media
+                    old_selectors = None # force entrance to add a new selector
+                _tb = tb if media else ''
+                if old_selectors != selectors and selectors is not None:
+                    if open_selectors:
+                        if not sc:
+                            if result[-1] == ';':
+                                result = result [:-1]
+                        result += _tb + '}' + nl
+                        open_selectors = False
+                    if selectors:
+                        selector = (',' + sp).join(selectors.split(',')) + sp + '{'
+                        if nl: selector = nl.join(wrap(selector)).replace('\n,' + sp, ',\n')
+                        result += _tb + selector + nl
+                        open_selectors = True
                     old_selectors = selectors
-                    open = True
                     scope = set()
                 if selectors:
-                    _tb = tb
-                else:
-                    _tb = ''
+                    _tb += tb
                 if options.get('verbosity', 0) > 1:
                     result += _tb + '/* file: ' + fileid + ' */' + nl
                     if context:
@@ -1325,11 +1466,22 @@ class Scss(object):
                         result += _tb + '*/' + nl
                 result += self._print_properties(properties, scope, [old_property], sc, sp, _tb, nl)
 
-        if open:
+        if open_media:
+            _tb = tb
+        else:
+            _tb = ''
+        if open_selectors:
+            if not sc:
+                if result[-1] == ';':
+                    result = result [:-1]
+            result += _tb + '}' + nl
+
+        if open_media:
             if not sc:
                 if result[-1] == ';':
                     result = result [:-1]
             result += '}' + nl
+
         return result + '\n'
 
     def _print_properties(self, properties, scope=None, old_property=None, sc=True, sp=' ', _tb='', nl='\n'):
@@ -1352,7 +1504,7 @@ class Scss(object):
                 result += _tb + property + ';' + nl
         return result
 
-    def calculate(self, _base_str, context, options):
+    def calculate(self, _base_str, context, options, rule):
         try:
             better_expr_str = self._replaces[_base_str]
         except KeyError:
@@ -1362,17 +1514,17 @@ class Scss(object):
                     self._replaces[_base_str] = better_expr_str
                     return better_expr_str
 
-            better_expr_str = self.do_glob_math(better_expr_str, context, options)
+            better_expr_str = self.do_glob_math(better_expr_str, context, options, rule)
 
-            better_expr_str = eval_expr(better_expr_str, context, options, True)
+            better_expr_str = eval_expr(better_expr_str, rule, True)
             if better_expr_str is None:
-                better_expr_str = self.apply_vars(_base_str, context, options)
+                better_expr_str = self.apply_vars(_base_str, context, options, rule)
 
             if '$' not in _base_str:
                 self._replaces[_base_str] = better_expr_str
         return better_expr_str
 
-    def _calculate_expr(self, context, options, _dequote):
+    def _calculate_expr(self, context, options, rule, _dequote):
         def __calculate_expr(result):
             _group0 = result.group(1)
             _base_str = _group0
@@ -1385,7 +1537,7 @@ class Scss(object):
                     self._replaces[_group0] = better_expr_str
                     return better_expr_str
 
-                better_expr_str = eval_expr(better_expr_str, context, options)
+                better_expr_str = eval_expr(better_expr_str, rule)
 
                 if better_expr_str is None:
                     better_expr_str = _base_str
@@ -1398,10 +1550,10 @@ class Scss(object):
             return better_expr_str
         return __calculate_expr
 
-    def do_glob_math(self, cont, context, options, _dequote=False):
+    def do_glob_math(self, cont, context, options, rule, _dequote=False):
         if '#{' not in cont:
             return cont
-        cont = _expr_glob_re.sub(self._calculate_expr(context, options, _dequote), cont)
+        cont = _expr_glob_re.sub(self._calculate_expr(context, options, rule, _dequote), cont)
         return cont
 
     @print_timing(3)
@@ -1922,8 +2074,8 @@ def _linear_gradient(*args):
     def to__webkit():
         args = [
             'linear',
-            position_and_angle or 'top',
-            _opposite_position(position_and_angle or 'top'),
+            position_and_angle or 'center top',
+            _opposite_position(position_and_angle or 'center top'),
         ]
         args.extend('color-stop(%s, %s)' % (to_str(s), c) for s,c in color_stops)
         ret = '-webkit-gradient(' + ', '.join(to_str(a) for a in args or [] if a is not None) + ')'
@@ -2016,108 +2168,168 @@ def _sprite_map(g, **kwargs):
     if g in sprite_maps:
         sprite_maps[glob]['*'] = datetime.datetime.now()
     elif '..' not in g: # Protect against going to prohibited places...
-        gutter = kwargs.get('$gutter', 0)
-        offset_x = kwargs.get('$offset-x', 0)
-        offset_y = kwargs.get('$offset-y', 0)
-        repeat = kwargs.get('$repeat', 'no-repeat')
-        vertical = (kwargs.get('$direction', 'vertical') == 'vertical')
+        vertical = (kwargs.get('direction', 'vertical') == 'vertical')
+        offset_x = NumberValue(kwargs.get('offset-x', 0))
+        offset_y = NumberValue(kwargs.get('offset-y', 0))
+        repeat = StringValue(kwargs.get('repeat', 'no-repeat'))
+        position = NumberValue(kwargs.get('position', 0))
+        if position and position > -1 and position < 1:
+            position.units = { '%': _units_weights.get('%', 1), '_': '%' }
+        spacing = kwargs.get('spacing', 0)
+        if isinstance(spacing, ListValue):
+            spacing = [ int(NumberValue(v).value) for n,v in spacing.items() ]
+        else:
+            spacing = [ int(NumberValue(spacing).value) ]
+        spacing = (spacing * 4)[:4]
 
-        files = sorted(glob.glob(os.path.join(MEDIA_ROOT, g)))
+        if callable(STATIC_ROOT):
+            rfiles = files = sorted(STATIC_ROOT(g))
+        else:
+            glob_path = os.path.join(STATIC_ROOT, g)
+            files = glob.glob(glob_path)
+            files = sorted( (f, None) for f in files )
+            rfiles = [ (f[len(STATIC_ROOT):], s) for f, s in files ]
 
         if not files:
+            err = "Error: nothing found at '%s'" % glob_path
+            print >>sys.stderr, err
             return StringValue(None)
 
-        times = [ int(os.path.getmtime(file)) for file in files ]
+        times = []
+        for file, storage in files:
+            try:
+                d_obj = storage.modified_time(file)
+                times.append(int(time.mktime(d_obj.timetuple())))
+            except:
+                times.append(int(os.path.getmtime(file)))
 
-        key = files + times + [ gutter, offset_x, offset_y, repeat, vertical ]
-        key = base64.urlsafe_b64encode(hashlib.md5(repr(key)).digest()).rstrip('=').replace('-', '_')
+        map_name = os.path.normpath(os.path.dirname(g)).replace('\\', '_').replace('/', '_')
+        key = list(zip(*files)[0]) + times + [ repr(kwargs) ]
+        key = map_name + '-' + base64.urlsafe_b64encode(hashlib.md5(repr(key)).digest()).rstrip('=').replace('-', '_')
         asset_file = key + '.png'
         asset_path = os.path.join(ASSETS_ROOT, asset_file)
 
         if os.path.exists(asset_path + '.cache'):
             asset, map, sizes = pickle.load(open(asset_path + '.cache'))
             sprite_maps[asset] = map
-            for file, size in sizes:
-                sprite_images[file] = size
         else:
-            images = tuple( Image.open(file) for file in files )
-            names = tuple( os.path.splitext(os.path.basename(file))[0] for file in files )
-            files = tuple( file[len(MEDIA_ROOT):] for file in files )
+            images = tuple( Image.open(storage.open(file)) if storage is not None else Image.open(file) for file, storage in files )
+            names = tuple( os.path.splitext(os.path.basename(file))[0] for file, storage in files )
+            positions = []
+            spacings = []
+            tot_spacings = []
+            for name in names:
+                _position = kwargs.get(name + '-position')
+                if _position is None:
+                    _position = position
+                else:
+                    _position = NumberValue(_position)
+                    if _position and _position > -1 and _position < 1:
+                        _position.units = { '%': _units_weights.get('%', 1), '_': '%' }
+                positions.append(_position)
+                _spacing = kwargs.get(name + '-spacing')
+                if _spacing is None:
+                    _spacing = spacing
+                else:
+                    if isinstance(_spacing, ListValue):
+                        _spacing = [ int(NumberValue(v).value) for n,v in _spacing.items() ]
+                    else:
+                        _spacing = [ int(NumberValue(_spacing).value) ]
+                    _spacing = (_spacing * 4)[:4]
+                spacings.append(_spacing)
+                if _position and _position.unit != '%':
+                    if vertical:
+                        if _position > 0:
+                            tot_spacings.append((_spacing[0], _spacing[1], _spacing[2], _spacing[3] + _position))
+                    else:
+                        if _position > 0:
+                            tot_spacings.append((_spacing[0] + _position, _spacing[1], _spacing[2], _spacing[3]))
+                else:
+                    tot_spacings.append(_spacing)
             sizes = tuple( image.size for image in images )
+
+            _spacings = zip(*tot_spacings)
+            if vertical:
+                width = max(zip(*sizes)[0]) + max(_spacings[1]) + max(_spacings[3])
+                height = sum(zip(*sizes)[1]) + sum(_spacings[0]) + sum(_spacings[2])
+            else:
+                width = sum(zip(*sizes)[0]) + sum(_spacings[1]) + sum(_spacings[3])
+                height = max(zip(*sizes)[1]) + max(_spacings[0]) + max(_spacings[2])
+
+            new_image = Image.new(
+                mode = 'RGBA',
+                size = (width, height),
+                color = (0, 0, 0, 0)
+            )
+
             offsets_x = []
             offsets_y = []
-            if os.path.exists(asset_path):
-                filetime = int(os.path.getmtime(asset_path))
-                offset = gutter
-                for i, image in enumerate(images):
-                    if vertical:
-                        offsets_x.append(0 - gutter)
-                        offsets_y.append(offset - gutter)
-                        offset += sizes[i][1] + gutter * 2
-                    else:
-                        offsets_x.append(offset - gutter)
-                        offsets_y.append(0 - gutter)
-                        offset += sizes[i][0] + gutter * 2
-            else:
+            offset = 0
+            for i, image in enumerate(images):
+                spacing = spacings[i]
+                position = positions[i]
                 if vertical:
-                    width = max(zip(*sizes)[0]) + gutter * 2
-                    height = sum(zip(*sizes)[1]) + gutter * len(files) * 2
-                else:
-                    width = sum(zip(*sizes)[0]) + gutter * len(files) * 2
-                    height = max(zip(*sizes)[1]) + gutter * 2
-
-                new_image = Image.new(
-                    mode = 'RGBA',
-                    size = (width, height),
-                    color = (0, 0, 0, 0)
-                )
-
-                offset = gutter
-                for i, image in enumerate(images):
-                    if vertical:
-                        new_image.paste(image, (gutter, offset))
-                        offsets_x.append(0 - gutter)
-                        offsets_y.append(offset - gutter)
-                        offset += sizes[i][1] + gutter * 2
+                    if position and position.unit == '%':
+                        x = width * position.value - (spacing[3] + sizes[i][1] + spacing[1])
+                    elif position.value < 0:
+                        x = width + position.value - (spacing[3] + sizes[i][1] + spacing[1])
                     else:
-                        new_image.paste(image, (offset, gutter))
-                        offsets_x.append(offset - gutter)
-                        offsets_y.append(0 - gutter)
-                        offset += sizes[i][0] + gutter * 2
+                        x = position.value
+                    offset += spacing[0]
+                    new_image.paste(image, (int(x + spacing[3]), offset))
+                    offsets_x.append(x)
+                    offsets_y.append(offset - spacing[0])
+                    offset += sizes[i][1] + spacing[2]
+                else:
+                    if position and position.unit == '%':
+                        y = height * position.value - (spacing[0] + sizes[i][1] + spacing[2])
+                    elif position.value < 0:
+                        y = height + position.value - (spacing[0] + sizes[i][1] + spacing[2])
+                    else:
+                        y = position.value
+                    offset += spacing[3]
+                    new_image.paste(image, (offset, int(y + spacing[0])))
+                    offsets_x.append(offset - spacing[3])
+                    offsets_y.append(y)
+                    offset += sizes[i][0] + spacing[1]
 
-                try:
-                    new_image.save(asset_path)
-                except IOError, e:
-                    err = "Error: %s" % e
-                    print >>sys.stderr, err
-                filetime = int(time.mktime(datetime.datetime.now().timetuple()))
+            try:
+                new_image.save(asset_path)
+            except IOError, e:
+                err = "Error: %s" % e
+                print >>sys.stderr, err
+            filetime = int(time.mktime(datetime.datetime.now().timetuple()))
 
             url = '%s%s?_=%s' % (ASSETS_URL, asset_file, filetime)
-            asset = 'url("%s") %dpx %dpx %s' % (escape(url), int(offset_x), int(offset_y), repeat)
+            asset = 'url("%s") %s' % (escape(url), repeat)
             # Use the sorted list to remove older elements (keep only 500 objects):
             if len(sprite_maps) > 1000:
                 for a in sorted(sprite_maps, key=lambda a: sprite_maps[a]['*'], reverse=True)[500:]:
                     del sprite_maps[a]
             # Add the new object:
-            map = dict(zip(names, zip(sizes, files, offsets_x, offsets_y)))
+            map = dict(zip(names, zip(sizes, rfiles, offsets_x, offsets_y)))
             map['*'] = datetime.datetime.now()
             map['*f*'] = asset_file
             map['*k*'] = key
+            map['*n*'] = map_name
             map['*t*'] = filetime
             pickle.dump((asset, map, zip(files, sizes)), open(asset_path + '.cache', 'w'))
             sprite_maps[asset] = map
-    return StringValue(asset)
+        for file, size in sizes:
+            sprite_images[file] = size
+    ret = StringValue(asset)
+    return ret
 
 def _grid_image(left_gutter, width, right_gutter, height, columns=1, grid_color=None, baseline_color=None, background_color=None):
     if not Image:
         raise Exception("Images manipulation require PIL")
     if grid_color == None:
-        grid_color = (120, 170, 250, 50)
+        grid_color = (120, 170, 250, 15)
     else:
         c = ColorValue(grid_color).value
         grid_color = (c[0], c[1], c[2], int(c[3] * 255.0))
     if baseline_color == None:
-        baseline_color = (120, 170, 250, 70)
+        baseline_color = (120, 170, 250, 30)
     else:
         c = ColorValue(baseline_color).value
         baseline_color = (c[0], c[1], c[2], int(c[3] * 255.0))
@@ -2160,28 +2372,34 @@ def _image_color(color, width=1, height=1):
     if w <= 0 or h <= 0:
         raise ValueError
     new_image = Image.new(
-        mode = 'RGBA',
+        mode = 'RGB' if c[3] == 1 else 'RGBA',
         size = (w, h),
         color = (c[0], c[1], c[2], int(c[3] * 255.0))
     )
     output = StringIO.StringIO()
-    new_image.save(output, format='PNG')
+    new_image.save(output, format='PNG' if c[3] == 1 else 'GIF')
     contents = output.getvalue()
     output.close()
-    url = 'data:image/png;base64,' + base64.b64encode(contents)
+    mime_type = 'image/gif' if c[3] == 1 else 'image/png'
+    url = 'data:' + mime_type + ';base64,' + base64.b64encode(contents)
     inline = 'url("%s")' % escape(url)
     return StringValue(inline)
 
-def _sprite_map_name(_map):
+def _sprite_map_name(map):
     """
     Returns the name of a sprite map The name is derived from the folder than
     contains the sprites.
     """
-    map = StringValue(map).value
-    sprite_map = sprite_maps.get(map, {})
-    if sprite_map:
-        return StringValue(sprite_map['*k*'])
-    return StringValue(None)
+    try:
+        map = StringValue(map).value
+        sprite_map = sprite_maps.get(map, {})
+        if sprite_map:
+            return StringValue(sprite_map['*n*'])
+        return StringValue(None)
+    except:
+        import traceback
+        traceback.print_exc()
+        raise
 
 def _sprite_file(map, sprite):
     """
@@ -2196,7 +2414,7 @@ def _sprite_file(map, sprite):
     sprite = sprite_map.get(sprite)
 
     if sprite:
-        return QuotedStringValue(sprite[1])
+        return QuotedStringValue(sprite[1][0])
     return StringValue(None)
 
 def _sprites(map):
@@ -2215,9 +2433,13 @@ def _sprite(map, sprite, offset_x=None, offset_y=None):
     sprite = sprite_map.get(sprite)
     if sprite:
         url = '%s%s?_=%s' % (ASSETS_URL, sprite_map['*f*'], sprite_map['*t*'])
-        offset_x = NumberValue(offset_x).value or 0
-        offset_y = NumberValue(offset_y).value or 0
-        pos = "url(%s) %dpx %dpx" % (escape(url), int(offset_x - sprite[2]), int(offset_y - sprite[3]))
+        x = NumberValue(offset_x or 0, 'px')
+        y = NumberValue(offset_y or 0, 'px')
+        if not x or (x <= -1 or x >= 1) and x.unit != '%':
+            x -= sprite[2]
+        if not y or (y <= -1 or y >= 1) and y.unit != '%':
+            y -= sprite[3]
+        pos = "url(%s) %s %s" % (escape(url), x, y)
         return StringValue(pos)
     return StringValue('0 0')
 
@@ -2241,9 +2463,13 @@ def _sprite_position(map, sprite, offset_x=None, offset_y=None):
     sprite = StringValue(sprite).value
     sprite = sprite_maps.get(map, {}).get(sprite)
     if sprite:
-        offset_x = NumberValue(offset_x).value or 0
-        offset_y = NumberValue(offset_y).value or 0
-        pos = '%dpx %dpx' % (int(offset_x - sprite[2]), int(offset_y - sprite[3]))
+        x = NumberValue(offset_x or 0, 'px')
+        y = NumberValue(offset_y or 0, 'px')
+        if not x or (x <= -1 or x >= 1) and x.unit != '%':
+            x -= sprite[2]
+        if not y or (y <= -1 or y >= 1) and y.unit != '%':
+            y -= sprite[3]
+        pos = '%s %s' % (x, y)
         return StringValue(pos)
     return StringValue('0 0')
 
@@ -2255,13 +2481,21 @@ def _inline_image(image, mime_type=None):
     file.
     """
     file = StringValue(image).value
-    path = os.path.join(MEDIA_ROOT, file)
-    if os.path.exists(path):
-        mime_type = StringValue(mime_type).value or mimetypes.guess_type(path)[0]
-        path = open(path, 'rb')
-        url = 'data:' + mime_type + ';base64,' + base64.b64encode(path.read())
+    mime_type = StringValue(mime_type).value or mimetypes.guess_type(file)[0]
+    path = None
+    if callable(STATIC_ROOT):
+        try:
+            _file, _storage = list(STATIC_ROOT(file))[0]
+            path = _storage.open(_file)
+        except:
+            pass
     else:
-        url = url = '%s%s?_=%s' % (MEDIA_URL, file, 'NA')
+        _path = os.path.join(STATIC_ROOT, file)
+        if os.path.exists(_path):
+            path = open(_path, 'rb')
+    if path:
+        url = 'data:' + mime_type + ';base64,' + base64.b64encode(path.read())
+    url = url = '%s%s?_=%s' % (STATIC_URL, file, 'NA')
     inline = 'url("%s")' % escape(url)
     return StringValue(inline)
 
@@ -2271,12 +2505,20 @@ def _image_url(image):
     directory.
     """
     file = StringValue(image).value
-    path = os.path.join(MEDIA_ROOT, file)
-    if os.path.exists(path):
-        filetime = int(os.path.getmtime(path))
+    if callable(STATIC_ROOT):
+        try:
+            _file, _storage = list(STATIC_ROOT(file))[0]
+            d_obj = _storage.modified_time(_file)
+            filetime = int(time.mktime(d_obj.timetuple()))
+        except:
+            filetime = 'NA'
     else:
-        filetime = 'NA'
-    url = 'url("%s%s?_=%s")' % (MEDIA_URL, file, filetime)
+        path = os.path.join(STATIC_ROOT, file)
+        if os.path.exists(path):
+            filetime = int(os.path.getmtime(path))
+        else:
+            filetime = 'NA'
+    url = 'url("%s%s?_=%s")' % (STATIC_URL, file, filetime)
     return StringValue(url)
 
 def _image_width(image):
@@ -2287,16 +2529,26 @@ def _image_width(image):
     if not Image:
         raise Exception("Images manipulation require PIL")
     file = StringValue(image).value
-    path = os.path.join(MEDIA_ROOT, file)
+    path = None
     try:
         width = sprite_images[file][0]
     except KeyError:
         width = 0
-        if os.path.exists(path):
+        if callable(STATIC_ROOT):
+            try:
+                _file, _storage = list(STATIC_ROOT(file))[0]
+                path = _storage.open(_file)
+            except:
+                pass
+        else:
+            _path = os.path.join(STATIC_ROOT, file)
+            if os.path.exists(_path):
+                path = open(_path, 'rb')
+        if path:
             image = Image.open(path)
             size = image.size
             width = size[0]
-            sprite_images[path] = size
+            sprite_images[file] = size
     ret = NumberValue(width)
     ret.units = { 'px': _units_weights.get('px', 1), '_': 'px' }
     return ret
@@ -2309,16 +2561,26 @@ def _image_height(image):
     if not Image:
         raise Exception("Images manipulation require PIL")
     file = StringValue(image).value
-    path = os.path.join(MEDIA_ROOT, file)
+    path = None
     try:
         height = sprite_images[file][1]
     except KeyError:
         height = 0
-        if os.path.exists(path):
+        if callable(STATIC_ROOT):
+            try:
+                _file, _storage = list(STATIC_ROOT(file))[0]
+                path = _storage.open(_file)
+            except:
+                pass
+        else:
+            _path = os.path.join(STATIC_ROOT, file)
+            if os.path.exists(_path):
+                path = open(_path, 'rb')
+        if path:
             image = Image.open(path)
             size = image.size
             height = size[1]
-            sprite_images[path] = size
+            sprite_images[file] = size
     ret = NumberValue(height)
     ret.units['px'] = _units_weights.get('px', 1)
     return ret
@@ -2568,7 +2830,7 @@ def _type_of(obj): # -> bool, number, string, color, list
         return StringValue('list')
     return 'string'
 
-def _if(condition, if_true, if_false):
+def _if(condition, if_true, if_false=''):
     return if_true if bool(BooleanValue(condition)) else if_false
 
 def _unit(number): # -> px, em, cm, etc.
@@ -2817,22 +3079,22 @@ class NumberValue(Value):
         elif isinstance(tokens, NumberValue):
             self.value = tokens.value
             self.units = tokens.units.copy()
-        elif isinstance(tokens, StringValue):
+            if tokens.units:
+                type = None
+        elif isinstance(tokens, (StringValue, basestring)):
+            tokens = getattr(tokens, 'value', tokens)
             try:
-                if tokens.value and tokens.value[-1] == '%':
-                    self.value = to_float(tokens.value[:-1]) / 100.0
+                if tokens and tokens[-1] == '%':
+                    self.value = to_float(tokens[:-1]) / 100.0
                     self.units = { '%': _units_weights.get('%', 1), '_': '%' }
                 else:
-                    self.value = to_float(tokens.value)
+                    self.value = to_float(tokens)
             except ValueError:
                 self.value = 0.0
         elif isinstance(tokens, (int, float)):
             self.value = float(tokens)
         else:
-            try:
-                self.value = to_float(to_str(tokens))
-            except ValueError:
-                self.value = 0.0
+            self.value = 0.0
         if type is not None:
             self.units = { type: _units_weights.get(type, 1), '_': type }
     def __repr__(self):
@@ -3279,6 +3541,7 @@ fnct = {
     'percentage:1': _percentage,
     'unitless:1': _unitless,
     'unit:1': _unit,
+    'if:2': _if,
     'if:3': _if,
     'type-of:1': _type_of,
     'comparable:2': _comparable,
@@ -3300,26 +3563,32 @@ fnct = {
 for u in _units:
     fnct[u+':2'] = _convert_to
 
-def interpolate(v, C, O):
+def interpolate(v, R):
+    C, O = R[CONTEXT], R[OPTIONS]
     v = C.get(v, v)
     if isinstance(v, basestring):
-        vi = eval_expr(v, C, O, True)
+        vi = eval_expr(v, R, True)
         if vi is not None:
             v = vi
     return v
 
-def call(name, args, C, O, is_function=True):
+def call(name, args, R, is_function=True):
+    C, O = R[CONTEXT], R[OPTIONS]
     # Function call:
     _name = name.replace('_', '-')
     s = args and args.value.items() or []
     _args = [ v for n,v in s if isinstance(n, int) ]
-    _kwargs = dict( (n[1:],v) for n,v in s if not isinstance(n, int) and n != '_' )
+    _kwargs = dict( (str(n[1:]),v) for n,v in s if not isinstance(n, int) and n != '_' )
     _fn_a = '%s:%d' % (_name, len(_args))
     #print >>sys.stderr, '#', _fn_a, _args, _kwargs
     _fn_n = '%s:n' % _name
     try:
-        fn = O and O.get('@function ' + _fn_a) or fnct.get(_fn_a) or fnct[_fn_n]
-        node = fn(*_args, **_kwargs)
+        fn = O and O.get('@function ' + _fn_a)
+        if fn:
+            node = fn(R, *_args, **_kwargs)
+        else:
+            fn = fnct.get(_fn_a) or fnct[_fn_n]
+            node = fn(*_args, **_kwargs)
         if args and isinstance(node, ListValue):
             separator = args.value.get('_')
             if separator is not None:
@@ -3328,7 +3597,6 @@ def call(name, args, C, O, is_function=True):
                 else:
                     node.value.pop('_', None)
     except KeyError:
-        #raise#@@@#
         sp = args and args.value.get('_') or ''
         if is_function:
             if _name not in ('url',):
@@ -3408,7 +3676,7 @@ class Scanner(object):
         if i == tokens_len: # We are at the end, ge the next...
             tokens_len += self.scan(restrict)
         if i < tokens_len:
-            if restrict and restrict > self.restrictions[i]:
+            if restrict and self.restrictions[i] and restrict > self.restrictions[i]:
                 raise NotImplementedError("Unimplemented: restriction set changed")
             return self.tokens[i]
         raise NoMoreTokens()
@@ -3505,8 +3773,7 @@ class Parser(object):
         self._scanner.rewind(self._pos)
 
 ################################################################################
-
-#'|'.join(_units)
+#'(?:'+'|'.join(_units)+')(?![-\w])'
 ## Grammar compiled using Yapps:
 class CalculatorScanner(Scanner):
     patterns = [
@@ -3521,21 +3788,21 @@ class CalculatorScanner(Scanner):
         ('ADD', re.compile('[+]')),
         ('SUB', re.compile('-\\s')),
         ('SIGN', re.compile('-(?![a-zA-Z_])')),
-        ('AND', re.compile('and')),
-        ('OR', re.compile('or')),
-        ('NOT', re.compile('not')),
+        ('AND', re.compile('(?<![-\w])and(?![-\w])')),
+        ('OR', re.compile('(?<![-\w])or(?![-\w])')),
+        ('NOT', re.compile('(?<![-\w])not(?![-\w])')),
+        ('NE', re.compile('!=')),
         ('INV', re.compile('!')),
         ('EQ', re.compile('==')),
-        ('NE', re.compile('!=')),
-        ('LT', re.compile('<')),
-        ('GT', re.compile('>')),
         ('LE', re.compile('<=')),
         ('GE', re.compile('>=')),
+        ('LT', re.compile('<')),
+        ('GT', re.compile('>')),
         ('STR', re.compile("'[^']*'")),
         ('QSTR', re.compile('"[^"]*"')),
-        ('UNITS', re.compile('|'.join(_units))),
+        ('UNITS', re.compile('(?:'+'|'.join(_units)+')(?![-\w])')),
         ('NUM', re.compile('(?:\\d+(?:\\.\\d*)?|\\.\\d+)')),
-        ('BOOL', re.compile('(?:true|false)')),
+        ('BOOL', re.compile('(?<![-\w])(?:true|false)(?![-\w])')),
         ('COLOR', re.compile('#(?:[a-fA-F0-9]{6}|[a-fA-F0-9]{3})(?![a-fA-F0-9])')),
         ('VAR', re.compile('\\$[-a-zA-Z0-9_]+')),
         ('ID', re.compile('[-a-zA-Z_][-a-zA-Z0-9_]*')),
@@ -3544,133 +3811,133 @@ class CalculatorScanner(Scanner):
         Scanner.__init__(self,None,['[ \r\t\n]+'])
 
 class Calculator(Parser):
-    def goal(self, C,O):
-        expr_lst = self.expr_lst(C,O)
+    def goal(self, R):
+        expr_lst = self.expr_lst(R)
         v = expr_lst.first() if len(expr_lst) == 1 else expr_lst
         END = self._scan('END')
         return v
 
-    def expr(self, C,O):
-        and_test = self.and_test(C,O)
+    def expr(self, R):
+        and_test = self.and_test(R)
         v = and_test
         while self._peek(self.expr_rsts) == 'OR':
             OR = self._scan('OR')
-            and_test = self.and_test(C,O)
+            and_test = self.and_test(R)
             v = v or and_test
         return v
 
-    def and_test(self, C,O):
-        not_test = self.not_test(C,O)
+    def and_test(self, R):
+        not_test = self.not_test(R)
         v = not_test
         while self._peek(self.and_test_rsts) == 'AND':
             AND = self._scan('AND')
-            not_test = self.not_test(C,O)
+            not_test = self.not_test(R)
             v = v and not_test
         return v
 
-    def not_test(self, C,O):
+    def not_test(self, R):
         _token_ = self._peek(self.not_test_rsts)
         if _token_ not in self.not_test_chks:
-            comparison = self.comparison(C,O)
+            comparison = self.comparison(R)
             return comparison
         else:# in self.not_test_chks
             while 1:
                 _token_ = self._peek(self.not_test_chks)
                 if _token_ == 'NOT':
                     NOT = self._scan('NOT')
-                    not_test = self.not_test(C,O)
+                    not_test = self.not_test(R)
                     v = not not_test
                 else:# == 'INV'
                     INV = self._scan('INV')
-                    not_test = self.not_test(C,O)
+                    not_test = self.not_test(R)
                     v = _inv('!', not_test)
                 if self._peek(self.not_test_rsts_) not in self.not_test_chks: break
             return v
 
-    def comparison(self, C,O):
-        a_expr = self.a_expr(C,O)
+    def comparison(self, R):
+        a_expr = self.a_expr(R)
         v = a_expr
         while self._peek(self.comparison_rsts) in self.comparison_chks:
             _token_ = self._peek(self.comparison_chks)
             if _token_ == 'LT':
                 LT = self._scan('LT')
-                a_expr = self.a_expr(C,O)
+                a_expr = self.a_expr(R)
                 v = v < a_expr
             elif _token_ == 'GT':
                 GT = self._scan('GT')
-                a_expr = self.a_expr(C,O)
+                a_expr = self.a_expr(R)
                 v = v > a_expr
             elif _token_ == 'LE':
                 LE = self._scan('LE')
-                a_expr = self.a_expr(C,O)
+                a_expr = self.a_expr(R)
                 v = v <= a_expr
             elif _token_ == 'GE':
                 GE = self._scan('GE')
-                a_expr = self.a_expr(C,O)
+                a_expr = self.a_expr(R)
                 v = v >= a_expr
             elif _token_ == 'EQ':
                 EQ = self._scan('EQ')
-                a_expr = self.a_expr(C,O)
+                a_expr = self.a_expr(R)
                 v = v == a_expr
             else:# == 'NE'
                 NE = self._scan('NE')
-                a_expr = self.a_expr(C,O)
+                a_expr = self.a_expr(R)
                 v = v != a_expr
         return v
 
-    def a_expr(self, C,O):
-        m_expr = self.m_expr(C,O)
+    def a_expr(self, R):
+        m_expr = self.m_expr(R)
         v = m_expr
         while self._peek(self.a_expr_rsts) in self.a_expr_chks:
             _token_ = self._peek(self.a_expr_chks)
             if _token_ == 'ADD':
                 ADD = self._scan('ADD')
-                m_expr = self.m_expr(C,O)
+                m_expr = self.m_expr(R)
                 v = v + m_expr
             else:# == 'SUB'
                 SUB = self._scan('SUB')
-                m_expr = self.m_expr(C,O)
+                m_expr = self.m_expr(R)
                 v = v - m_expr
         return v
 
-    def m_expr(self, C,O):
-        u_expr = self.u_expr(C,O)
+    def m_expr(self, R):
+        u_expr = self.u_expr(R)
         v = u_expr
         while self._peek(self.m_expr_rsts) in self.m_expr_chks:
             _token_ = self._peek(self.m_expr_chks)
             if _token_ == 'MUL':
                 MUL = self._scan('MUL')
-                u_expr = self.u_expr(C,O)
+                u_expr = self.u_expr(R)
                 v = v * u_expr
             else:# == 'DIV'
                 DIV = self._scan('DIV')
-                u_expr = self.u_expr(C,O)
+                u_expr = self.u_expr(R)
                 v = v / u_expr
         return v
 
-    def u_expr(self, C,O):
+    def u_expr(self, R):
         _token_ = self._peek(self.u_expr_rsts)
         if _token_ == 'SIGN':
             SIGN = self._scan('SIGN')
-            u_expr = self.u_expr(C,O)
+            u_expr = self.u_expr(R)
             return _inv('-', u_expr)
         elif _token_ == 'ADD':
             ADD = self._scan('ADD')
-            u_expr = self.u_expr(C,O)
+            u_expr = self.u_expr(R)
             return u_expr
         else:# in self.u_expr_chks
-            atom = self.atom(C,O)
+            atom = self.atom(R)
             v = atom
             if self._peek(self.u_expr_rsts_) == 'UNITS':
                 UNITS = self._scan('UNITS')
-                v = call(UNITS, ListValue(ParserValue({ 0: v, 1: UNITS })), C, O, False)
+                v = call(UNITS, ListValue(ParserValue({ 0: v, 1: UNITS })), R, False)
             return v
 
-    def atom(self, C,O):
+    def atom(self, R):
         _token_ = self._peek(self.u_expr_chks)
         if _token_ == 'LPAR':
             LPAR = self._scan('LPAR')
-            expr_lst = self.expr_lst(C,O)
+            expr_lst = self.expr_lst(R)
             RPAR = self._scan('RPAR')
             return expr_lst.first() if len(expr_lst) == 1 else expr_lst
         elif _token_ == 'ID':
@@ -3680,10 +3947,10 @@ class Calculator(Parser):
                 v = None
                 LPAR = self._scan('LPAR')
                 if self._peek(self.atom_rsts_) != 'RPAR':
-                    expr_lst = self.expr_lst(C,O)
+                    expr_lst = self.expr_lst(R)
                     v = expr_lst
                 RPAR = self._scan('RPAR')
-                return call(ID, v, C, O)
+                return call(ID, v, R)
             return v
         elif _token_ == 'NUM':
             NUM = self._scan('NUM')
@@ -3702,9 +3969,9 @@ class Calculator(Parser):
             return ColorValue(ParserValue(COLOR))
         else:# == 'VAR'
             VAR = self._scan('VAR')
-            return interpolate(VAR, C, O)
+            return interpolate(VAR, R)
 
-    def expr_lst(self, C,O):
+    def expr_lst(self, R):
         n = None
         if self._peek(self.expr_lst_rsts) == 'VAR':
             VAR = self._scan('VAR')
@@ -3713,7 +3980,7 @@ class Calculator(Parser):
                 n = VAR
             else:
                 self._rewind()
-        expr_slst = self.expr_slst(C,O)
+        expr_slst = self.expr_slst(R)
         v = { n or 0: expr_slst }
         while self._peek(self.expr_lst_rsts__) == 'COMMA':
             n = None
@@ -3725,15 +3992,15 @@ class Calculator(Parser):
                     self._scan('":"')
                     n = VAR
                 else: self._rewind()
-            expr_slst = self.expr_slst(C,O)
+            expr_slst = self.expr_slst(R)
             v[n or len(v)] = expr_slst
         return ListValue(ParserValue(v))
 
-    def expr_slst(self, C,O):
-        expr = self.expr(C,O)
+    def expr_slst(self, R):
+        expr = self.expr(R)
         v = { 0: expr }
         while self._peek(self.expr_slst_rsts) not in self.expr_lst_rsts__:
-            expr = self.expr(C,O)
+            expr = self.expr(R)
             v[len(v)] = expr
         return ListValue(ParserValue(v)) if len(v) > 1 else v[0]
 
@@ -3762,13 +4029,13 @@ class Calculator(Parser):
 
 ### Grammar ends.
 
-def eval_expr(expr, context={}, options={}, raw=False):
+def eval_expr(expr, rule, raw=False):
     #print >>sys.stderr, '>>',expr,'<<'
     val = None
     try:
         P = Calculator(CalculatorScanner())
         P.reset(expr)
-        results = P.goal(context, options)
+        results = P.goal(rule)
         if raw:
             #print >>sys.stderr, '%%',repr(results),'%%'
             return results
@@ -4822,6 +5089,68 @@ Issue #2 test
   position: relative;
 }
 
+Issue #4 test
+>>> print css.compile('''
+... @option compress:no, short_colors:yes, reverse_colors:yes;
+... $width: 150px;
+... @mixin foo($width) {
+...     width: $width;
+... }
+... $other_width: 100px;
+... .foo {
+...     @include foo($other_width);
+... }
+... ''') #doctest: +NORMALIZE_WHITESPACE
+.foo {
+  width: 100px;
+}
+
+Issue #5 test
+>>> print css.compile('''
+... @option compress:no, short_colors:yes, reverse_colors:yes;
+... $width: 1px;
+... foo {
+...     border: $width solid red;
+... }
+... ''') #doctest: +NORMALIZE_WHITESPACE
+foo {
+  border: 1px solid red;
+}
+
+Issue #6 test
+>>> print css.compile('''
+... @option compress:no, short_colors:yes, reverse_colors:yes;
+... $type: monster;
+... p {
+...   @if $type == ocean {
+...     color: blue;
+...   } @else if $type == matador {
+...     color: red;
+...   } @else if $type == monster {
+...     color: green;
+...   } @else {
+...     color: black;
+...   }
+... }
+... ''') #doctest: +NORMALIZE_WHITESPACE
+p {
+  color: green;
+}
+
+Issue #7 test
+>>> print css.compile('''
+... @option compress: no, short_colors: no;
+... a.button:hover {
+... color: #000000;
+... }
+... button:hover {
+... @extend a.button:hover;
+... }
+... ''') #doctest: +NORMALIZE_WHITESPACE
+a.button:hover, button:hover {
+  color: #000000;
+}
+   
 """
 """
 ADVANCED STUFF, NOT SUPPORTED (FROM SASS):
@@ -4868,7 +5197,7 @@ def usage():
     print "        --time                       Display compilation times."
     print "    -i, --interactive                Run an interactive Scss shell."
     print "    -I, --load-path PATH             Add a scss import path."
-    print "    -M, --media-root PATH            Media root path (Where images and media resources are located)"
+    print "    -S, --static-root PATH           Static root path (Where images and static resources are located)"
     print "    -A, --assets-root PATH           Assets root path (Sprite images will be created here)"
     print "    -?, -h, --help                   Show this message"
     print "    -v, --version                    Print version"
@@ -4889,18 +5218,18 @@ def main():
         pass
     try:
         # parse options
-        opts, args = getopt.getopt(sys.argv[1:], '?hvtiI:M:A:', ['help', 'version', 'time', 'test', 'interactive', 'load-path=', 'media-root=', 'assets-root='])
+        opts, args = getopt.getopt(sys.argv[1:], '?hvtiI:S:A:', ['help', 'version', 'time', 'test', 'interactive', 'load-path=', 'static-root=', 'assets-root='])
     except getopt.GetoptError, err:
         # print help information and exit:
         print str(err) # will print something like "option -a not recognized"
         usage()
     else:
-        global LOAD_PATHS, VERBOSITY, MEDIA_ROOT, ASSETS_ROOT
+        global LOAD_PATHS, VERBOSITY, STATIC_ROOT, ASSETS_ROOT
         VERBOSITY = 0
         load_paths = [ p.strip() for p in LOAD_PATHS.split(',') ]
         for o, a in opts:
-            if o in ('-M', '--media-root'):
-                MEDIA_ROOT = a
+            if o in ('-S', '--static-root'):
+                STATIC_ROOT = a
             elif o in ('-A', '--assets-root'):
                 ASSETS_ROOT = a
             elif o in ('-I', '--load-path'):
@@ -4938,7 +5267,7 @@ def main():
                     elif s.startswith('@'):
                         properties = []
                         children = deque()
-                        rule = [ 'string', None, s, set(), context, options, '', properties, './', False ]
+                        rule = [ 'string', None, s, set(), context, options, '', properties, './', False, None ]
                         code, name = (s.split(None, 1)+[''])[:2]
                         if code == '@option':
                             css._settle_options(rule, [''], set(), children, None, s, None, code, name)
@@ -5013,10 +5342,10 @@ def main():
                             continue
                     elif s.startswith('$') and (':' in s or '=' in s):
                         prop, value = [ a.strip() for a in _prop_split_re.split(s, 1) ]
-                        value = css.calculate(value, context, options)
+                        value = css.calculate(value, context, options, None)
                         context[prop] = value
                         continue
-                    s = to_str(css.calculate(s, context, options))
+                    s = to_str(css.calculate(s, context, options, None))
                     s = css.post_process(s)
                     print s
             print 'Bye!'
