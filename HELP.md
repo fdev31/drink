@@ -60,7 +60,7 @@ In the program, **page** and **element** are the same thing -- for clarity I wil
 :  This is a generic HTML or  [Markdown](http://daringfireball.net/projects/markdown/basics "Markdown") page.
 :  Read [editor help](#editor) to know more about document edition.
 
-![](/static/mime/page.png) File
+![](/static/mime/page.png) WebFile
 :  This Element can store any uploaded file from your computer, and attaches a description to it.
 :  By default, it shows the user a download link, which is just a link to `/raw` URL element.
 :  It can display some files too like images and texts.

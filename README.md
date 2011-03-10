@@ -100,12 +100,14 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 
 -   Add a nice Help by default
 -   Basic *date* type (used in TODO example object), will pop a calendar up in edit form
+-   Renamed File to "WebFile"
+-   Better web 2.0 experience
 -   Support for web-editable default actions on objects (avoids redirects)
 -   Add a custom wsgi loader that gracefully loads the fastest
     compatible wsgi backend available
 -   Finder now also deletes traces of old objects
 -   Add support for *"full"* search in finder
--   add Indent/Deindent support to Markdown editor
+-   Add Indent/Deindent support to Markdown editor
 -   As always: Fixes & Bugs
 
 ## Roadmap
@@ -115,7 +117,6 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 - abstract all low-level models (blobs...)
 - review 401 handling, ask for login/passwd in case of new session
 - fix markdown preview css (make it seamless)
-- rename File to "WebFile"
 - add calltips everywhere
 - change cookie on password change
 - pack should call http://packages.python.org/Whoosh/api/index.html?highlight=optimize#whoosh.index.Index.optimize on whoosh
