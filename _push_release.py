@@ -14,9 +14,6 @@ def step(cmd):
     print output
     return output
 
-# Update README.rst file with README.md content
-step('pandoc -f markdown -t rst --sanitize-html -S --strict README.md -o README.rst')
-
 # handle tag (ask, set, commit & update setup.py)
 ## get infos
 tag = step('hg tags | grep ^0 | sort -nr | head -n 1 | cut -f1 -d " "').strip()
@@ -42,6 +39,14 @@ for line in open('setup.py'):
         lines.append('%s="%s",\n'%(left, new_tag))
     else:
         lines.append(line)
+
+# Update README.rst file with README.md content
+# setting drink version at the same time
+step('pandoc -f markdown -t rst --sanitize-html -S --strict README.md -o README.rst')
+readme = open('README.rst').read()
+open('README.rst', 'w').write(readme.replace('DRINK_VERSION', new_tag))
+
+raise SystemExit()
 
 ## update setup.py according to new tag & commit this version
 open('setup.py', 'w').writelines(lines)
