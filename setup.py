@@ -18,7 +18,11 @@ setup(
             ],
         "setuptools.installation" : [
             'eggsecutable = drink:startup'
-            ]
+            ],
+        "zodbupdate": [
+            'renames = drink.migration:database_renames',
+        ]
+
         },
     packages=find_packages(),
     install_requires = ['jinja2', 'markdown', 'ZODB3', 'whoosh'],
