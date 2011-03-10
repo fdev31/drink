@@ -2,8 +2,7 @@ sortable = null;
 child_items = {};
 var url_regex = /^(\/|http).+/;
 
-var startcode = function(data, status, req) {
-
+function startcode(data, status, req) {
 
    // handle sortables
     sortable.sortable({
@@ -25,8 +24,6 @@ var startcode = function(data, status, req) {
     });
    // list-item creation fonction
 
-
-
    for(n=0; n<data.items.length; n++) {
         sortable.add_entry(data.items[n]);
    }
@@ -37,15 +34,19 @@ var startcode = function(data, status, req) {
         var uploader = new qq.FileUploader({
             element: $('#file-uploader')[0],
             action: 'upload',
-
+            debug: true,
+            showMessage: function(message){ alert(message); },
             onComplete: function(id, fileName, data){
                 if ( data.id ) {
                     sortable.add_entry(data);
                 }
+                $('ul.qq-upload-list > li.qq-upload-success').fadeOut('slow', function() {
+                    $(this).remove()
+                    });
             },
         });
     } catch (ReferenceError) {
-        //console.debug('Uploader code not available');
+        //console.log('Uploader code not available');
     }
 
 
@@ -78,7 +79,7 @@ $.fn.extend({
     }
 });
 
-var make_li = function (obj) {
+function make_li(obj) {
     var mime = "";
     if ( obj.mime ) {
         if ( obj.mime.match( url_regex )) {
@@ -100,7 +101,7 @@ var make_li = function (obj) {
 }
 // called whenever make_li is called
 // (prints the number of items)
-var got_item_details = function(obj) {
+function got_item_details(obj) {
     if (!! $(this).has('.infos') ) {
         if (obj.items.length == 0) {
         } else if (obj.items.length == 1) {
@@ -111,7 +112,7 @@ var got_item_details = function(obj) {
     }
 }
 
-var popup_actions = function(event) {
+function popup_actions(event) {
     if (event.type == "mouseenter") {
         var me = $(this);
         if ( me.data('edit_called') ) {
@@ -138,7 +139,7 @@ var popup_actions = function(event) {
 }
 
 // handle inline title edition
-var blur_on_validate = function(e) {
+function blur_on_validate(e) {
     if (e.keyCode == 27) {
          $(this).data('canceled', true);
          $(this).trigger('blur');
@@ -147,7 +148,7 @@ var blur_on_validate = function(e) {
     }
 
 }
-var exit_edit_func = function() {
+function exit_edit_func() {
     var txt = null;
 	uid = $(this).parent().data('item');
 	if (uid == undefined ) { return; }
@@ -163,7 +164,7 @@ var exit_edit_func = function() {
 	$(this).parent().dblclick(enter_edit_func);
 }
 
-var enter_edit_func = function(){
+function enter_edit_func(){
     var elt = child_items[$(this).data('item')];
     if(!elt._perm.match(/w/)) { return; }
     if ( $(this).has('input').length != 0 ) { return; }
@@ -185,9 +186,9 @@ var enter_edit_func = function(){
     inp.keyup(blur_on_validate);
 }
 
-$(document).ready(
-    function(){
-        sortable = $("#main_list");
-        $.ajax({url: "struct", dataType: "text json"}).success(startcode);
-    }
-);
+function fetch_content() {
+    sortable = $("#main_list");
+    $.ajax({url: "struct", dataType: "text json"}).success(startcode);
+}
+
+$(document).ready(fetch_content);
