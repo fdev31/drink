@@ -1,5 +1,3 @@
 #!/bin/sh
-if [ ! -e  drink.egg-info ]; then
-    python setup.py egg_info
-fi
+python setup.py egg_info
 PYTHONPATH=. zodbupdate -f database/cms_db --pack
