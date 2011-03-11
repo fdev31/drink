@@ -159,6 +159,8 @@ Fixes:
 ### 0.3
 
 - multi-object page
+- spreadsheet ?
+- integrate graph library (http://www.jqplot.com/)
 
 ### 0.4
 - chat program
