@@ -139,8 +139,6 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 
 Fixes:
 
-- BoolOptions can't be disabled --> special field marker ? (hidden)
-- Options can't be empty -> special field marker ? (hidden)
 - /users as user => 401 (should list instead)
 - search => 401 by default (should be allowed)
 - mask file upload widget if File not available here
