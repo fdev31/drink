@@ -103,20 +103,7 @@ function make_li(obj) {
             e.append($('&nbsp;<span class="infos">('+obj._nb_items+' items)</span>'));
 	    }
 	}
-	//$.ajax({url: obj.path+obj.id+"/struct", context: e,  dataType: "text json"}).success(got_item_details);
     return e;
-}
-// called whenever make_li is called
-// (prints the number of items)
-function got_item_details(obj) {
-    if (!! $(this).has('.infos') ) {
-        if (obj.items.length == 0) {
-        } else if (obj.items.length == 1) {
-            $(this).append($('&nbsp;<span class="infos">(1 item)</span>'))
-        } else {
-            $(this).append($('&nbsp;<span class="infos">('+obj.items.length+' items)</span>'))
-        }
-    }
 }
 
 function popup_actions(event) {

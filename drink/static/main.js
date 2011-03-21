@@ -3,6 +3,22 @@ jQuery.validator.addMethod("identifier", function(value, element) {
     return this.optional(element) || !/^[.$%/][$%/]*/i.test(value);
 }, 'No "$", "%" or "/" and don\' start with a dot, please :)');
 
+function add_new_item(obj) {
+    if( ! $(obj).data('edited')) {
+      $(this).data('edited', true);
+      var all_opts = $('#new_obj_class').find('option');
+      if ( all_opts.length == 2 ) {
+        $('#new_obj_class').css('visibility', 'visible').show();
+        $('#new_obj_class').val($(all_opts[1]).val());
+        $('#new_obj_class').hide();
+        $('#name_choice').css('visibility', 'visible').show();
+        $('#new_obj_name').focus()
+      } else {
+        $('#new_obj_class').css('visibility', 'visible').show();
+    }
+  }
+}
+
 $(document).ready(function(){
     // debug mode
     //$.validator.setDefaults({debug: true});
