@@ -129,7 +129,7 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 - edit form: only send "dirty" values when possible
 - add some recursive permissions setter
 - improve task list
-- "background processes" for each user / sessions
+   - add view form that allow edition by double-clicking
 - theme support (config entry + template & static path)
 - add more types to default form edition
     * object_path
