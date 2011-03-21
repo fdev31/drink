@@ -59,8 +59,8 @@
                 {% if classes and 'a' in authenticated.access(obj) %}
                 <a id="add_object" title="Add object" onclick="if($(this).data('edited')) {} else {$(this).data('edited', true); $('#new_obj_class').css('visibility', 'visible').show()}"><img  class="icon" src="/static/actions/new.png" /></a>
                 <select id="new_obj_class" style="visibility: hidden" class="required" name="class" onchange="$('#new_obj_class').hide(); $('#name_choice').css('visibility', 'visible').show(); $('#new_obj_name').focus()">
-                    <option value="" label=""></option>
-                    <optgroup label="Item type">
+                    <option value="" label="Select one item type">Select one item type</option>
+                    <optgroup label="Item types">
                     {% for k in classes.iterkeys() %}
                         <option value="{{k}}" label="{{k}}">{{k}}</option>
                     {% endfor %}
