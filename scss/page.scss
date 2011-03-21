@@ -75,6 +75,9 @@ li.entry {
       margin-left: 1em;
       vertical-align: 5px;
     }
+    span.infos {
+        margin-left: 1ex;
+    }
     > input {
         @include border-radius($radius);
         @include entryfont;
@@ -96,8 +99,6 @@ fieldset.toggler {
     > legend {
         cursor: pointer;
     }
-}
-span.infos {
 }
 span.toggler {
     cursor: pointer;
