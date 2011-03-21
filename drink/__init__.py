@@ -50,6 +50,12 @@ from .zdb import Database
 db = Database(bottle.app(), DB_CONFIG)
 import transaction
 
+def unauthorized(message='Action NOT allowed'):
+    if request.identity:
+        raise abort(401, message)
+    else:
+        rdr('/')
+
 # Declare "drink" wsgi loader
 class DrinkServer(bottle.ServerAdapter):
     """ Drink-flavored bottle runner.

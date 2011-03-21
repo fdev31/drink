@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 from drink.config import config
-from bottle import request, abort
+import drink
 
 __all__ = ['classes', 'get_object', 'init']
 
@@ -18,8 +18,8 @@ def get_object(current, objpath):
             # getting
             try:
                 current = current[elt]
-                if 'r' not in request.identity.access(current):
-                    abort(401, 'Not authorized')
+                if 'r' not in drink.request.identity.access(current):
+                    drink.unauthorized('Not authorized')
                     return
             except (KeyError, AttributeError, TypeError):
                 try:
@@ -31,10 +31,10 @@ def get_object(current, objpath):
             # traversal
             try:
                 if elt.startswith('_'):
-                    abort(401, 'Not authorized')
+                    drink.unauthorized('Not authorized')
                 current = current[elt]
-                if 't' not in request.identity.access(current):
-                    abort(401, 'Not authorized')
+                if 't' not in drink.request.identity.access(current):
+                    drink.unauthorized('Not authorized')
                     return
             except (KeyError, AttributeError):
                 raise AttributeError(elt)

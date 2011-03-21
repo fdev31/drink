@@ -3,7 +3,6 @@ __all__ = ['_Editable',
     'Id', 'Int', 'Password', 'File']
 
 import os
-from bottle import request, abort
 from persistent.dict import PersistentDict
 from ZODB.blob import Blob
 import transaction
@@ -141,7 +140,7 @@ class CheckboxSet(_Editable):
         return _Editable.html(self, name, None, '\n'.join(opts))
 
     def set(self, obj, name, val):
-        values = request.forms.getall(name)
+        values = drink.request.forms.getall(name)
         all_values = set(self.v)
         all_values.intersection_update(values)
         setattr(obj, name, all_values)

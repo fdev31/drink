@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 import os
 from mimetypes import guess_type
-from drink import request, abort
+from drink import request
 import transaction
 import drink
 from drink import template
@@ -74,7 +74,7 @@ class Page(Model):
             self.id = '.'
         else:
             if not name or name[0] in r'/.$%_':
-                drink.abort(401, 'Wrong identifier: %r'%name)
+                drink.unauthorized('Wrong identifier: %r'%name)
             # minor sanity check
             self.id = name.replace(' ', '-').replace('\t','_').replace('/','.').replace('?', '')
 
@@ -93,7 +93,7 @@ class Page(Model):
 
     def __setitem__(self, key, item):
         if key in self:
-            abort(401, "%r is already defined!"%key)
+            drink.unauthorized("%r is already defined!"%key)
         return Model.__setitem__(self, key, item)
 
     def view(self):
@@ -165,7 +165,7 @@ class Page(Model):
 
     def _edit(self):
         if 'w' not in request.identity.access(self):
-            return abort(401, "Not authorized")
+            return drink.unauthorized("Not authorized")
 
         items = self.editable_fields.items()
         if request.identity.id == self.owner.id or request.identity.admin:
@@ -248,7 +248,7 @@ class Page(Model):
     def rm(self):
         name = request.GET.get('name')
         if not ('a' in request.identity.access(self) and 'w' in request.identity.access(self[name])):
-            return abort(401, "Not authorized")
+            return drink.unauthorized("Not authorized")
         try:
             parent_path = self.path
         except AttributeError: # XXX: unclean
@@ -286,7 +286,7 @@ class Page(Model):
         auth = request.identity
 
         if 'a' not in auth.access(self):
-            return abort(401, "Not authorized")
+            return drink.unauthorized("Not authorized")
         name = name or request.params.get('name')
 
         if None == cls:
