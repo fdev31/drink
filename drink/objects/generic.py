@@ -146,6 +146,8 @@ class Page(Model):
                         c['_perm'] = auth
                         items.append(c)
                 d['items'] = items
+            else:
+                d['_nb_items'] = len(self)
 
         return d
 

@@ -96,7 +96,14 @@ function make_li(obj) {
     e.disableSelection();
 	e.dblclick(enter_edit_func);
 	e.hover(popup_actions);
-	$.ajax({url: obj.path+obj.id+"/struct", context: e,  dataType: "text json"}).success(got_item_details);
+	if ( !! obj._nb_items ) {
+        if ( obj._nb_items == 1 ) {
+            e.append($('&nbsp;<span class="infos">(1 item)</span>'));
+        } else {
+            e.append($('&nbsp;<span class="infos">('+obj._nb_items+' items)</span>'));
+	    }
+	}
+	//$.ajax({url: obj.path+obj.id+"/struct", context: e,  dataType: "text json"}).success(got_item_details);
     return e;
 }
 // called whenever make_li is called
