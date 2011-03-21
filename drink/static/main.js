@@ -81,6 +81,4 @@ $(document).ready(function(){
     $('.editable span').addClass('toggler');
     $('.auto_date').datepicker({dateFormat: "dd/mm/yy"});
 
-//    $('#commands .togglable').slideUp(0);
-
 });
