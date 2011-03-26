@@ -249,18 +249,15 @@ li.markItUpButton > a {
 #user_actions {
     text-align: right;
 }
-
 #page_actions {
     margin-top: -32px;
 }
 table.codehilitetable {
     margin: 1em;
 }
-
 /*
 STANDARD HTML SET
 */
-
 body {
 	padding:0;
 	margin: 0 1ex 0 1ex;
@@ -392,13 +389,14 @@ em {
 strong {
     font-weight: bold;
 }
-
+#calendar {
+    width: 90%;
+    margin: 2em auto 2em auto;
+}
 /*
 fileuploader
 */
-
 .qq-uploader { position:relative; width: 100%;}
-
 .qq-upload-button {
     display:block; /* or inline-block */
     width: 105px;
@@ -429,11 +427,8 @@ fileuploader
 .qq-upload-file, .qq-upload-spinner, .qq-upload-size, .qq-upload-cancel, .qq-upload-failed-text {
     margin-right: 7px;
 }
-
 .qq-upload-file {}
 .qq-upload-spinner {display:inline-block; background: url("/static/loading.gif"); width:16px; height:16px; vertical-align:text-bottom;}
 .qq-upload-size,.qq-upload-cancel {font-size:11px;}
-
 .qq-upload-failed-text {display:none;}
 .qq-upload-fail .qq-upload-failed-text {display:inline;}
-
