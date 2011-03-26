@@ -1,10 +1,12 @@
 from __future__ import absolute_import
 import os
+from datetime import datetime
 from mimetypes import guess_type
-from drink import request
 import transaction
 import drink
+from drink import request
 from drink import template
+from drink.types import dt2str
 from drink.zdb import Model
 from . import classes
 
@@ -37,7 +39,8 @@ class Page(Model):
             drink.types.Text("Every user's permissions (wrta)", group="x_permissions"),
         'write_groups':
             drink.types.GroupCheckBoxes("Write-enabled groups", group="x_permissions"),
-        'disable_ajax' : drink.types.BoolOption('Disable Js')
+        'disable_ajax' :
+            drink.types.BoolOption('Disable Js')
     }
 
     admin_fields = {}
@@ -45,7 +48,7 @@ class Page(Model):
     mime = 'page'
     disable_ajax = False
     css = []
-    js = ['/static/listing.js']
+    js = []
     description = 'An abstract page'
     classes = drink.classes
 
@@ -97,10 +100,11 @@ class Page(Model):
         return Model.__setitem__(self, key, item)
 
     def view(self):
-        return "Nothing to view"
+        return drink.template('main.html', obj=self,
+            css=self.css, js=self.js, html=self.html,
+            classes=self.classes, authenticated=request.identity)
 
     def struct(self, childs=True, full=None):
-
         k = request.params.keys()
         if None == full:
             full = 'full' in k
@@ -133,6 +137,8 @@ class Page(Model):
                         v['id'] = k
                     elif isinstance(v, (basestring, int, float)):
                         pass # serializes well in json
+                    elif isinstance(v, datetime):
+                        v = dt2str(v)
                     else:
                         v = "N/A"
                     d[k] = v

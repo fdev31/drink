@@ -65,6 +65,15 @@ class User(drink.Page):
         new_grp.owner = self
         transaction.commit()
 
+    @property
+    def html(self):
+        return '''
+        <h2>%(id)s</h2>
+        <strong>Name</strong>: %(name)s
+        <strong>Surname</strong>: %(surname)s
+        <strong>Phones</strong>: %(phones)r
+        '''%self.__dict__
+
     def edit(self):
         r = drink.Page._edit(self)
         uid = md5(self.email).hexdigest()

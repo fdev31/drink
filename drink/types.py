@@ -3,12 +3,14 @@ __all__ = ['_Editable',
     'Id', 'Int', 'Password', 'File']
 
 import os
-from persistent.dict import PersistentDict
-from ZODB.blob import Blob
-import transaction
-from drink import template
 import drink
+import datetime
+import transaction
 from . import classes
+from drink import template
+from ZODB.blob import Blob
+from time import mktime, strptime
+from persistent.dict import PersistentDict
 
 class _Editable(object):
 
@@ -56,12 +58,33 @@ class Text(_Editable):
         _Editable.__init__(self, caption, group)
         self.size = size
 
+
+DATE_FMT = r'%d/%m/%Y'
+
+def dt2str(dt):
+    return dt.strftime(DATE_FMT)
+
+def dt2ts(dt):
+    return int(mktime(dt.timetuple()))
+
+def str2dt(text):
+    try:
+        return datetime.datetime(*strptime(text, DATE_FMT)[:6])
+    except AttributeError:
+        return text
+
 class Date(Text):
 
     _template = r'''<input class="auto_date" type="text" size="%(size)d" id="%(id)s" value="%(value)s" name="%(name)s" />'''
 
     def __init__(self, caption=None, group=None, size=10):
         Text.__init__(self, caption, group, size)
+
+    def set(self, obj, name, val):
+        setattr(obj, name, str2dt(val))
+
+    def html(self, name, value, _template=None, no_label=False):
+        return Text.html(self, name, dt2str(value), _template, no_label)
 
 
 class TextArea(_Editable):
