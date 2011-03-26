@@ -97,6 +97,7 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 
 ## Release changes
 
+-   Improved TODO Lists (fullcalendar included)
 -   Slightly better access/permissions redirects
 -   Improved item addition a bit
 -   As always: Fixes & Bugs
