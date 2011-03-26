@@ -97,16 +97,8 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 
 ## Release changes
 
--   Add a nice Help by default
--   Basic *date* type (used in TODO example object), will pop a calendar up in edit form
--   Renamed File to "WebFile"
--   Better web 2.0 experience
--   Support for web-editable default actions on objects (avoids redirects)
--   Add a custom wsgi loader that gracefully loads the fastest
-    compatible wsgi backend available
--   Finder now also deletes traces of old objects
--   Add support for *"full"* search in finder
--   Add Indent/Deindent support to Markdown editor
+-   Slightly better access/permissions redirects
+-   Improved item addition a bit
 -   As always: Fixes & Bugs
 
 ## Roadmap
@@ -114,7 +106,7 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 ### 0.1 (wip)
 
 - abstract all low-level models (blobs...)
-- review 401 handling, ask for login/passwd in case of new session
+- review 401 handling, ask for login/passwd in case of new session (to be finished)
 - fix markdown preview css (make it seamless)
 - add calltips everywhere
 - change cookie on password change
@@ -122,6 +114,7 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 - only accept object move if it succeded on server
 - allow custom extensions
 - default content for every user
+- Per-user group-list, showing in permissions panels
 - allow rss via http://www.freewisdom.org/projects/python-markdown/RSS
 - HomePage object: Login-splash+UserDashboard write user homepages (with login & passwd & name & surname change) / splash-like if not logged-in
 - allow objects to add custom actions in admin bar
@@ -130,6 +123,7 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 - add some recursive permissions setter
 - improve task list
    - add view form that allow edition by double-clicking
+   - integrate fullcalendar
 - theme support (config entry + template & static path)
 - add more types to default form edition
     * object_path
