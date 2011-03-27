@@ -129,6 +129,7 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 - theme support (config entry + template & static path)
 - add more types to default form edition
     * object_path
+- "background processes" for each user / sessions
 - find the cleanest way to make all incoming URLs ends with /
 - add proper checks at server side too (in add  & edit methods mostly)
 - Form object?
@@ -156,6 +157,8 @@ Fixes:
 ### 0.3
 
 - multi-object page
+- spreadsheet ?
+- integrate graph library (http://www.jqplot.com/)
 
 ### 0.4
 - chat program

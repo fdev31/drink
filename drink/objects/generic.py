@@ -183,7 +183,11 @@ class Page(Model):
         forms = request.forms
 
         if forms:
-            editable = forms.keys()
+            if '_dk_fields' in forms:
+                editable = forms.get('_dk_fields').split('/')
+            else:
+                editable = forms.keys()
+
             files = request.files.keys()
 
             for attr, caster in items:
@@ -204,7 +208,7 @@ class Page(Model):
                 items.sort(key=lambda o: o[1].group+o[0])
                 current_group = None
                 form_opts = []
-                form = []
+                form = ['<input type="hidden" name="_dk_fields" value="%s">'%('/'.join(x[0] for x in items))]
                 for field, factory in items:
                     if factory.form_attr:
                         form_opts.append(factory.form_attr)
