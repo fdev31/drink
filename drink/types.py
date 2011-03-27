@@ -62,10 +62,16 @@ class Text(_Editable):
 DATE_FMT = r'%d/%m/%Y'
 
 def dt2str(dt):
-    return dt.strftime(DATE_FMT)
+    try:
+        return dt.strftime(DATE_FMT)
+    except AttributeError: # str
+        return dt
 
 def dt2ts(dt):
-    return int(mktime(dt.timetuple()))
+    try:
+        return int(mktime(dt.timetuple()))
+    except AttributeError: # str
+        return 0
 
 def str2dt(text):
     try:
