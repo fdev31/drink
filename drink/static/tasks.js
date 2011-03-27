@@ -1,9 +1,9 @@
+function add_item_hook(item) {
+    $('#calendar').fullCalendar('renderEvent',
+        {'title': item.title, 'url': item.id+'/', 'start': new Date() }
+    );
+}
 $(document).ready(function() {
-
-    var date = new Date();
-    var d = date.getDate();
-    var m = date.getMonth();
-    var y = date.getFullYear();
 
     $('#calendar').fullCalendar({
         header: {
@@ -11,6 +11,7 @@ $(document).ready(function() {
             center: 'title',
             right: 'month,agendaWeek,agendaDay'
         },
+        defaultView: "agendaWeek",
         editable: true,
         events: "events",
         eventDrop: function(event, delta) {
