@@ -25,6 +25,13 @@ $(document).ready(function(){
 
     $(".autovalidate").each(function(index, ob) { $(ob).validate() } );
 
+    $('#auto_edit_form').keypress( function(ev, elt) {
+        if ( ev.ctrlKey && ev.charCode == 10 ) {
+            console.log(this);
+            $(this).submit();
+            return true;
+        };
+    });
     $("#selected_edit_key").change(function() {
         var action = $(this).val();
         $("#edit_form").attr("action", action+"/edit");
