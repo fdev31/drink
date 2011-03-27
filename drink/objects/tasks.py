@@ -43,9 +43,10 @@ class TODO(drink.Page):
             #'id': abs(int(hash(self.id))),
             'title': self.title,
             #'start': "%02d-%02d-%04d"%(self.date.year, self.date.month, self.date.day),
-            'start': self.date.isoformat(),
+            'start': self.date.isoformat() if self.date else None,
             #'allDay': False,
-            'url': self.path+'edit',
+            'url': self.path,
+            'description': self.content,
         }
 
 
