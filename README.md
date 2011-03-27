@@ -98,6 +98,7 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 ## Release changes
 
 -   Improved TODO Lists (fullcalendar included)
+-   Now any TextArea can submit the form with Ctrl+Enter
 -   Slightly better access/permissions redirects
 -   Improved item addition a bit
 -   As always: Fixes & Bugs
@@ -131,9 +132,12 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 - find the cleanest way to make all incoming URLs ends with /
 - add proper checks at server side too (in add  & edit methods mostly)
 - Form object?
+- PyFilesystem object ? (can be useful...)
 
 Fixes:
 
+- only returns requested range in TODO
+- remove Ctrl+Enter conflict on Markitup
 - /users as user => 401 (should list instead)
 - search => 401 by default (should be allowed)
 - mask file upload widget if File not available here
