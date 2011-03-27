@@ -49,8 +49,11 @@ function startcode(data, status, req) {
         //console.log('Uploader code not available');
     }
 
-
 } // End of startup code
+
+function add_item_hook(data) {
+    sortable.add_entry(data);
+}
 
 $.fn.extend({
     add_entry: function(data) {
