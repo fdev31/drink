@@ -45,8 +45,8 @@ $(document).ready(function(){
         $('#new_obj_class').val('');
         $('#new_obj_name').val('');
         $('#add_object').data('edited', false);
-        if ( !! sortable ) {
-            sortable.add_entry(data);
+        if ( !! add_item_hook ) {
+            add_item_hook(data);
         }
     }
 
