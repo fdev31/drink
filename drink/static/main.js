@@ -64,8 +64,12 @@ $(document).ready(function(){
             $('#new_obj_name').val('')
             $('#add_object').data('edited', false);
         } else if (e.keyCode == 13) {
+            var item = {
+                'class': $('#new_obj_class').val(),
+                'name': $('#new_obj_name').val()
+            };
             $('#name_choice').hide();
-            $.post('add', {'class': $('#new_obj_class').val(), 'name': $('#new_obj_name').val()}, item_added);
+            $.post('add', item, item_added);
         }
     }
 
