@@ -58,10 +58,23 @@ class MarkdownPage(drink.Page):
         self.markup_name = name
 
     def _wikify(self, label, base, end):
-        for lbl in self:
-            if label == self[lbl].markup_name:
-                return '%s%s/view'%(base, lbl)
-        return '%sadd?name=%s&class=%s'%(base, label, _title)
+        cache = getattr(self, '_wikilinks', {})
+        labels = self.keys()
+        if label in cache:
+            real_id = cache[label]
+            labels.remove(real_id)
+            labels.insert(0, real_id)
+
+        for lbl in labels:
+            if label == getattr(self[lbl], 'markup_name', None):
+                ret = '%s%s/view'%(base, lbl)
+                break
+        else:
+            ret = '%sadd?name=%s&class=%s'%(base, label, _title)
+
+        cache[label] = lbl
+        self._wikilinks = cache
+        return ret
 
     def process(self, data=None):
         md = wikifier_cache.get(self.path, None) or Markdown(
