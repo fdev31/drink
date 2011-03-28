@@ -107,37 +107,39 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 
 ### 0.1 (wip)
 
+- PyFilesystem object ? (can be useful...)
 - abstract all low-level models (blobs...)
-- review 401 handling, ask for login/passwd in case of new session (to be finished)
+- improve task list
+   - add view form that allow edition by double-clicking
+   - add remove action (supported in fullcalendar ?)
+   - implement resizing & moving
+- add more types to default form edition
+   - object_path => integrate it to markdown editor
 - fix markdown preview css (make it seamless)
-- add calltips everywhere
 - change cookie on password change
-- pack should call http://packages.python.org/Whoosh/api/index.html?highlight=optimize#whoosh.index.Index.optimize on whoosh
 - only accept object move if it succeded on server
 - allow custom extensions
-- default content for every user
 - Per-user group-list, showing in permissions panels
 - allow rss via http://www.freewisdom.org/projects/python-markdown/RSS
 - HomePage object: Login-splash+UserDashboard write user homepages (with login & passwd & name & surname change) / splash-like if not logged-in
-- allow objects to add custom actions in admin bar
 - think about comments ( as property of some Model ?) - commentlist ?
+- allow objects to add custom actions in admin bar
 - edit form: only send "dirty" values when possible
 - add some recursive permissions setter
-- improve task list
-   - add view form that allow edition by double-clicking
-   - integrate fullcalendar
-- theme support (config entry + template & static path)
-- add more types to default form edition
-    * object_path
 - "background processes" for each user / sessions
-- find the cleanest way to make all incoming URLs ends with /
-- add proper checks at server side too (in add  & edit methods mostly)
+- theme support (config entry + template & static path)
+- ensure proper checks are correct at server side
 - Form object?
-- PyFilesystem object ? (can be useful...)
+- find the cleanest way to make all incoming URLs ends with /
+- pack should call http://packages.python.org/Whoosh/api/index.html?highlight=optimize#whoosh.index.Index.optimize on whoosh
+- add calltips everywhere
+- default content for every user
+- review 401 handling, ask for login/passwd in case of new session (to be finished)
 
 Fixes:
 
-- only returns requested range in TODO
+- only returns requested range in TODO List
+- Rename Tasks/TODO List to calendar
 - remove Ctrl+Enter conflict on Markitup
 - /users as user => 401 (should list instead)
 - search => 401 by default (should be allowed)
@@ -161,10 +163,12 @@ Fixes:
 - integrate graph library (http://www.jqplot.com/)
 
 ### 0.4
-- chat program
+- "real" sessions ?
+- chat program (introduce webhooks ?)
 
 ### 0.5
 - forum
+- more tests
 
 ### 0.6
 - gadgets (google search, rss reader, clock, xkcd, ?)
