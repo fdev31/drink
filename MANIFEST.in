@@ -6,6 +6,6 @@ include drink/settings.ini
 include database/blobs/keep_me.txt
 include database/zodb.conf
 include bottle.py
-include runserver.py
+include manage
 include README.rst
 include HELP.md
