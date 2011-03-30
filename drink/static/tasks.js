@@ -2,6 +2,18 @@
  replace click: pop-ups editable description
  hover: edit + delete
 */
+function editEvent(eventId) {
+    window.location.href = eventId+"/";
+    return true;
+}
+function deleteEvent(eventId) {
+    $.ajax({
+            url:'rm?name='+encodeURI(eventId),
+    }).success(function() {
+              $('#calendar').fullCalendar('removeEvents', eventId);
+    });
+}
+
 function add_item_hook(item) {
     $('#calendar').fullCalendar('renderEvent',
         {'title': item.title, 'url': item.id+'/', 'start': new Date() }
@@ -21,15 +33,27 @@ $(document).ready(function() {
         minTime: 6,
         maxTime: 23,
         events: "events",
+        /*
         eventClick: function (ev, jsE, view) {
-            if ( !! ev.description ) {
-                $('<div>'+ev.description+'</div>').appendTo('body').dialog();
-                return false;
-            }
+            $('<div title="'+ev.title+'">'+ev.description+'</div>').appendTo('body').dialog();
+            return false;
         },
+        */
         // TODO: popup edit & remove functions
-        eventMouseover: function (ev, jsE, view) { },
+        eventMouseover: function(calEvent, domEvent) {
+	        var layer =	"<div class='events-layer' class='fc-transparent' style='position:absolute; width:100%; height:100%; top:-1px; text-align:right; z-index:100'><a><img class='minicon' src='/static/actions/delete.png' onClick='deleteEvent(\""+calEvent.id+"\");'></a>  <a><img class='minicon' src='/static/actions/edit.png' onClick='editEvent(\""+calEvent.id+"\");'></a></div>";
+//	        layer.fadeIn('slow');
+	        $(this).append(layer);
+	        return false;
+	},
+	eventMouseout: function(calEvent, domEvent) {
+	    $(".events-layer").fadeOut('slow', function() {$(this).remove();});
+},
+	/*
+        eventMouseover:
+         function (ev, jsE, view) { },
         eventMouseout: function (ev, jsE, view) { },
+       */
         eventRender: function(ev, elt) {
             elt.attr('title', ev.description);
         },

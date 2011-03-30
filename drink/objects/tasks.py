@@ -69,7 +69,7 @@ class TODO(drink.Page):
             'start': start.isoformat(),
             'end': (start + timedelta(days, seconds)).isoformat(),
             'allDay': self.all_day,
-            'url': self.path,
+            'path': self.path,
             'description': self.content,
         }
 
