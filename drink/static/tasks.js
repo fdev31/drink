@@ -61,6 +61,5 @@ $(document).ready(function() {
 
             $.post(event.id+"/edit", form);
         },
-
     });
 });

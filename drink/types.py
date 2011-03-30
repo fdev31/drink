@@ -61,6 +61,9 @@ class Text(_Editable):
 
 DATE_FMT = r'%d/%m/%Y'
 
+#DATETIME_FMT = r'%d/%m/%Y %H:%M'
+
+
 def dt2str(dt):
     try:
         return dt.strftime(DATE_FMT)
@@ -74,8 +77,16 @@ def dt2ts(dt):
         return 0
 
 def str2dt(text):
+     #TODO: use DATETIME_FMT
     try:
         return datetime.datetime(*strptime(text, DATE_FMT)[:6])
+    except AttributeError:
+        return text
+
+
+def str2d(text):
+    try:
+        return datetime.date(*strptime(text, DATE_FMT)[:3])
     except AttributeError:
         return text
 
@@ -87,7 +98,7 @@ class Date(Text):
         Text.__init__(self, caption, group, size)
 
     def set(self, obj, name, val):
-        setattr(obj, name, str2dt(val))
+        setattr(obj, name, str2d(val))
 
     def html(self, name, value, _template=None, no_label=False):
         return Text.html(self, name, dt2str(value), _template, no_label)
