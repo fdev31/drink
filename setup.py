@@ -1,4 +1,9 @@
-import setuptools
+try:
+    import setuptools
+except ImportError:
+    from distribute_setup import use_setuptools
+    use_setuptools()
+
 from setuptools import setup, find_packages
 
 setup(
@@ -25,6 +30,6 @@ setup(
 
         },
     packages=find_packages(),
-    install_requires = ['jinja2', 'markdown', 'ZODB3', 'whoosh'],
+    install_requires = ['setuptools', 'jinja2', 'markdown', 'ZODB3', 'whoosh'],
 )
 
