@@ -48,6 +48,7 @@ class Page(Model):
     mime = 'page'
     disable_ajax = False
     css = []
+    html = ''
     js = []
     description = 'An abstract page'
     classes = drink.classes

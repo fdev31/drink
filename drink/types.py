@@ -196,6 +196,10 @@ class Int(Text):
     def set(self, obj, name, val):
         setattr(obj, name, int(val))
 
+class Float(Text):
+    def set(self, obj, name, val):
+        float(val) # validates float
+        setattr(obj, name, val)
 
 class Password(Text):
     _template = r'''<input type="password" size="%(size)d" id="%(id)s" name="%(name)s" value="%(value)s" />'''

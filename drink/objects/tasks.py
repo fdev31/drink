@@ -3,6 +3,8 @@ import transaction
 import time
 from hashlib import sha1
 import drink
+import json
+from datetime import timedelta, date, datetime
 from drink.types import dt2str, dt2ts
 
 class TODO(drink.Page):
@@ -15,12 +17,29 @@ class TODO(drink.Page):
 
     content = ''
 
+    all_day = True
+
+    duration = 1
+
+    start_time = '10:00'
+
     editable_fields = {
         'title': drink.types.Text("Title", group="a"),
+        'all_day': drink.types.BoolOption("All Day", group="b"),
         'date': drink.types.Date("Scheduled for", group="b"),
+        'start_time': drink.types.Text("Start time", group="b"),
+        'duration': drink.types.Float("Duration (hours)", group="b"),
         'content': drink.types.TextArea("Summary", group="c"),
         #'description': drink.types.Text('Short description', group="a"),
     }
+
+    def __init__(self, name, rootpath):
+        drink.Page.__init__(self, name, rootpath)
+        self.date = date.today()
+
+    @property
+    def html(self):
+        return '<div><h2>%(title)s</h2><p class="comment">%(date)s at %(start_time)s for %(duration)s hours</p><p class="description">%(content)s</p></div>'%self.__dict__
 
     @property
     def description(self):
@@ -38,13 +57,18 @@ class TODO(drink.Page):
 
     def event(self):
         drink.response.headers['Content-Type'] = 'application/json'
+        # TODO: improve this line
+        start_hour, start_min = (int(x.strip()) for x in self.start_time.split(':'))
+        days, minutes = divmod(float(self.duration), 24)
+        seconds = minutes*3600
+        start = datetime(self.date.year, self.date.month, self.date.day, start_hour, start_min)
 
         return {
-            #'id': abs(int(hash(self.id))),
+            'id': self.id,
             'title': self.title,
-            #'start': "%02d-%02d-%04d"%(self.date.year, self.date.month, self.date.day),
-            'start': self.date.isoformat() if self.date else None,
-            #'allDay': False,
+            'start': start.isoformat(),
+            'end': (start + timedelta(days, seconds)).isoformat(),
+            'allDay': self.all_day,
             'url': self.path,
             'description': self.content,
         }
@@ -70,8 +94,6 @@ class TODOList(drink.Page):
     }
 
     def events(self):
-        import json
-
         return json.dumps([e.event() for e in self.itervalues()])
 
         start = drink.request.GET['start']
