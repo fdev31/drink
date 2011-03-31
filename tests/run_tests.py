@@ -1,14 +1,18 @@
 #!/usr/bin/env python
 
-HTTP_PORT = 5000
-HTTP_HOST = '127.0.0.1'
-ADMIN = ('admin', 'admin')
-
-import requests
+import urllib
+import urllib2
 import subprocess
-import cookielib
-import Cookie
 
+cook_opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
+urllib2.install_opener(cook_opener)
+
+values = {'login_name': 'admin', 'login_password': 'admin'}
+
+def request(url, data=None, **kw):
+    if isinstance(data, dict):
+        data = urllib.urlencode(data)
+    return urllib2.urlopen( urllib2.Request('http://localhost:5000'+url, data) )
 
 def tidy(req):
     proc = subprocess.Popen(['tidy'],
@@ -16,14 +20,13 @@ def tidy(req):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )
-    proc.stdin.write(req.content)
+    proc.stdin.write(req.read())
     proc.stdin.close()
     ret = proc.wait()
-    #print " - stdout - ".center(80)
-    #print proc.stdout.read()
-    #print " - stderr - ".center(80)
+#    print " - stdout - ".center(80)
+#    print proc.stdout.read()
+#    print " - stderr - ".center(80)
     if ret:
-        print req.content
         for line in proc.stderr:
             line = line.strip()
             print line
@@ -33,58 +36,14 @@ def tidy(req):
     else:
         print "SUCCESS"#, req.status_code
 
-def fetch(path, method='get', auth=None, **kw):
-    if None != auth:
-        #c = Cookie.SimpleCookie()
-        #c['login'], c['password'] = auth
-        #jar = cookielib.CookieJar()
-        #jar.set_cookie(c)
-        #kw['cookies'] = jar
-        #auth = None
-        kw = kw.copy()
-        kw['auth'] = requests.AuthObject(*auth)
-    if not path[0] == '/':
-        path = '/'+path
-    url = 'http://%s:%d%s'%(HTTP_HOST, HTTP_PORT, path)
+# Not logged-in
+tidy( request('/pages') )
+tidy( request('/search') )
+tidy( request('/users') )
 
-    print kw
-    method = getattr(requests, method.lower())
-    return method(url, **kw)
+# Logged-in
+tidy( request('/login', values) )
+tidy( request('/pages') )
+tidy( request('/search') )
+tidy( request('/users') )
 
-def display(req):
-    print req.status_code
-    print req.headers
-    print req.content
-
-
-"""
-r = fetch('/login', method='post', data={'login_password': 'admin', 'login_name': 'admin'})
-import pdb; pdb.set_trace()
-jar = cookielib.CookieJar()
-cook_dict = {'login_name': 'admin', 'login_password': 'admin'}
-for k, v in cook_dict.iteritems():
-    c = cookielib.Cookie(1.0, k, v,
-         HTTP_PORT, HTTP_PORT, HTTP_HOST, HTTP_HOST,
-         '',
-         '/login',
-         '/login',
-         'drink',
-         None, # expires
-         None, #discard
-         '', #comment
-         '', #comment url
-         None, # rest
-         )
-    jar.set_cookie(c)
-
-r = fetch('/pages', cookies=jar)
-
-"""
-
-for page in ('/', '/pages', '/groups', '/users', '/search'):
-    for auth in (ADMIN, None):
-        print "testing %s, auth=%r"%(page, auth)
-        r = fetch(page, auth=auth)
-        tidy(r)
-        if r.status_code != 200:
-            print "NOT OK: %d"%r.status_code
