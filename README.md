@@ -100,6 +100,7 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 -   Improved TODO Lists (fullcalendar included)
 -   Now any TextArea can submit the form with Ctrl+Enter
 -   Slightly better access/permissions redirects
+-   Filesystem mountpoint (alpha)
 -   Improved item addition a bit
 -   As always: Fixes & Bugs
 
@@ -107,12 +108,7 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 
 ### 0.1 (wip)
 
-- PyFilesystem object ? (can be useful...)
 - abstract all low-level models (blobs...)
-- improve task list
-   - add view form that allow edition by double-clicking
-   - add remove action (supported in fullcalendar ?)
-   - implement resizing & moving
 - add more types to default form edition
    - object_path => integrate it to markdown editor
 - fix markdown preview css (make it seamless)

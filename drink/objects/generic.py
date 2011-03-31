@@ -19,6 +19,59 @@ class _Mock(object): pass
 def get_type(filename):
     return guess_type(filename)[0] or 'application/octet-stream'
 
+def get_struct_from_obj(obj, childs, full):
+    k = request.params.keys()
+    if None == full:
+        full = 'full' in k
+
+    if 'childs' in k:
+        childs = request.params['childs'].lower() in ('yes', 'true')
+
+    a = request.identity.access
+
+    d = dict()
+    auth = a(obj)
+
+    if 'r' in auth:
+        d['id'] = obj.id
+        d['title'] = obj.title
+        d['description'] = obj.description
+        d['path'] = obj.rootpath
+        d['mime'] = obj.mime
+        d['_perm'] = auth
+
+        if full:
+            for k in obj.editable_fields.keys():
+                if k in d:
+                    continue
+                v = getattr(obj, k, None)
+                if isinstance(v, Model):
+                    if not 'r' in a(v):
+                        continue
+                    v = v.struct(False)
+                    v['id'] = k
+                elif isinstance(v, (basestring, int, float)):
+                    pass # serializes well in json
+                elif isinstance(v, datetime):
+                    v = dt2str(v)
+                else:
+                    v = "N/A"
+                d[k] = v
+
+        if childs:
+            items = []
+            for v in obj.itervalues():
+                auth = a(v)
+                if 'r' in auth:
+                    c = v.struct(childs=False)
+                    c['_perm'] = auth
+                    items.append(c)
+            d['items'] = items
+        else:
+            d['_nb_items'] = len(obj)
+
+    return d
+
 class Page(Model):
 
     # Model properties
@@ -106,57 +159,7 @@ class Page(Model):
             classes=self.classes, authenticated=request.identity)
 
     def struct(self, childs=True, full=None):
-        k = request.params.keys()
-        if None == full:
-            full = 'full' in k
-
-        if 'childs' in k:
-            childs = request.params['childs'].lower() in ('yes', 'true')
-
-        a = request.identity.access
-
-        d = dict()
-        auth = a(self)
-
-        if 'r' in auth:
-            d['id'] = self.id
-            d['title'] = self.title
-            d['description'] = self.description
-            d['path'] = self.rootpath
-            d['mime'] = self.mime
-            d['_perm'] = auth
-
-            if full:
-                for k in self.editable_fields.keys():
-                    if k in d:
-                        continue
-                    v = getattr(self, k, None)
-                    if isinstance(v, Model):
-                        if not 'r' in a(v):
-                            continue
-                        v = v.struct(False)
-                        v['id'] = k
-                    elif isinstance(v, (basestring, int, float)):
-                        pass # serializes well in json
-                    elif isinstance(v, datetime):
-                        v = dt2str(v)
-                    else:
-                        v = "N/A"
-                    d[k] = v
-
-            if childs:
-                items = []
-                for v in self.itervalues():
-                    auth = a(v)
-                    if 'r' in auth:
-                        c = v.struct(childs=False)
-                        c['_perm'] = auth
-                        items.append(c)
-                d['items'] = items
-            else:
-                d['_nb_items'] = len(self)
-
-        return d
+        return get_struct_from_obj(self, childs, full)
 
     @property
     def path(self):
