@@ -15,17 +15,18 @@ class Database(object):
         self.locals = threading.local()
         self._db = None
         self.connection = None
-        wsgi_app.add_hook('before_request', self.start_request)
-        wsgi_app.add_hook('after_request', self.close_request)
+        wsgi_app.hooks.add('before_request', self.start_request)
+        wsgi_app.hooks.add('after_request', self.close_request)
         atexit.register(self._cleanup)
-
 
     def _cleanup(self):
         if self._db:
             self._db.close()
         if getattr(self.locals, 'c', None):
             self.locals.c.close()
-        self.app.hooks.clear()
+        self.app.hooks.remove('before_request', self.start_request)
+        self.app.hooks.remove('after_request', self.close_request)
+        self._cleanup = lambda: 1
 
     def __del__(self):
         self._cleanup()

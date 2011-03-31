@@ -6,9 +6,9 @@ a built-in HTTP Server and adapters for many third party WSGI/HTTP-server and
 template engines - all in a single file and with no dependencies other than the
 Python Standard Library.
 
-Homepage and documentation: http://bottle.paws.de/
+Homepage and documentation: http://bottlepy.org/
 
-Copyright (c) 2010, Marcel Hellkamp.
+Copyright (c) 2011, Marcel Hellkamp.
 License: MIT (see LICENSE.txt for details)
 """
 
@@ -39,7 +39,7 @@ import warnings
 from Cookie import SimpleCookie
 from tempfile import TemporaryFile
 from traceback import format_exc
-from urllib import quote as urlquote
+from urllib import urlencode
 from urlparse import urlunsplit, urljoin
 
 try: from collections import MutableMapping as DictMixin
@@ -100,7 +100,6 @@ def depr(message, critical=False):
 
 
 # Small helpers
-
 def makelist(data):
     if isinstance(data, (tuple, list, set, dict)): return list(data)
     elif data: return [data]
@@ -124,11 +123,11 @@ class DictProperty(object):
         return storage[key]
 
     def __set__(self, obj, value):
-        if self.read_only: raise ApplicationError("Read-Only property.")
+        if self.read_only: raise AttributeError("Read-Only property.")
         getattr(obj, self.attr)[self.key] = value
 
     def __delete__(self, obj):
-        if self.read_only: raise ApplicationError("Read-Only property.")
+        if self.read_only: raise AttributeError("Read-Only property.")
         del getattr(obj, self.attr)[self.key]
 
 def cached_property(func):
@@ -148,9 +147,14 @@ class lazy_attribute(object): # Does not need configuration -> lower-case name
         return value
 
 
+
+
+
+
 ###############################################################################
 # Exceptions and Events ########################################################
 ###############################################################################
+
 
 class BottleException(Exception):
     """ A base class for exceptions used by bottle. """
@@ -174,7 +178,8 @@ class HTTPResponse(BottleException):
 
 class HTTPError(HTTPResponse):
     """ Used to generate an error page """
-    def __init__(self, code=500, output='Unknown Error', exception=None, traceback=None, header=None):
+    def __init__(self, code=500, output='Unknown Error', exception=None,
+                 traceback=None, header=None):
         super(HTTPError, self).__init__(output, code, header)
         self.exception = exception
         self.traceback = traceback
@@ -191,8 +196,14 @@ class HTTPError(HTTPResponse):
 # Routing ######################################################################
 ###############################################################################
 
+
 class RouteError(BottleException):
     """ This is a base class for all routing related exceptions """
+
+
+class RouteReset(BottleException):
+    """ If raised by a plugin or request handler, the route is reset and all
+        plugins are re-applied. """
 
 
 class RouteSyntaxError(RouteError):
@@ -206,8 +217,9 @@ class RouteBuildError(RouteError):
 class Router(object):
     ''' A Router is an ordered collection of route->target pairs. It is used to
         efficiently match WSGI requests against a number of routes and return
-        the first target that satisfies the request. A route is defined by a
-        path-rule and a HTTP method.
+        the first target that satisfies the request. The target may be anything,
+        usually a string, ID or callable object. A route consists of a path-rule
+        and a HTTP method.
 
         The path-rule is either a static path (e.g. `/contact`) or a dynamic
         path that contains wildcards (e.g. `/wiki/:page`). By default, wildcards
@@ -215,14 +227,18 @@ class Router(object):
         add a regular expression pattern (e.g. `/wiki/:page#[a-z]+#`).
 
         For performance reasons, static routes (rules without wildcards) are
-        checked first. Dynamic routes are tested in order and the first
-        matching rule returns. Try to avoid ambiguous or overlapping rules.
+        checked first. Dynamic routes are searched in order. Try to avoid
+        ambiguous or overlapping rules.
 
         The HTTP method string matches only on equality, with two exceptions:
           * ´GET´ routes also match ´HEAD´ requests if there is no appropriate
             ´HEAD´ route installed.
           * ´ANY´ routes do match if there is no other suitable route installed.
+
+        An optional ``name`` parameter is used by :meth:`build` to identify
+        routes.
     '''
+
     default = '[^/]+'
 
     @lazy_attribute
@@ -236,8 +252,12 @@ class Router(object):
         self.static = {}  # Cache for static routes: {path: {method: target}}
         self.dynamic = [] # Cache for dynamic routes. See _compile()
 
-    def add(self, rule, method, target, name=None):
-        ''' Add a new route or overwrite an existing target. '''
+    def add(self, rule, method, target, name=None, static=False):
+        ''' Add a new route or replace the target for an existing route. '''
+        if static:
+            depr("Use a backslash to escape ':' in routes.") # 0.9
+            rule = rule.replace(':','\\:')
+
         if rule in self.routes:
             self.routes[rule][method.upper()] = target
         else:
@@ -247,17 +267,6 @@ class Router(object):
                 self.static, self.dynamic = {}, {}
         if name:
             self.named[name] = (rule, None)
-
-    def delete(self, rule, method=None):
-        ''' Delete an existing route. Omit `method` to delete all targets. '''
-        if rule not in self.routes and rule in self.named:
-            rule = self.named[rule][0]
-        if rule in self.routes:
-            if method: del self.routes[rule][method]
-            else: self.routes[rule].clear()
-            if not self.routes[rule]:
-                del self.routes[rule]
-                self.rules.remove(rule)
 
     def build(self, _name, *anon, **args):
         ''' Return a string that matches a named route. Use keyword arguments
@@ -284,7 +293,7 @@ class Router(object):
         except KeyError, e:
             raise RouteBuildError(*e.args)
 
-        if args: url += ['?', urlencode(args.iteritems())]
+        if args: url += ['?', urlencode(args)]
         return ''.join(url)
 
     def match(self, environ):
@@ -292,7 +301,6 @@ class Router(object):
         targets, urlargs = self._match_path(environ)
         if not targets:
             raise HTTPError(404, "Not found: " + environ['PATH_INFO'])
-        environ['router.url_args'] = urlargs
         method = environ['REQUEST_METHOD'].upper()
         if method in targets:
             return targets[method], urlargs
@@ -376,6 +384,7 @@ class Router(object):
 # Application Object ###########################################################
 ###############################################################################
 
+
 class Bottle(object):
     """ WSGI application """
 
@@ -384,18 +393,22 @@ class Bottle(object):
             You usually don't do that. Use `bottle.app.push()` instead.
         """
         self.routes = [] # List of installed routes including metadata.
-        self.callbacks = {} # Cache for wrapped callbacks.
-        self.router = Router() # Maps to self.routes indices.
+        self.router = Router() # Maps requests to self.route indices.
+        self.ccache = {} # Cache for callbacks with plugins applied.
+
+        self.plugins = [] # List of installed plugins.
 
         self.mounts = {}
         self.error_handler = {}
+        #: If true, most exceptions are catched and returned as :exc:`HTTPError`
         self.catchall = catchall
         self.config = config or {}
         self.serve = True
-        self.castfilter = []
-        if autojson and json_dumps:
-            self.add_filter(dict, dict2json)
-        self.hooks = {'before_request': [], 'after_request': []}
+        # Default plugins
+        self.hooks = self.install(HooksPlugin())
+        self.typefilter = self.install(TypeFilterPlugin())
+        if autojson:
+            self.install(JSONPlugin())
 
     def optimize(self, *a, **ka):
         depr("Bottle.optimize() is obsolete.")
@@ -418,32 +431,84 @@ class Bottle(object):
         self.mounts[script_path] = app
 
     def add_filter(self, ftype, func):
-        ''' Register a new output filter. Whenever bottle hits a handler output
-            matching `ftype`, `func` is applied to it. '''
-        if not isinstance(ftype, type):
-            raise TypeError("Expected type object, got %s" % type(ftype))
-        self.castfilter = [(t, f) for (t, f) in self.castfilter if t != ftype]
-        self.castfilter.append((ftype, func))
-        self.castfilter.sort()
+        depr("Filters are deprecated. Replace any filters with plugins.") #0.9
+        self.typefilter.add(ftype, func)
 
-    def match_url(self, path, method='GET'):
-        return self.match({'PATH_INFO': path, 'REQUEST_METHOD': method})
+    def install(self, plugin):
+        ''' Add a plugin to the list of plugins and prepare it for beeing
+            applied to all routes of this application. A plugin may be a simple
+            decorator or an object that implements the :class:`Plugin` API.
+        '''
+        if hasattr(plugin, 'setup'): plugin.setup(self)
+        if not callable(plugin) and not hasattr(plugin, 'apply'):
+            raise TypeError("Plugins must be callable or implement .apply()")
+        self.plugins.append(plugin)
+        self.reset()
+        return plugin
+
+    def uninstall(self, plugin):
+        ''' Uninstall plugins. Pass an instance to remove a specific plugin.
+            Pass a type object to remove all plugins that match that type.
+            Subclasses are not removed. Pass a string to remove all plugins with
+            a matching ``name`` attribute. Pass ``True`` to remove all plugins.
+            The list of affected plugins is returned. '''
+        removed, remove = [], plugin
+        for i, plugin in list(enumerate(self.plugins))[::-1]:
+            if remove is True or remove is plugin or remove is type(plugin) \
+            or getattr(plugin, 'name', True) == remove:
+                removed.append(plugin)
+                del self.plugins[i]
+                if hasattr(plugin, 'close'): plugin.close()
+        if removed: self.reset()
+        return removed
+
+    def reset(self, id=None):
+        ''' Reset all routes (re-apply plugins) and clear all caches. If an ID
+            is given, only that specific route is affected. '''
+        if id is None: self.ccache.clear()
+        else: self.ccache.pop(id, None)
+
+    def close(self):
+        ''' Close the application and all installed plugins. '''
+        for plugin in self.plugins:
+            if hasattr(plugin, 'close'): plugin.close()
+        self.stopped = True
 
     def match(self, environ):
-        """ Return a (callback, url-args) tuple or raise HTTPError. """
-        target, args = self.router.match(environ)
+        """ Search for a matching route and return a (callback, urlargs) tuple.
+            The first element is the associated route callback with plugins
+            applied. The second value is a dictionary with parameters extracted
+            from the URL. The :class:`Router` raises :exc:`HTTPError` (404/405)
+            on a non-match."""
+        handle, args = self.router.match(environ)
+        environ['route.handle'] = handle # TODO move to router?
+        environ['route.url_args'] = args
         try:
-            return self.callbacks[target], args
+            return self.ccache[handle], args
         except KeyError:
-            callback, decorators = self.routes[target]
-            wrapped = callback
-            for wrapper in decorators[::-1]:
-                wrapped = wrapper(wrapped)
-            #for plugin in self.plugins or []:
-            #    wrapped = plugin.apply(wrapped, rule)
-            functools.update_wrapper(wrapped, callback)
-            self.callbacks[target] = wrapped
-            return wrapped, args
+            config = self.routes[handle]
+            callback = self.ccache[handle] = self._build_callback(config)
+            return callback, args
+
+    def _build_callback(self, config):
+        ''' Apply plugins to a route and return a new callable. '''
+        wrapped = config['callback']
+        plugins = self.plugins + config['apply']
+        skip    = config['skip']
+        try:
+            for plugin in reversed(plugins):
+                if True in skip: break
+                if plugin in skip or type(plugin) in skip: continue
+                if getattr(plugin, 'name', True) in skip: continue
+                if hasattr(plugin, 'apply'):
+                    wrapped = plugin.apply(wrapped, config)
+                else:
+                    wrapped = plugin(wrapped)
+                if not wrapped: break
+                functools.update_wrapper(wrapped, config['callback'])
+            return wrapped
+        except RouteReset: # A plugin may have changed the config dict inplace.
+            return self._build_callback(config) # Apply all plugins again.
 
     def get_url(self, routename, **kargs):
         """ Return a string that matches a named route """
@@ -451,77 +516,80 @@ class Bottle(object):
         location = self.router.build(routename, **kargs).lstrip('/')
         return urljoin(urljoin('/', scriptname), location)
 
-    def route(self, path=None, method='GET', no_hooks=False, decorate=None,
-              template=None, template_opts={}, callback=None, name=None,
-              static=False):
-        """ Decorator: Bind a callback function to a request path.
+    def route(self, path=None, method='GET', callback=None, name=None,
+              apply=None, skip=None, **config):
+        """ A decorator to bind a function to a request URL. Example::
 
-            :param path: The request path or a list of paths to listen to. See
-              :class:`Router` for syntax details. If no path is specified, it
-              is automatically generated from the callback signature. See
-              :func:`yieldroutes` for details.
-            :param method: The HTTP method (POST, GET, ...) or a list of
-              methods to listen to. (default: GET)
-            :param decorate: A decorator or a list of decorators. These are
-              applied to the callback in reverse order (on demand only).
-            :param no_hooks: If true, application hooks are not triggered
-              by this route. (default: False)
-            :param template: The template to use for this callback.
-              (default: no template)
-            :param template_opts: A dict with additional template parameters.
+                @app.route('/hello/:name')
+                def hello(name):
+                    return 'Hello %s' % name
+
+            The ``:name`` part is a wildcard. See :class:`Router` for syntax
+            details.
+
+            :param path: Request path or a list of paths to listen to. If no
+              path is specified, it is automatically generated from the
+              signature of the function.
+            :param method: HTTP method (`GET`, `POST`, `PUT`, ...) or a list of
+              methods to listen to. (default: `GET`)
+            :param callback: An optional shortcut to avoid the decorator
+              syntax. ``route(..., callback=func)`` equals ``route(...)(func)``
             :param name: The name for this route. (default: None)
-            :param callback: If set, the route decorator is directly applied
-              to the callback and the callback is returned instead. This
-              equals ``Bottle.route(...)(callback)``.
+            :param apply: A decorator or plugin or a list of plugins. These are
+              applied to the route callback in addition to installed plugins.
+            :param skip: A list of plugins, plugin classes or names. Matching
+              plugins are not installed to this route. ``True`` skips all.
+
+            Any additional keyword arguments are stored as route-specific
+            configuration and passed to plugins (see :meth:`Plugin.apply`).
         """
-        # @route can be used without any parameters
         if callable(path): path, callback = None, path
-        # Build up the list of decorators
-        decorators = makelist(decorate)
-        if template:     decorators.insert(0, view(template, **template_opts))
-        if not no_hooks: decorators.append(self._add_hook_wrapper)
-        #decorators.append(partial(self.apply_plugins, skiplist))
-        def wrapper(func):
-            for rule in makelist(path) or yieldroutes(func):
+
+        plugins = makelist(apply)
+        skiplist = makelist(skip)
+        if 'decorate' in config:
+            depr("The 'decorate' parameter was renamed to 'apply'") # 0.9
+            plugins += makelist(config.pop('decorate'))
+        if 'template' in config: # TODO Make plugin
+            depr("The 'template' parameter is no longer used. Add the view() "\
+                 "decorator to the 'apply' parameter instead.") # 0.9
+            tpl, tplo = config.pop('template'), config.pop('template_opts', {})
+            plugins.insert(0, view(tpl, **tplo))
+        if config.pop('no_hooks', False):
+            depr("The no_hooks parameter is no longer used. Add 'hooks' to the"\
+                 "list of skipped plugins instead.") # 0.9
+            skiplist.append('hooks')
+        static = config.get('static', False) # depr 0.9
+
+        def decorator(callback):
+            for rule in makelist(path) or yieldroutes(callback):
                 for verb in makelist(method):
-                    if static:
-                        rule = rule.replace(':','\\:')
-                        depr("Use backslash to escape ':' in routes.")
-                    #TODO: Prepare this for plugins
-                    self.router.add(rule, verb, len(self.routes), name=name)
-                    self.routes.append((func, decorators))
-            return func
-        return wrapper(callback) if callback else wrapper
+                    verb = verb.upper()
+                    cfg = dict(rule=rule, method=verb, callback=callback,
+                               name=name, app=self, config=config,
+                               apply=plugins, skip=skiplist)
+                    self.routes.append(cfg)
+                    cfg['id'] = self.routes.index(cfg)
+                    self.router.add(rule, verb, cfg['id'], name=name, static=static)
+            return callback
 
-    def _add_hook_wrapper(self, func):
-        ''' Add hooks to a callable. See #84 '''
-        @functools.wraps(func)
-        def wrapper(*a, **ka):
-            for hook in self.hooks['before_request']: hook()
-            response.output = func(*a, **ka)
-            for hook in self.hooks['after_request']: hook()
-            return response.output
-        return wrapper
+        return decorator(callback) if callback else decorator
 
-    def get(self, path=None, method='GET', **kargs):
-        """ Decorator: Bind a function to a GET request path.
-            See :meth:'route' for details. """
-        return self.route(path, method, **kargs)
+    def get(self, path=None, method='GET', **options):
+        """ Equals :meth:`route`. """
+        return self.route(path, method, **options)
 
-    def post(self, path=None, method='POST', **kargs):
-        """ Decorator: Bind a function to a POST request path.
-            See :meth:'route' for details. """
-        return self.route(path, method, **kargs)
+    def post(self, path=None, method='POST', **options):
+        """ Equals :meth:`route` with a ``POST`` method parameter. """
+        return self.route(path, method, **options)
 
-    def put(self, path=None, method='PUT', **kargs):
-        """ Decorator: Bind a function to a PUT request path.
-            See :meth:'route' for details. """
-        return self.route(path, method, **kargs)
+    def put(self, path=None, method='PUT', **options):
+        """ Equals :meth:`route` with a ``PUT`` method parameter. """
+        return self.route(path, method, **options)
 
-    def delete(self, path=None, method='DELETE', **kargs):
-        """ Decorator: Bind a function to a DELETE request path.
-            See :meth:'route' for details. """
-        return self.route(path, method, **kargs)
+    def delete(self, path=None, method='DELETE', **options):
+        """ Equals :meth:`route` with a ``DELETE`` method parameter. """
+        return self.route(path, method, **options)
 
     def error(self, code=500):
         """ Decorator: Register an output handler for a HTTP error code"""
@@ -531,43 +599,43 @@ class Bottle(object):
         return wrapper
 
     def hook(self, name):
-        """ Return a decorator that adds a callback to the specified hook. """
+        """ Return a decorator that attaches a callback to a hook. """
         def wrapper(func):
-            self.add_hook(name, func)
+            self.hooks.add(name, func)
             return func
         return wrapper
 
     def add_hook(self, name, func):
-        ''' Add a callback from a hook. '''
-        if name not in self.hooks:
-            raise ValueError("Unknown hook name %s" % name)
-        if name in ('after_request'):
-            self.hooks[name].insert(0, func)
-        else:
-            self.hooks[name].append(func)
+        depr("Call Bottle.hooks.add() instead.") #0.9
+        self.hooks.add(name, func)
 
     def remove_hook(self, name, func):
-        ''' Remove a callback from a hook. '''
-        if name not in self.hooks:
-            raise ValueError("Unknown hook name %s" % name)
-        self.hooks[name].remove(func)
+        depr("Call Bottle.hooks.remove() instead.") #0.9
+        self.hooks.remove(name, func)
 
-    def handle(self, environ):
-        """ Execute the handler bound to the specified url and method and return
-        its output. If catchall is true, exceptions are catched and returned as
-        HTTPError(500) objects. """
+    def handle(self, environ, method='GET'):
+        """ Execute the first matching route callback and return the result.
+            :exc:`HTTPResponse` exceptions are catched and returned. If :attr:`Bottle.catchall` is true, other exceptions are catched as
+            well and returned as :exc:`HTTPError` instances (500).
+        """
+        if isinstance(environ, str):
+            depr("Bottle.handle() takes an environ dictionary.") # v0.9
+            environ = {'PATH_INFO': environ, 'REQUEST_METHOD': method.upper()}
         if not self.serve:
             return HTTPError(503, "Server stopped")
         try:
-            handler, args = self.match(environ)
-            return handler(**args)
-        except HTTPResponse, e:
-            return e
+            callback, args = self.match(environ)
+            return callback(**args)
+        except HTTPResponse, r:
+            return r
+        except RouteReset: # Route reset requested by the callback or a plugin.
+            del self.ccache[handle]
+            return self.handle(environ) # Try again.
+        except (KeyboardInterrupt, SystemExit, MemoryError):
+            raise
         except Exception, e:
-            if isinstance(e, (KeyboardInterrupt, SystemExit, MemoryError))\
-            or not self.catchall:
-                raise
-            return HTTPError(500, 'Unhandled exception', e, format_exc(10))
+            if not self.catchall: raise
+            return HTTPError(500, "Internal Server Error", e, format_exc(10))
 
     def _cast(self, out, request, response, peek=None):
         """ Try to convert the parameter into something WSGI compatible and set
@@ -575,10 +643,6 @@ class Bottle(object):
         Support: False, str, unicode, dict, HTTPResponse, HTTPError, file-like,
         iterable of strings and iterable of unicodes
         """
-        # Filtered types (recursive, because they may return anything)
-        for testtype, filterfunc in self.castfilter:
-            if isinstance(out, testtype):
-                return self._cast(filterfunc(out), request, response)
 
         # Empty output is done here
         if not out:
@@ -676,6 +740,7 @@ class Bottle(object):
 # HTTP and WSGI Tools ##########################################################
 ###############################################################################
 
+
 class Request(threading.local, DictMixin):
     """ Represents a single HTTP request using thread-local attributes.
         The Request object wraps a WSGI environment and can be used as such.
@@ -744,7 +809,9 @@ class Request(threading.local, DictMixin):
     @property
     def fullpath(self):
         """ Request path including SCRIPT_NAME (if present). """
-        return self.environ.get('SCRIPT_NAME', '').rstrip('/') + self.path
+        spath = self.environ.get('SCRIPT_NAME','').rstrip('/') + '/'
+        rpath = self.path.lstrip('/')
+        return urljoin(spath, rpath)
 
     @property
     def url(self):
@@ -752,6 +819,8 @@ class Request(threading.local, DictMixin):
 
             This value is constructed out of different environment variables
             and includes scheme, host, port, scriptname, path and query string.
+
+            Special characters are NOT escaped.
         """
         scheme = self.environ.get('wsgi.url_scheme', 'http')
         host   = self.environ.get('HTTP_X_FORWARDED_HOST')
@@ -761,7 +830,7 @@ class Request(threading.local, DictMixin):
             port = self.environ.get('SERVER_PORT', '80')
             if (scheme, port) not in (('https','443'), ('http','80')):
                 host += ':' + port
-        parts = (scheme, host, urlquote(self.fullpath), self.query_string, '')
+        parts = (scheme, host, self.fullpath, self.query_string, '')
         return urlunsplit(parts)
 
     @property
@@ -776,7 +845,7 @@ class Request(threading.local, DictMixin):
 
     @DictProperty('environ', 'bottle.headers', read_only=True)
     def headers(self):
-        ''' Request HTTP Headers stored in a :cls:`HeaderDict`. '''
+        ''' Request HTTP Headers stored in a :class:`HeaderDict`. '''
         return WSGIHeaderDict(self.environ)
 
     @DictProperty('environ', 'bottle.get', read_only=True)
@@ -880,7 +949,7 @@ class Request(threading.local, DictMixin):
 
     @DictProperty('environ', 'bottle.cookies', read_only=True)
     def COOKIES(self):
-        """ Cookies parsed into a dictionary. Secure cookies are NOT decoded
+        """ Cookies parsed into a dictionary. Signed cookies are NOT decoded
             automatically. See :meth:`get_cookie` for details.
         """
         raw_dict = SimpleCookie(self.headers.get('Cookie',''))
@@ -890,7 +959,7 @@ class Request(threading.local, DictMixin):
         return cookies
 
     def get_cookie(self, key, secret=None):
-        """ Return the content of a cookie. To read a `Secure Cookies`, use the
+        """ Return the content of a cookie. To read a `Signed Cookies`, use the
             same `secret` as used to create the cookie (see
             :meth:`Response.set_cookie`). If anything goes wrong, None is
             returned.
@@ -906,7 +975,6 @@ class Request(threading.local, DictMixin):
         ''' True if the request was generated using XMLHttpRequest '''
         #TODO: write tests
         return self.header.get('X-Requested-With') == 'XMLHttpRequest'
-
 
 
 class Response(threading.local):
@@ -971,12 +1039,12 @@ class Response(threading.local):
         return self._COOKIES
 
     def set_cookie(self, key, value, secret=None, **kargs):
-        ''' Add a cookie. If the `secret` parameter is set, this creates a
-            `Secure Cookie` (described below).
+        ''' Add a cookie or overwrite an old one. If the `secret` parameter is
+            set, create a `Signed Cookie` (described below).
 
             :param key: the name of the cookie.
             :param value: the value of the cookie.
-            :param secret: required for secure cookies. (default: None)
+            :param secret: required for signed cookies. (default: None)
             :param max_age: maximum age in seconds. (default: None)
             :param expires: a datetime object or UNIX timestamp. (defaut: None)
             :param domain: the domain that is allowed to read the cookie.
@@ -986,11 +1054,11 @@ class Response(threading.local):
             If neither `expires` nor `max_age` are set (default), the cookie
             lasts only as long as the browser is not closed.
 
-            Secure cookies may store any pickle-able object and are
+            Signed cookies may store any pickle-able object and are
             cryptographically signed to prevent manipulation. Keep in mind that
             cookies are limited to 4kb in most browsers.
 
-            Warning: Secure cookies are not encrypted (the client can still see
+            Warning: Signed cookies are not encrypted (the client can still see
             the content) and not copy-protected (the client can restore an old
             cookie). The main intention is to make pickling and unpickling
             save, not to store secret information at client side.
@@ -1027,8 +1095,106 @@ class Response(threading.local):
 
 
 ###############################################################################
+# Plugins ######################################################################
+###############################################################################
+
+
+class JSONPlugin(object):
+    name = 'json'
+
+    def __init__(self, json_dumps=json_dumps):
+        self.json_dumps = json_dumps
+
+    def apply(self, callback, context):
+        dumps = self.json_dumps
+        if not dumps: return callback
+        def wrapper(*a, **ka):
+            rv = callback(*a, **ka)
+            if isinstance(rv, dict):
+                response.content_type = 'application/json'
+                return dumps(rv)
+            return rv
+        return wrapper
+
+
+
+class HooksPlugin(object):
+    name = 'hooks'
+
+    def __init__(self):
+        self.hooks = {'before_request': [], 'after_request': []}
+        self.app = None
+
+    def _empty(self):
+        return not (self.hooks['before_request'] or self.hooks['after_request'])
+
+    def setup(self, app):
+        self.app = app
+
+    def add(self, name, func):
+        ''' Attach a callback to a hook. '''
+        if name not in self.hooks:
+            raise ValueError("Unknown hook name %s" % name)
+        was_empty = self._empty()
+        self.hooks[name].append(func)
+        if self.app and was_empty and not self._empty(): self.app.reset()
+
+    def remove(self, name, func):
+        ''' Remove a callback from a hook. '''
+        if name not in self.hooks:
+            raise ValueError("Unknown hook name %s" % name)
+        was_empty = self._empty()
+        self.hooks[name].remove(func)
+        if self.app and not was_empty and self._empty(): self.app.reset()
+
+    def apply(self, callback, context):
+        if self._empty(): return callback
+        before_request = self.hooks['before_request']
+        after_request  = self.hooks['after_request']
+        def wrapper(*a, **ka):
+            for hook in before_request: hook()
+            rv = callback(*a, **ka)
+            for hook in after_request[::-1]: hook()
+            return rv
+        return wrapper
+
+
+
+class TypeFilterPlugin(object):
+    def __init__(self):
+        self.filter = []
+        self.app = None
+
+    def setup(self, app):
+        self.app = app
+
+    def add(self, ftype, func):
+        if not self.filter and app: self.app.reset()
+        if not isinstance(ftype, type):
+            raise TypeError("Expected type object, got %s" % type(ftype))
+        self.filter = [(t, f) for (t, f) in self.filter if t != ftype]
+        self.filter.append((ftype, func))
+
+    def apply(self, callback, context):
+        filter = self.filter
+        if not filter: return callback
+        def wrapper(*a, **ka):
+            rv = callback(*a, **ka)
+            for testtype, filterfunc in filter:
+                if isinstance(rv, testtype):
+                    rv = filterfunc(rv)
+            return rv
+        return wrapper
+
+
+
+
+
+
+###############################################################################
 # Common Utilities #############################################################
 ###############################################################################
+
 
 class MultiDict(DictMixin):
     """ A dict that remembers old values for each key """
@@ -1062,14 +1228,20 @@ class MultiDict(DictMixin):
 
 
 class HeaderDict(MultiDict):
-    """ Same as :class:`MultiDict`, but title()s the keys and overwrites by default. """
-    def __contains__(self, key): return MultiDict.__contains__(self, self.httpkey(key))
-    def __getitem__(self, key): return MultiDict.__getitem__(self, self.httpkey(key))
-    def __delitem__(self, key): return MultiDict.__delitem__(self, self.httpkey(key))
+    """ Same as :class:`MultiDict`, but title()s the keys and overwrites. """
+    def __contains__(self, key):
+        return MultiDict.__contains__(self, self.httpkey(key))
+    def __getitem__(self, key):
+        return MultiDict.__getitem__(self, self.httpkey(key))
+    def __delitem__(self, key):
+        return MultiDict.__delitem__(self, self.httpkey(key))
     def __setitem__(self, key, value): self.replace(key, value)
-    def get(self, key, default=None, index=-1): return MultiDict.get(self, self.httpkey(key), default, index)
-    def append(self, key, value): return MultiDict.append(self, self.httpkey(key), str(value))
-    def replace(self, key, value): return MultiDict.replace(self, self.httpkey(key), str(value))
+    def get(self, key, default=None, index=-1):
+        return MultiDict.get(self, self.httpkey(key), default, index)
+    def append(self, key, value):
+        return MultiDict.append(self, self.httpkey(key), str(value))
+    def replace(self, key, value):
+        return MultiDict.replace(self, self.httpkey(key), str(value))
     def getall(self, key): return MultiDict.getall(self, self.httpkey(key))
     def httpkey(self, key): return str(key).replace('_','-').title()
 
@@ -1115,22 +1287,20 @@ class WSGIHeaderDict(DictMixin):
     def __contains__(self, key): return self._ekey(key) in self.environ
 
 
-
-
-
 class AppStack(list):
-    """ A stack implementation. """
+    """ A stack-like list. Calling it returns the head of the stack. """
 
     def __call__(self):
-        """ Return the current default app. """
+        """ Return the current default application. """
         return self[-1]
 
     def push(self, value=None):
-        """ Add a new Bottle instance to the stack """
+        """ Add a new :class:`Bottle` instance to the stack """
         if not isinstance(value, Bottle):
             value = Bottle()
         self.append(value)
         return value
+
 
 class WSGIFileWrapper(object):
 
@@ -1155,7 +1325,9 @@ class WSGIFileWrapper(object):
 # Application Helper ###########################################################
 ###############################################################################
 
+
 def dict2json(d):
+    depr('JSONPlugin is the preferred way to return JSON.') #0.9
     response.content_type = 'application/json'
     return json_dumps(d)
 
@@ -1303,6 +1475,7 @@ def yieldroutes(func):
         path += '/:%s' % arg
         yield path
 
+
 def path_shift(script_name, path_info, shift=1):
     ''' Shift path fragments from PATH_INFO to SCRIPT_NAME and vice versa.
 
@@ -1356,6 +1529,7 @@ def validate(**vkargs):
         return wrapper
     return decorator
 
+
 def auth_basic(check, realm="private", text="Access denied"):
     ''' Callback decorator to require HTTP auth (basic).
         TODO: Add route(check_auth=...) parameter. '''
@@ -1377,10 +1551,12 @@ def make_default_app_wrapper(name):
         return getattr(app(), name)(*a, **ka)
     return wrapper
 
+
 for name in 'route get post put delete error mount hook'.split():
     globals()[name] = make_default_app_wrapper(name)
 url = make_default_app_wrapper('get_url')
 del name
+
 
 def default():
     depr("The default() decorator is deprecated. Use @error(404) instead.")
@@ -1394,6 +1570,7 @@ def default():
 ###############################################################################
 # Server Adapter ###############################################################
 ###############################################################################
+
 
 class ServerAdapter(object):
     quiet = False
@@ -1457,6 +1634,7 @@ class MeinheldServer(ServerAdapter):
         from meinheld import server
         server.listen((self.host, self.port))
         server.run(handler)
+
 
 class FapwsServer(ServerAdapter):
     """ Extremely fast webserver using libev. See http://www.fapws.org/ """
@@ -1561,6 +1739,7 @@ class RocketServer(ServerAdapter):
         server = Rocket((self.host, self.port), 'wsgi', { 'wsgi_app' : handler })
         server.start()
 
+
 class BjoernServer(ServerAdapter):
     """ Screamingly fast server written in C: https://github.com/jonashaag/bjoern """
     def run(self, handler):
@@ -1641,6 +1820,7 @@ def _load(target, **vars):
     package_name = module.split('.')[0]
     vars[package_name] = sys.modules[package_name]
     return eval('%s.%s' % (module, target), vars)
+
 
 def load_app(target):
     """ Load a bottle application based on a target string and return the
@@ -1792,6 +1972,7 @@ def _reloader_observer(server, app, interval):
 # Template Adapters ############################################################
 ###############################################################################
 
+
 class TemplateError(HTTPError):
     def __init__(self, message):
         HTTPError.__init__(self, 500, message)
@@ -1872,10 +2053,11 @@ class MakoTemplate(BaseTemplate):
         from mako.template import Template
         from mako.lookup import TemplateLookup
         options.update({'input_encoding':self.encoding})
+        options.setdefault('format_exceptions', bool(DEBUG))
         #TODO: This is a hack... https://github.com/defnull/bottle/issues#issue/8
         mylookup = TemplateLookup(directories=['.']+self.lookup, **options)
         if self.source:
-            self.tpl = Template(self.source, lookup=mylookup)
+            self.tpl = Template(self.source, lookup=mylookup, **options)
         else: #mako cannot guess extentions. We can, but only at top level...
             name = self.name
             if not os.path.splitext(name)[1]:
@@ -1935,6 +2117,7 @@ class Jinja2Template(BaseTemplate):
             with open(fname, "rb") as f:
                 return f.read().decode(self.encoding)
 
+
 class SimpleTALTemplate(BaseTemplate):
     ''' Untested! '''
     def prepare(self, **options):
@@ -1959,7 +2142,6 @@ class SimpleTALTemplate(BaseTemplate):
         output = StringIO()
         self.tpl.expand(context, output)
         return output.getvalue()
-
 
 
 class SimpleTemplate(BaseTemplate):
@@ -2143,6 +2325,7 @@ cheetah_template = functools.partial(template, template_adapter=CheetahTemplate)
 jinja2_template = functools.partial(template, template_adapter=Jinja2Template)
 simpletal_template = functools.partial(template, template_adapter=SimpleTALTemplate)
 
+
 def view(tpl_name, **defaults):
     ''' Decorator: renders a template for a handler.
         The handler can control its behavior like that:
@@ -2174,9 +2357,11 @@ simpletal_view = functools.partial(view, template_adapter=SimpleTALTemplate)
 
 
 
+
 ###############################################################################
 # Constants and Globals ########################################################
 ###############################################################################
+
 
 TEMPLATE_PATH = ['./', './views/']
 TEMPLATES = {}
