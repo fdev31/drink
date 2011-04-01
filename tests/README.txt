@@ -1,11 +1,29 @@
 Getting started
 ===============
 
-Install lettuce and requests:
+Install lettuce and mechanize:
 
-    pip install requests lettuce
+    pip install mechanize lettuce
 
 Install "tidy" (html validator):
 
     apt-get install tidy
+
+Running it
+==========
+
+Colorful display
+----------------
+
+Just run:
+
+    lettuce
+
+More compact output
+-------------------
+
+Run:
+
+    lettuce -v2
+
 
