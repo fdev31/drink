@@ -1,11 +1,25 @@
-from lettuce import world
+import logging
 import mechanize
 import subprocess
 
+from lettuce import world
+
 SERVER = 'http://localhost:5000'
 
-world.www = mechanize.Browser()
+bw = world.www = mechanize.Browser()
 world.req = world.www.open(SERVER+'/')
+
+if 0:
+    #Log information about HTTP redirects and Refreshes.
+    bw.set_debug_redirects(True)
+    #Log HTTP response bodies (ie. the HTML, most of the time).
+    bw.set_debug_responses(True)
+    #Print HTTP headers.
+    bw.set_debug_http(True)
+
+    logger = logging.getLogger("mechanize")
+    logger.addHandler(logging.StreamHandler(sys.stdout))
+    logger.setLevel(logging.INFO)
 
 def tidy(req):
     req.seek(0)
