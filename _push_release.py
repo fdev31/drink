@@ -63,7 +63,9 @@ print uuid, ">", new_tag
 step('hg tag %s'%new_tag)
 # push code
 step('hg push')
-step('hg push hub')
+step('hg push hub') # git+ssh://git@github.com:fdev31/drink.git
+step('hg push bit') # https://fab31@bitbucket.org/fab31/drink
+
 # publish
 get('http://readthedocs.org/build/636') # readthedocs hook
 step('python ./setup.py sdist upload')
