@@ -71,8 +71,11 @@ class MarkdownPage(drink.Page):
                 break
         else:
             ret = '%sadd?name=%s&class=%s'%(base, label, _title)
+            lbl = None
 
-        cache[label] = lbl
+        if lbl:
+            cache[label] = lbl
+
         self._wikilinks = cache
         return ret
 
