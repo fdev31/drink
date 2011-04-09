@@ -3,6 +3,10 @@
 from subprocess import Popen, PIPE
 import os
 
+def get(url):
+    import urllib
+    urllib.urlopen(url).read()
+
 def step(cmd):
     c = Popen(cmd, stdout=PIPE, shell=isinstance(cmd, basestring))
     output = c.communicate()[0].strip()
@@ -61,5 +65,6 @@ step('hg tag %s'%new_tag)
 step('hg push')
 step('hg push hub')
 # publish
+get('http://readthedocs.org/build/636') # readthedocs hook
 step('python ./setup.py sdist upload')
 
