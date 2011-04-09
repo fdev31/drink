@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
 from subprocess import Popen, PIPE
+import requests
 import os
 
-def get(url):
-    import urllib
-    urllib.urlopen(url).read()
+def get(url, method='POST'):
+    getattr(requests, method.lower())(url)
 
 def step(cmd):
     c = Popen(cmd, stdout=PIPE, shell=isinstance(cmd, basestring))
