@@ -73,13 +73,16 @@ def get_struct_from_obj(obj, childs, full):
     return d
 
 class Page(Model):
+    """ A dict-like object, defining all properties required by a standard page """
 
-    # Model properties
+    #: fields that are editable (appear in edit panel)
 
     editable_fields = {
         'title': drink.types.Text('Title'),
         'description': drink.types.Text('Description'),
     }
+
+    #: fields that are only editable by the owner (appear in edit panel)
 
     owner_fields = {
         'default_action':
@@ -96,14 +99,26 @@ class Page(Model):
             drink.types.BoolOption('Disable Js')
     }
 
+    #: fields that are only editable by the admin (appear in edit panel)
+
     admin_fields = {}
+
+    #: permissions given to any user (anonymous or not)
     min_rights = ''
+
+    #: mime-type of the object, used for icon
     mime = 'page'
+    #: object may read this to disable some ajax
     disable_ajax = False
+    #: list of css files required by this object
     css = []
+    #: html content, used by default in :meth:`view`
     html = ''
+    #: list of javascript files included in the views
     js = []
+    #: short description of the object or instance
     description = 'An abstract page'
+    #: dictionnary of classes allowed in that contect
     classes = drink.classes
 
     #: default action if none specified
@@ -166,16 +181,28 @@ class Page(Model):
         return self.rootpath + self.id + '/'
 
     def edit(self, resume=None):
+        """ Edit form
+
+        :arg resume: when given, won't call :meth:`_edit` but use this value instead
+        :type resume: bool
+        :returns: a form allowing to edit the object or http error
+
+        call :meth:`_edit` method and return it's value.
+        In case you return a tuple which first parameter is callable,
+        then it calls the callable with the other tuple elements as parameters.
+        This is used to handle redirects, from "inside" you should always use :meth:`_edit` !
+
+        """
         r = resume or self._edit()
         transaction.commit() # commit before eventual redirect
-        if callable(r[0]):
+        if isinstance(r, (list, tuple)) and callable(r[0]):
             return r[0](*r[1:])
         else:
             return r
 
     def _edit(self):
         if 'w' not in request.identity.access(self):
-            return drink.unauthorized("Not authorized")
+            return (drink.unauthorized, "Not authorized")
 
         items = self.editable_fields.items()
         if request.identity.id == self.owner.id or request.identity.admin:
