@@ -112,6 +112,7 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 - add more types to default form edition
    - object_path => integrate it to markdown editor
 - fix markdown preview css (make it seamless)
+- buildbot & virtualenv
 - change cookie on password change
 - only accept object move if it succeded on server
 - allow custom extensions
@@ -131,6 +132,9 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 - add calltips everywhere
 - default content for every user
 - review 401 handling, ask for login/passwd in case of new session (to be finished)
+- Think about opening WebFiles in mail client as attached file...
+- add markdown support to tasks comment
+- improve link support (javascript popup) in markdown so it's easy to link tasks to any object
 
 Fixes:
 
