@@ -32,4 +32,4 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-.. _Bugtracker: http://zicbee.gnux.info/bugtraq
+.. _Bugtracker: https://github.com/fdev31/drink/issues
