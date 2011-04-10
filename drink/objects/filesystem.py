@@ -78,6 +78,7 @@ class Filesystem(PyFile, drink.ListPage):
     local_path = ''
     default_view = 'list'
     mime = 'folder'
+    hidden_class = True
 
     editable_fields = drink.ListPage.editable_fields.copy()
     editable_fields.update({
