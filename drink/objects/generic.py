@@ -461,7 +461,7 @@ class WebFile(Page):
             if mime.startswith('image/'):
                 html.append('<img src="raw" />')
             elif mime in ('application/xml', ) or mime.startswith('text/'):
-                f = self.content.open('rb')
+                f = self.content.open('r')
                 html.append('<pre>')
                 html.append(f.read())
                 html.append('</pre>')
