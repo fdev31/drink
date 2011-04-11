@@ -147,7 +147,7 @@ class Authenticator(object):
 @route('/')
 def main_index():
     request.identity = Authenticator()
-    o = classes[config.get('server', 'index')](db.db)
+    o = classes[config.get('server', 'index')](db.db, rootpath='/')
     o.disable_ajax = True
     return o.view()
 

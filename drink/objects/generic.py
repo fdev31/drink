@@ -10,9 +10,7 @@ from drink.types import dt2str
 from drink.zdb import Model
 from . import classes
 
-# TODO: make Model inherit Persistent + Page inherit PersistentDict
-#  Model & Page will share most of the interface but Model can't have any children (it's an end-point property)
-# ??? Models will be self-editable, wilth _Editable-like interface, they may have a link...
+# TODO: Create a "BigListPage" (aka BigFolder) inheriting OOBtree & Page
 
 class _Mock(object): pass
 
@@ -140,9 +138,8 @@ class Page(Model):
         if not isinstance(name, basestring):
             # Root object special case, will pass the dict or None...
             if name is not None:
-                self.update(name)
+                self.data.update(name)
             name = '/'
-            rootpath = '/'
             self.id = '.'
         else:
             if not name or name[0] in r'/.$%_':
@@ -162,11 +159,6 @@ class Page(Model):
 
     def __hash__(self):
         return hash(self.id)
-
-    def __setitem__(self, key, item):
-        if key in self:
-            drink.unauthorized("%r is already defined!"%key)
-        return Model.__setitem__(self, key, item)
 
     def view(self):
         return drink.template('main.html', obj=self,
@@ -328,7 +320,11 @@ class Page(Model):
 
         if 'a' not in auth.access(self):
             return drink.unauthorized("Not authorized")
+
         name = name or request.params.get('name')
+
+        if name in self:
+            drink.unauthorized("%r is already defined!"%name)
 
         if None == cls:
             cls = request.params.get('class')
@@ -343,7 +339,6 @@ class Page(Model):
         return template('list.html', obj=self, css=self.css, js=self.js,
             classes=self.classes, authenticated=request.identity)
 
-
 class ListPage(Page):
     description = "An ordered folder-like display"
 
@@ -354,12 +349,16 @@ class ListPage(Page):
     def __init__(self, name, rootpath=None):
         self.forced_order = []
         Page.__init__(self, name, rootpath)
+        if 0 != len(self):
+            self.forced_order = self.data.keys()
 
     def iterkeys(self):
-        k = Page.keys(self)
-        return (x for x in self.forced_order if x in k) or k
+        return iter(self.forced_order)
+        #k = Page.keys(self)
+        #return (x for x in self.forced_order if x in k) or k
 
-    keys = iterkeys
+    def keys(self):
+        return list(self.forced_order)
 
     def move(self):
         self.forced_order = request.params.get('set').split('/')
@@ -436,7 +435,7 @@ class WebFile(Page):
     content_name = "unnamed"
 
     def raw(self):
-        root, fname = os.path.split(self.content.committed())
+        root, fname = os.path.split(self.content.filename)
         return drink.static_file(fname, root, mimetype=self.mimetype, download=self.content_name)
         #Alternatively: drink.response.headers['Content-Type'] = '...'
         # + read

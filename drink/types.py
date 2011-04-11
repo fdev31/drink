@@ -8,7 +8,7 @@ import datetime
 import transaction
 from . import classes
 from drink import template
-from ZODB.blob import Blob
+from drink.zdb import DataBlob
 from time import mktime, strptime
 from persistent.dict import PersistentDict
 
@@ -224,7 +224,7 @@ class File(_Editable):
         if val == '':
             return
         setattr(obj, name+"_name", val.filename)
-        new_o = Blob()
+        new_o = DataBlob()
         setattr(obj, name, new_o)
         o_fd = new_o.open('w')
         chunk_sz = 2**20 # 1MB

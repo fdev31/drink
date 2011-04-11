@@ -1,4 +1,4 @@
-__all__ = ['Model', 'Database']
+__all__ = ['Model', 'Database', 'DataBlob', 'BTree', 'PersistentList']
 
 from UserDict import IterableUserDict
 import ZODB.config
@@ -7,6 +7,10 @@ import persistent
 import drink
 import atexit
 import threading
+from ZODB.blob import Blob
+# Not used, but exported
+from BTrees.OOBTree import OOBTree
+from persistent.list import PersistentList
 
 class Database(object):
     def __init__(self, wsgi_app, config_file):
@@ -64,6 +68,19 @@ class Database(object):
         else:
             transaction.commit()
 
+class DataBlob(persistent.Persistent):
+    def __init__(self):
+        self._o = Blob()
+
+    def open(self, mode='r'):
+        """ Opens the blob, returns a file descriptor """
+        return self._o.open(mode)
+
+    @property
+    def filename(self):
+        return self._o.committed()
+
+BTree = OOBTree
 
 class Model(persistent.Persistent):
 
@@ -134,18 +151,17 @@ class Model(persistent.Persistent):
     def has_key(self, key):
         return key in self.data
 
-    def update(self, dict=None, **kwargs):
-        if dict is None:
-            pass
-        elif isinstance(dict, Model):
-            self.data.update(dict.data)
-        elif isinstance(dict, type({})) or not hasattr(dict, 'items'):
-            self.data.update(dict)
-        else:
-            for k, v in dict.items():
-                self[k] = v
+    def update(self, other=None, **kwargs):
+
+        if other != None:
+            if isinstance(other, Model):
+                self.data.update(other.data)
+            else:
+                self.data.update(other)
+
         if len(kwargs):
             self.data.update(kwargs)
+
         self._p_changed = 1
 
     def get(self, key, failobj=None):
