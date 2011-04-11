@@ -30,7 +30,6 @@ class MarkdownEditor(drink.types._Editable):
 <textarea id="%(id)s" name="%(name)s" cols="80" rows="25">%(value)s</textarea>
     ''')
 
-wikifier_cache = {}
 
 class MarkdownPage(drink.Page):
     content = DEFAULT_CONTENT
@@ -42,7 +41,8 @@ class MarkdownPage(drink.Page):
     js = drink.Page.js + ['/static/markitup/jquery.markitup.js',
         '/static/markitup/sets/markdown/set.js']
 
-    css = drink.Page.css + ['/static/markitup/sets/markdown/style.css', '/static/markitup/skins/markitup/style.css']
+    css = drink.Page.css + ['/static/markitup/sets/markdown/style.css',
+     '/static/markitup/skins/markitup/style.css']
 
     markup_name = ''
 
@@ -80,19 +80,19 @@ class MarkdownPage(drink.Page):
         return ret
 
     def process(self, data=None):
-        md = wikifier_cache.get(self.path, None) or Markdown(
+        if not hasattr(self, '_v_wikifier_cache'):
+            self._v_wikifier_cache = Markdown(
             extensions = ['tables', 'wikilinks', 'fenced_code',
             'toc', 'def_list', 'codehilite(force_linenos=True)'],
             extension_configs = {
-            "codehilite":
-                 ("force_linenos", True),
-            "wikilinks":
-                [("base_url", self.path), ('build_url', self._wikify)],
-            },
-        )
-        wikifier_cache[self.path] = md
+                "codehilite":
+                     ("force_linenos", True),
+                "wikilinks":
+                    [("base_url", self.path), ('build_url', self._wikify)],
+                }
+            )
 
-        return md.convert(data or drink.request.forms.get('data'))
+        return self._v_wikifier_cache.convert(data or drink.request.forms.get('data'))
 
     def view(self):
 
