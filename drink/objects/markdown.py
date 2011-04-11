@@ -46,6 +46,19 @@ class MarkdownPage(drink.Page):
 
     markup_name = ''
 
+    _template = r'''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<link rel="stylesheet" type="text/css" href="/static/page.css" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Drink! preview template</title>
+</head>
+<body>
+%s
+</body>
+</html>
+'''
+
     editable_fields = drink.Page.editable_fields.copy()
     editable_fields.update({
         'content': MarkdownEditor("Content"),
@@ -92,7 +105,7 @@ class MarkdownPage(drink.Page):
                 }
             )
 
-        return self._v_wikifier_cache.convert(data or drink.request.forms.get('data'))
+        return self._template % self._v_wikifier_cache.convert(data or drink.request.params.get('data'))
 
     def view(self):
 

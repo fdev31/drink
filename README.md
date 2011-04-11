@@ -102,16 +102,16 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 -   Slightly better access/permissions redirects
 -   Filesystem mountpoint (alpha)
 -   Improved item addition a bit
+-   Markdown have an almost correctly styled preview
+-   Cleaner models
 -   As always: Fixes & Bugs
 
 ## Roadmap
 
 ### 0.1 (wip)
 
-- abstract all low-level models (blobs...)
 - add more types to default form edition
    - object_path => integrate it to markdown editor
-- fix markdown preview css (make it seamless)
 - buildbot & virtualenv
 - change cookie on password change
 - only accept object move if it succeded on server

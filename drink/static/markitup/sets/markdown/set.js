@@ -16,46 +16,47 @@ save_doc = function(h) {
 }
 
 untabber = function(mid) {
-      var textarea = mid.textarea,  
-      selStart = textarea.selectionStart,  
-      selEnd = textarea.selectionEnd,  
-      selText = textarea.value.substring(selStart, selEnd),  
-      lines = [],   
-      charsAdded = 0;  
+      var textarea = mid.textarea,
+      selStart = textarea.selectionStart,
+      selEnd = textarea.selectionEnd,
+      selText = textarea.value.substring(selStart, selEnd),
+      lines = [],
+      charsAdded = 0;
 
-      lines = selText.split(/\r?\n/);  
-      for (var i = 0, len = lines.length; i < len; i++) {  
+      lines = selText.split(/\r?\n/);
+      for (var i = 0, len = lines.length; i < len; i++) {
           re = /^\s{4}/;
           if (lines[i].match(re)) {
               lines[i] = lines[i].replace(re, '');
               charsAdded -= 4;
           }
-      }  
+      }
       textarea.selectionEnd = selEnd + charsAdded;
-      return lines.join('\n');  
+      return lines.join('\n');
 }
 
 tabber = function(mid) {
-      var textarea = mid.textarea,  
-      selStart = textarea.selectionStart,  
-      selEnd = textarea.selectionEnd,  
-      selText = textarea.value.substring(selStart, selEnd),  
-      lines = [],   
-      charsAdded = 0;  
+      var textarea = mid.textarea,
+      selStart = textarea.selectionStart,
+      selEnd = textarea.selectionEnd,
+      selText = textarea.value.substring(selStart, selEnd),
+      lines = [],
+      charsAdded = 0;
 
-      lines = selText.split(/\r?\n/);  
-      for (var i = 0, len = lines.length; i < len; i++) {  
+      lines = selText.split(/\r?\n/);
+      for (var i = 0, len = lines.length; i < len; i++) {
           lines[i] = "    "+lines[i];
           charsAdded += 4;
-      }  
+      }
       textarea.selectionEnd = selEnd + charsAdded;
-      return lines.join('\n');  
+      return lines.join('\n');
 }
 
 mySettings = {
     nameSpace: "markdown",
     previewParserPath:  './process',
     previewAutoRefresh: true,
+	//previewInWindow: true,
 	onCtrlEnter:		{afterInsert: save_doc, keepDefault: false},
 	markupSet: [
 		{name:'First Level Heading', key:'1', placeHolder:'Your title here...', closeWith:function(markItUp) { return miu.markdownTitle(markItUp, '=') } },

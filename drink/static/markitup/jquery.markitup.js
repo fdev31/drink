@@ -35,7 +35,7 @@
 					previewInWindow:		'', // 'width=800, height=600, resizable=yes, scrollbars=yes'
 					previewAutoRefresh:		true,
 					previewPosition:		'after',
-					previewTemplatePath:	'~/templates/preview.html',
+					previewTemplatePath:	'/static/markitup/templates/preview.html',
 					previewParserPath:		'',
 					previewParserVar:		'data',
 					resizeHandle:			true,
