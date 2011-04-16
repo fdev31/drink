@@ -3,6 +3,8 @@ drink.objects.filesystem
 
 .. currentmodule:: drink.objects.filesystem
 
-.. autosummary:: Filesystem
+.. autosummary::
+
+    Filesystem
 
 .. automodule:: drink.objects.filesystem
