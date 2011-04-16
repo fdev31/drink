@@ -108,6 +108,7 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 -   Improved item addition a bit
 -   Markdown have an almost correctly styled preview
 -   Cleaner models
+-   Embryo of documentation
 -   As always: Fixes & Bugs
 
 ## Roadmap
