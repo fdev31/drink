@@ -87,6 +87,7 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
     -   file (upload your own file, also allows D&D)
     -   Web page ( markdown only )
     -   Simple TODO list/TODOs (WIP)
+    -   Filesystem mountpoint (alpha)
 
     And of course special elements like Groups & Users !.
 
@@ -101,14 +102,6 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 
 ## Release changes
 
--   Improved TODO Lists (fullcalendar included)
--   Now any TextArea can submit the form with Ctrl+Enter
--   Slightly better access/permissions redirects
--   Filesystem mountpoint (alpha)
--   Improved item addition a bit
--   Markdown have an almost correctly styled preview
--   Cleaner models
--   Embryo of documentation
 -   As always: Fixes & Bugs
 
 ## Roadmap
