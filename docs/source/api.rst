@@ -29,3 +29,4 @@ Root objects
 ------------
 
 .. automodule::   drink
+

@@ -12,16 +12,18 @@ Additionally you can install *paste* or *gevent* for better performances.
 Example (at the DOS/Console/Shell prompt):
 
      easy_install -U markdown
-     easy_install -U jinja2
-     easy_install -U ZODB3
-     easy_install -U whoosh
 
  or, alternatively:
 
      pip install -U markdown
-     pip install -U jinja2
-     pip install -U ZODB3
-     pip install -U whoosh
+
+Dependencies list:
+
+- markdown
+- jinja2
+- ZODB3
+- whoosh
+- fs
 
 ### Install
 

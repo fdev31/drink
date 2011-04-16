@@ -23,7 +23,7 @@ My contact is fdev31 <AT> gmail <DOT> com.
 Bug reporting
 -------------
 
-Use the `Bugtracker`_ , don't try to create an account, just report it anonymously.
+Use Bitbucket's `Bugtracker`_.
 
 Indices and tables
 ==================
@@ -33,3 +33,4 @@ Indices and tables
 * :ref:`search`
 
 .. _Bugtracker: https://github.com/fdev31/drink/issues
+
