@@ -4,6 +4,8 @@ Alpha Web framework & sample mini CMS.
 
 Aims to be quite generic *all-in-one-but-minimalistic* web+database high-level framework.
 
+Take a look at the (WIP) [documentation at drink.rtfd.org](http://drink.readthedocs.org/en/latest/).
+
 ## Dependencies
 
 Use "easy_install" or "pip" to get 'jinja2', 'markdown', 'ZODB3' and 'whoosh' installed on your system.
