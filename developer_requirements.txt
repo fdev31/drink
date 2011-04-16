@@ -1,0 +1,6 @@
+coverage
+jinja2
+markdown
+ZODB3
+whoosh
+fs
