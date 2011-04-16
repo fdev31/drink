@@ -1,17 +1,16 @@
 Drink
 =====
 
-Alpha Web framework & sample mini CMS application with little
-dependencies: ZODB , bottle & markdown.
+Alpha Web framework & sample mini CMS.
 
 Aims to be quite generic *all-in-one-but-minimalistic* web+database
-framework.
+high-level framework.
 
-Getting started
----------------
+Take a look at the (WIP)
+`documentation at drink.rtfd.org <http://drink.readthedocs.org/en/latest/>`_.
 
-Install
-~~~~~~~
+Dependencies
+------------
 
 Use "easy\_install" or "pip" to get 'jinja2', 'markdown', 'ZODB3'
 and 'whoosh' installed on your system. Additionally you can install
@@ -22,25 +21,31 @@ Example (at the DOS/Console/Shell prompt):
 ::
 
      easy_install -U markdown
-     easy_install -U jinja2
-     easy_install -U ZODB3
-     easy_install -U whoosh
 
 or, alternatively:
 
 ::
 
      pip install -U markdown
-     pip install -U jinja2
-     pip install -U ZODB3
-     pip install -U whoosh
 
-Then, fetch the source archive and unpack it:
+Dependencies list:
+
+
+-  markdown
+-  jinja2
+-  ZODB3
+-  whoosh
+-  fs
+
+Install
+~~~~~~~
+
+Just fetch the source archive and unpack it:
 
 ::
 
-     wget http://pypi.python.org/packages/source/d/drink/drink-0.0.9.tar.bz2
-     tar jxvf drink-0.0.9.tar.bz2
+     wget http://pypi.python.org/packages/source/d/drink/drink-0.0.10.tar.bz2
+     tar jxvf drink-0.0.10.tar.bz2
 
 Running
 ~~~~~~~
@@ -50,7 +55,7 @@ script:
 
 ::
 
-     cd drink-0.0.9
+     cd drink-0.0.10
      ./manage
 
 If you run into troubles, try:
@@ -128,18 +133,14 @@ Release changes
 ---------------
 
 
--  Add a nice Help by default
--  Basic *date* type (used in TODO example object), will pop a
-   calendar up in edit form
--  Renamed File to "WebFile"
--  Better web 2.0 experience
--  Support for web-editable default actions on objects (avoids
-   redirects)
--  Add a custom wsgi loader that gracefully loads the fastest
-   compatible wsgi backend available
--  Finder now also deletes traces of old objects
--  Add support for *"full"* search in finder
--  Add Indent/Deindent support to Markdown editor
+-  Improved TODO Lists (fullcalendar included)
+-  Now any TextArea can submit the form with Ctrl+Enter
+-  Slightly better access/permissions redirects
+-  Filesystem mountpoint (alpha)
+-  Improved item addition a bit
+-  Markdown have an almost correctly styled preview
+-  Cleaner models
+-  Embryo of documentation
 -  As always: Fixes & Bugs
 
 Roadmap
@@ -149,42 +150,46 @@ Roadmap
 ~~~~~~~~~
 
 
--  abstract all low-level models (blobs...)
--  review 401 handling, ask for login/passwd in case of new session
--  fix markdown preview css (make it seamless)
--  add calltips everywhere
+-  add more types to default form edition
+-  object\_path => integrate it to markdown editor
+-  buildbot & virtualenv
 -  change cookie on password change
--  pack should call
-   http://packages.python.org/Whoosh/api/index.html?highlight=optimize#whoosh.index.Index.optimize
-   on whoosh
 -  only accept object move if it succeded on server
 -  allow custom extensions
--  default content for every user
+-  Per-user group-list, showing in permissions panels
 -  allow rss via
    http://www.freewisdom.org/projects/python-markdown/RSS
 -  HomePage object: Login-splash+UserDashboard write user homepages
    (with login & passwd & name & surname change) / splash-like if not
    logged-in
--  allow objects to add custom actions in admin bar
 -  think about comments ( as property of some Model ?) -
    commentlist ?
+-  allow objects to add custom actions in admin bar
 -  edit form: only send "dirty" values when possible
 -  add some recursive permissions setter
--  improve task list
 -  "background processes" for each user / sessions
 -  theme support (config entry + template & static path)
--  add more types to default form edition
-   
-   -  object\_path
-
--  find the cleanest way to make all incoming URLs ends with /
--  add proper checks at server side too (in add & edit methods
-   mostly)
+-  ensure proper checks are correct at server side
 -  Form object?
+-  find the cleanest way to make all incoming URLs ends with /
+-  pack should call
+   http://packages.python.org/Whoosh/api/index.html?highlight=optimize#whoosh.index.Index.optimize
+   on whoosh
+-  add calltips everywhere
+-  default content for every user
+-  review 401 handling, ask for login/passwd in case of new session
+   (to be finished)
+-  Think about opening WebFiles in mail client as attached file...
+-  add markdown support to tasks comment
+-  improve link support (javascript popup) in markdown so it's easy
+   to link tasks to any object
 
 Fixes:
 
 
+-  only returns requested range in TODO List
+-  Rename Tasks/TODO List to calendar
+-  remove Ctrl+Enter conflict on Markitup
 -  /users as user => 401 (should list instead)
 -  search => 401 by default (should be allowed)
 -  mask file upload widget if File not available here
@@ -207,18 +212,22 @@ Fixes:
 
 
 -  multi-object page
+-  spreadsheet ?
+-  integrate graph library (http://www.jqplot.com/)
 
 0.4
 ~~~
 
 
--  chat program
+-  "real" sessions ?
+-  chat program (introduce webhooks ?)
 
 0.5
 ~~~
 
 
 -  forum
+-  more tests
 
 0.6
 ~~~

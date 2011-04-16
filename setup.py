@@ -8,7 +8,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="drink",
-    version="0.0.9",
+    version="0.0.10",
     author="Fabien Devaux",
     author_email="fdev31@gmail.com",
     license="GPL",
