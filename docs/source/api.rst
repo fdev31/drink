@@ -25,8 +25,27 @@ Properties
 
    types
 
-Root objects
-------------
+Internal objects
+----------------
 
-.. automodule::   drink
+.. autosummary::
+    :toctree: apis
+
+    config
+    zdb
+
+Import directories
+++++++++++++++++++
+
+`scss/`
+
+   Contains CSS in Sass language
+
+`templates/`
+
+   Contains Jinja2 templates
+
+`static/`
+
+   Contains all file assets like javascript code, icons, etc...
 
