@@ -12,6 +12,7 @@ from drink.zdb import DataBlob
 from time import mktime, strptime
 from persistent.dict import PersistentDict
 
+
 class _Editable(object):
 
     form_attr = None
@@ -70,11 +71,13 @@ def dt2str(dt):
     except AttributeError: # str
         return dt
 
+
 def dt2ts(dt):
     try:
         return int(mktime(dt.timetuple()))
     except AttributeError: # str
         return 0
+
 
 def str2dt(text):
      #TODO: use DATETIME_FMT
@@ -83,12 +86,12 @@ def str2dt(text):
     except AttributeError:
         return text
 
-
 def str2d(text):
     try:
         return datetime.date(*strptime(text, DATE_FMT)[:3])
     except AttributeError:
         return text
+
 
 class Date(Text):
 
@@ -149,6 +152,7 @@ class GroupListArea(TextArea):
         groups = drink.db.db['groups']
         setattr(obj, name, set(groups[line.strip()] for line in val.split('\n') if line.strip() in groups))
 
+
 class BoolOption(_Editable):
     def html(self, name, value):
         html = r'<input type="checkbox" name=%(name)s value="%(name)s"'+\
@@ -158,6 +162,7 @@ class BoolOption(_Editable):
 
     def set(self, obj, name, val):
         setattr(obj, name, bool(val))
+
 
 class CheckboxSet(_Editable):
 
@@ -207,13 +212,16 @@ class Int(Text):
     def set(self, obj, name, val):
         setattr(obj, name, int(val))
 
+
 class Float(Text):
     def set(self, obj, name, val):
         float(val) # validates float
         setattr(obj, name, val)
 
+
 class Password(Text):
     _template = r'''<input type="password" size="%(size)d" id="%(id)s" name="%(name)s" value="%(value)s" />'''
+
 
 class File(_Editable):
     _template = '<input name="%(name)s" id="%(id)s" type="file" />'
