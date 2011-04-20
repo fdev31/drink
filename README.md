@@ -111,6 +111,8 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 - add more types to default form edition
    - object_path => integrate it to markdown editor
 - generalize edit & _edit behavior, with a special return value
+- add size of file objects in WebFile view
+- handle per-owner "recycle bin", "changes log" & groups
 - clean javascript to provide a library, allowing mobile detection & adaptation
 - buildbot & virtualenv
 - change cookie on password change
