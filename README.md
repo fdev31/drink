@@ -102,6 +102,7 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 
 ## Release changes
 
+-   Basic support of gmail calendars in calendar object
 -   As always: Fixes & Bugs
 
 ## Roadmap

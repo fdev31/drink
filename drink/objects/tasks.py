@@ -88,17 +88,65 @@ class TODOList(drink.Page):
 
     html = '<div id="calendar"></div>'
 
+    gmail_login = ""
+    gmail_password = ""
+
     editable_fields = {
         'title': drink.types.Text("Title", group="a"),
+        'gmail_login': drink.types.Text("Gmail login", group="gmail"),
+        'gmail_password': drink.types.Text("Gmail password", group="gmail", type="password"),
         'description': drink.types.Text('Description'),
     }
 
     def events(self):
-        return json.dumps([e.event() for e in self.itervalues()])
+        l = [e.event() for e in self.itervalues()]
+        try:
+            l.extend(self.get_gmail_events())
+        except Exception, e:
+            print e
 
-        start = drink.request.GET['start']
-        end = drink.request.GET['end']
-        print start, end
-        return {}
+        return json.dumps(l)
+
+    def get_gmail_events(self):
+        #https://www.google.com/calendar/feeds/default/allcalendars/full
+        #try:
+            #from xml.etree import ElementTree
+        #except ImportError:
+            #from elementtree import ElementTree
+        #import gdata.calendar.data
+        import gdata.calendar.client
+        #import gdata.acl.data
+        #import atom.data
+        #import time
+
+        client = gdata.calendar.client.CalendarClient(source='Free-Drink-v1')
+        client.ClientLogin(self.gmail_login, self.gmail_password, client.source)
+
+        #feed  = client.GetAllCalendarsFeed()
+        #print feed.title.text
+        #for i, a_calendar in enumerate(feed.entry):
+            #print '\t%s. %s' % (i, a_calendar.title.text,)
+
+        start = datetime.fromtimestamp(float(drink.request.GET['start']))
+        end = datetime.fromtimestamp(float(drink.request.GET['end']))
+
+        def DateRangeQuery(calendar_client, start_date='2007-01-01', end_date='2007-07-01'):
+            print 'Date range query for events on Primary Calendar: %s to %s' % (start_date, end_date,)
+            query = gdata.calendar.client.CalendarEventQuery()
+            query.start_min = start_date
+            query.start_max = end_date
+            feed = calendar_client.GetCalendarEventFeed(q=query)
+            for i, an_event in enumerate(feed.entry):
+                yield {
+                    'id': an_event.id.text,
+                    'title': an_event.title.text,
+                    'start': an_event.when[0].start,
+                    'end': an_event.when[0].end,
+                    'allDay': False,
+                    'href': an_event.link[0].href,
+                    'description': an_event.content.text,
+                }
+
+        return list(DateRangeQuery(client, start.isoformat(), end.isoformat()))
 
 exported = {'TODO list': TODOList}
