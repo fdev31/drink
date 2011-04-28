@@ -102,6 +102,7 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 
 ## Release changes
 
+-   Text type can have different subtypes now (ex: password)
 -   Basic support of gmail calendars in calendar object
 -   As always: Fixes & Bugs
 
