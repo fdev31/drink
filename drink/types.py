@@ -53,11 +53,14 @@ class EasyPermissions(_Editable):
 
 class Text(_Editable):
 
-    _template = r'''<input type="text" size="%(size)d" id="%(id)s" value="%(value)s" name="%(name)s" />'''
+    _template = r'''<input type="%(_type)s" size="%(size)d" id="%(id)s" value="%(value)s" name="%(name)s" />'''
 
-    def __init__(self, caption=None, group=None, size=40):
+    _type = None
+
+    def __init__(self, caption=None, group=None, size=40, type="text"):
         _Editable.__init__(self, caption, group)
         self.size = size
+        self._type = type
 
 
 DATE_FMT = r'%d/%m/%Y'
