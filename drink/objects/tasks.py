@@ -4,6 +4,7 @@ import time
 from hashlib import sha1
 import drink
 import json
+from itertools import chain
 from datetime import timedelta, date, datetime
 from drink.types import dt2str, dt2ts
 
@@ -104,7 +105,9 @@ class TODOList(drink.Page):
             l.extend(self.get_gmail_events())
         except Exception, e:
             print e
-
+            import traceback
+            traceback.print_exc()
+            print "gmail_events: returning gracefuly"
         return json.dumps(l)
 
     def get_gmail_events(self):
@@ -114,11 +117,11 @@ class TODOList(drink.Page):
         #except ImportError:
             #from elementtree import ElementTree
         #import gdata.calendar.data
-        import gdata.calendar.client
         #import gdata.acl.data
         #import atom.data
         #import time
 
+        import gdata.calendar.client
         client = gdata.calendar.client.CalendarClient(source='Free-Drink-v1')
         client.ClientLogin(self.gmail_login, self.gmail_password, client.source)
 
@@ -127,15 +130,27 @@ class TODOList(drink.Page):
         #for i, a_calendar in enumerate(feed.entry):
             #print '\t%s. %s' % (i, a_calendar.title.text,)
 
-        start = datetime.fromtimestamp(float(drink.request.GET['start']))
-        end = datetime.fromtimestamp(float(drink.request.GET['end']))
+        if 'start' in drink.request.GET:
+            start = datetime.fromtimestamp(float(drink.request.GET['start']))
+        else:
+            start = None
 
-        def DateRangeQuery(calendar_client, start_date='2007-01-01', end_date='2007-07-01'):
+        if 'end' in drink.request.GET:
+            end = datetime.fromtimestamp(float(drink.request.GET['end']))
+        end = None
+
+        def DateRangeQuery(calendar_client, feed_src=None, start_date=None, end_date=None):
+            # FIXME !!
+            if not start_date:
+                start_date = '2007-01-01'
+            if not end_date:
+                end_date = '2012-01-01'
+
             print 'Date range query for events on Primary Calendar: %s to %s' % (start_date, end_date,)
             query = gdata.calendar.client.CalendarEventQuery()
             query.start_min = start_date
             query.start_max = end_date
-            feed = calendar_client.GetCalendarEventFeed(q=query)
+            feed = calendar_client.GetCalendarEventFeed(uri=feed_src.link[0].href, q=query)
             for i, an_event in enumerate(feed.entry):
                 yield {
                     'id': an_event.id.text,
@@ -147,6 +162,22 @@ class TODOList(drink.Page):
                     'description': an_event.content.text,
                 }
 
-        return list(DateRangeQuery(client, start.isoformat(), end.isoformat()))
+        all_feeds = getattr(self, '_v_all_feeds', None) or None
+
+        for n in xrange(3):
+            try:
+                all_feeds = client.GetAllCalendarsFeed().entry
+                print "failed %d"%n
+            except Exception:
+                pass
+            else:
+                self._v_all_feeds = all_feeds
+                break
+
+        return chain(*(DateRangeQuery(client, feed,
+            start.isoformat() if start else None,
+            end.isoformat() if end else None)
+            for feed in all_feeds))
+
 
 exported = {'TODO list': TODOList}
