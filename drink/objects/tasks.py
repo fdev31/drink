@@ -150,6 +150,7 @@ class TODOList(drink.Page):
             query = gdata.calendar.client.CalendarEventQuery()
             query.start_min = start_date
             query.start_max = end_date
+            query.max_results = 100
             feed = calendar_client.GetCalendarEventFeed(uri=feed_src.link[0].href, q=query)
             for i, an_event in enumerate(feed.entry):
                 yield {
