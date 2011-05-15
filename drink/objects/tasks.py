@@ -24,6 +24,8 @@ class TODO(drink.Page):
 
     start_time = '10:00'
 
+    auto_report = False
+
     editable_fields = {
         'title': drink.types.Text("Title", group="a"),
         'all_day': drink.types.BoolOption("All Day", group="b"),
@@ -31,6 +33,7 @@ class TODO(drink.Page):
         'start_time': drink.types.Text("Start time", group="b"),
         'duration': drink.types.Float("Duration (hours)", group="b"),
         'content': drink.types.TextArea("Summary", group="c"),
+        'auto_report': drink.types.BoolOption("Can't lean in past", group="b"),
         #'description': drink.types.Text('Short description', group="a"),
     }
 
@@ -60,9 +63,16 @@ class TODO(drink.Page):
         drink.response.headers['Content-Type'] = 'application/json'
         # TODO: improve this line
         start_hour, start_min = (int(x.strip()) for x in self.start_time.split(':'))
+
+        today = date.today()
+        if self.auto_report or today > self.date:
+            l_date = today
+        else:
+            l_date = self.date
+
         days, minutes = divmod(float(self.duration), 24)
         seconds = minutes*3600
-        start = datetime(self.date.year, self.date.month, self.date.day, start_hour, start_min)
+        start = datetime(l_date.year, l_date.month, l_date.day, start_hour, start_min)
 
         return {
             'id': self.id,
