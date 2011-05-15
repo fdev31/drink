@@ -150,9 +150,17 @@ class TODOList(drink.Page):
             query = gdata.calendar.client.CalendarEventQuery()
             query.start_min = start_date
             query.start_max = end_date
-            query.max_results = 100
-            feed = calendar_client.GetCalendarEventFeed(uri=feed_src.link[0].href, q=query)
-            for i, an_event in enumerate(feed.entry):
+            feed_entries = []
+            for n in xrange(2):
+                try:
+                    feed_entries = calendar_client.GetCalendarEventFeed(uri=feed_src.link[0].href, q=query).entry
+                except Exception:
+                    pass
+                else:
+                    break
+
+            for i, an_event in enumerate(feed_entries):
+                #TODO: check "all day"
                 yield {
                     'id': an_event.id.text,
                     'title': an_event.title.text,
@@ -165,7 +173,9 @@ class TODOList(drink.Page):
 
         all_feeds = getattr(self, '_v_all_feeds', None) or None
 
-        for n in xrange(3):
+        # Try a gcalendar connection 2 times
+
+        for n in xrange(2):
             try:
                 all_feeds = client.GetAllCalendarsFeed().entry
                 print "failed %d"%n
