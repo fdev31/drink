@@ -121,16 +121,6 @@ class TODOList(drink.Page):
         return json.dumps(l)
 
     def get_gmail_events(self):
-        #https://www.google.com/calendar/feeds/default/allcalendars/full
-        #try:
-            #from xml.etree import ElementTree
-        #except ImportError:
-            #from elementtree import ElementTree
-        #import gdata.calendar.data
-        #import gdata.acl.data
-        #import atom.data
-        #import time
-
         import gdata.calendar.client
         client = gdata.calendar.client.CalendarClient(source='Free-Drink-v1')
         client.ClientLogin(self.gmail_login, self.gmail_password, client.source)
