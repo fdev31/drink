@@ -65,7 +65,7 @@ class TODO(drink.Page):
         start_hour, start_min = (int(x.strip()) for x in self.start_time.split(':'))
 
         today = date.today()
-        if self.auto_report or today > self.date:
+        if self.auto_report and today > self.date:
             l_date = today
         else:
             l_date = self.date
