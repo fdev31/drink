@@ -221,6 +221,15 @@ class Float(Text):
         float(val) # validates float
         setattr(obj, name, val)
 
+class Duration(Text):
+    def set(self, obj, name, val):
+        if val.endswith('d'):
+            val = float(val[:-1])*24
+        elif val.endswith('w'):
+            val = float(val[:-1])*24*7
+        float(val) # validates float
+        setattr(obj, name, val)
+
 
 class Password(Text):
     _template = r'''<input type="password" size="%(size)d" id="%(id)s" name="%(name)s" value="%(value)s" />'''

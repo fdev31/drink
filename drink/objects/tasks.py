@@ -31,7 +31,7 @@ class TODO(drink.Page):
         'all_day': drink.types.BoolOption("All Day", group="b"),
         'date': drink.types.Date("Scheduled for", group="b"),
         'start_time': drink.types.Text("Start time", group="b"),
-        'duration': drink.types.Float("Duration (hours)", group="b"),
+        'duration': drink.types.Duration("Duration (hours)", group="b"),
         'content': drink.types.TextArea("Summary", group="c"),
         'auto_report': drink.types.BoolOption("Can't lean in past", group="b"),
         #'description': drink.types.Text('Short description', group="a"),
