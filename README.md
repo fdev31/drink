@@ -105,11 +105,13 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 -   Text type can have different subtypes now (ex: password)
 -   Basic support of gmail calendars in calendar object
 -   As always: Fixes & Bugs
+-   Gcalendar support for Calendar (+ extended Task object)
 
 ## Roadmap
 
 ### 0.1 (wip)
 
+- Clean actions up
 - add more types to default form edition
    - object_path => integrate it to markdown editor
 - generalize edit & _edit behavior, with a special return value
