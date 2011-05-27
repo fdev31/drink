@@ -1,7 +1,7 @@
 
 jQuery.validator.addMethod("identifier", function(value, element) {
-    return this.optional(element) || !/^[.$%/][$%/]*/i.test(value);
-}, 'No "$", "%" or "/" and don\' start with a dot, please :)');
+    return this.optional(element) || !/^[._$%/][$%/]*/i.test(value);
+}, 'No "$", "%" or "/" and don\' start with a dot or an underscore, please :)');
 
 function add_new_item(obj) {
     if( ! $(obj).data('edited')) {

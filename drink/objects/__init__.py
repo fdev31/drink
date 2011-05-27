@@ -13,7 +13,8 @@ def get_object(current, objpath):
     path_list = [p for p in objpath.split('/') if p]
     last_idx = len(path_list) - 1
     for i, elt in enumerate(path_list):
-
+        if elt[0] in '._':
+            drink.unauthorized('Not authorized (forbidden character)')
         if i == last_idx:
             # getting
             try:
