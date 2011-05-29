@@ -79,6 +79,7 @@ class Filesystem(PyFile, drink.ListPage):
     default_view = 'list'
     mime = 'folder'
     hidden_class = True
+    path = ''
 
     editable_fields = drink.ListPage.editable_fields.copy()
     editable_fields.update({
@@ -87,6 +88,7 @@ class Filesystem(PyFile, drink.ListPage):
 
     def __init__(self, name, rootpath):
         drink.ListPage.__init__(self, name, rootpath)
+        self.fd = OSFS(self.local_path, thread_synchronize=True)
         PyFile.__init__(self, self, rootpath, self.id, self.id, None)
 
     def _edit(self):

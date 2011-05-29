@@ -1,7 +1,7 @@
 
 jQuery.validator.addMethod("identifier", function(value, element) {
-    return this.optional(element) || !/^[.$%/][$%/]*/i.test(value);
-}, 'No "$", "%" or "/" and don\' start with a dot, please :)');
+    return this.optional(element) || !/^[._$%/][$%/]*/i.test(value);
+}, 'No "$", "%" or "/" and don\' start with a dot or an underscore, please :)');
 
 function add_new_item(obj) {
     if( ! $(obj).data('edited')) {
@@ -18,6 +18,27 @@ function add_new_item(obj) {
     }
   }
 }
+
+function get_matching_elts(path_elt, callback) {
+    if (path_elt.match('/')) {
+        var _elts = path_elt.split('/');
+        _elts.filter(function(e) { if (!!e) return true; });
+        for (n=0;n<_elts.length;n++) {
+            if (n == _elts.length-1) {
+                pattern = _elts[n];
+            } else {
+                url = _elts[n];
+            }
+        }
+        url = url + "match?pattern=" + pattern;
+    } else {
+        pattern  = path_elt;
+        url = document.location.pathname + "match?pattern=" + pattern;
+    };
+    // AJAX URL
+    $.get(url).success(function(data) { callback(data.items) } );
+}
+
 
 $(document).ready(function(){
     // debug mode

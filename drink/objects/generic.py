@@ -296,6 +296,18 @@ class Page(Model):
 
         return drink.rdr(parent_path)
 
+    def _match(self, pattern=None):
+        if pattern is None:
+            pattern = ''
+        return {'items': [k for k in self.iterkeys() if pattern in k]}
+
+    def match(self, pattern=None):
+
+        if 'r' not in request.identity.access(self):
+            return drink.unauthorized("Not authorized")
+
+        return self._match(pattern or request.params.get('pattern') )
+
     def _add(self, name, cls, read_groups, write_groups):
         if isinstance(cls, basestring):
             klass = self.classes[cls] if self.classes else classes[cls]
