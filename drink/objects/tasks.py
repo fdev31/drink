@@ -123,6 +123,8 @@ class TODOList(drink.Page):
     def get_gmail_events(self):
         import gdata.calendar.client
         client = gdata.calendar.client.CalendarClient(source='Free-Drink-v1')
+        if not self.gmail_login:
+            return
         client.ClientLogin(self.gmail_login, self.gmail_password, client.source)
 
         #feed  = client.GetAllCalendarsFeed()
