@@ -276,6 +276,45 @@ if DEBUG environment variable is set, it will start in debug mode.
         db.pack()
     elif len(sys.argv) == 2 and sys.argv[1] == "pack":
         db.pack()
+    elif len(sys.argv) == 3 and sys.argv[1] == "export":
+        import json
+        import datetime
+        from drink.zdb import DataBlob
+        from pprint import pprint
+
+        base = sys.argv[2]
+        print "Exploring %s"%base
+
+        all_obj = [ (db.db, '/') ]
+        old_cwd = os.getcwd()
+        for obj, obj_path in all_obj:
+            print "-"*80
+            nbase = os.path.join(base, (obj_path or obj.path).lstrip(os.path.sep))
+            try:
+                os.mkdir(nbase)
+            except OSError:
+                pass
+            print nbase, type(obj) #.id if hasattr(obj, 'id') else 'ROOT'
+            data = obj.__dict__.copy()
+            for k, v in data.iteritems():
+                if isinstance(v, datetime.date):
+                    data[k] = "%s/%s/%s"%(v.day, v.month, v.year)
+                elif isinstance(v, DataBlob):
+                    data[k] = v.filename
+                    os.link(v.filename, os.path.join(nbase, data['content_name']))
+                elif isinstance(v, set):
+                    data[k] = list(v)
+                elif k == 'owner':
+                    data[k] = v.id
+            if 'data' in data:
+                del data['data']
+            file( os.path.join(nbase, '!content_%s'%obj.__class__.__name__), 'w').write(
+                json.dumps(data)
+            )
+            # recurse
+            if len(obj):
+                for k in obj:
+                    all_obj.append((obj[k], None))
     elif len(sys.argv) == 2 and sys.argv[1] == "debug":
         from pdb import set_trace
         with db as root:
