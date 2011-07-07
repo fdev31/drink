@@ -60,9 +60,20 @@ class ObjectBrowser(drink.Page):
         drink.Page.__init__(self, name, rootpath)
         self.lastlog = {}
 
+    def rebuild(self):
+        drink.response.content_type = "text/plain"
+        objs = [drink.db.db['pages']]
+        for obj in objs:
+            yield "%s\n"%obj.title
+            c = obj.values()
+            if c:
+                objs.extend(c)
+        self._add_object(objs)
+        yield "-eof-"
+
     def _add_object(self, objs):
         w = indexer.writer()
-        if hasattr(objs, 'title'):
+        if not isinstance(objs, (list, tuple)):
             objs = [objs]
 
         for obj in objs:
