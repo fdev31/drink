@@ -118,6 +118,7 @@ class ObjectBrowser(drink.Page):
             if 'r' in auth.access(obj):
                 items.append(obj)
                 html.append('<li><a href="%(path)s">%(title)s</a></li>'%item)
+                html.append('<a href="%s"><div class="minipage">%s</div></a>'%(item['path'], item.highlights('content').replace('\n', '<br/>')))
         html.append('</ul>')
         self.lastlog[auth.id] = (pat, items)
         drink.transaction.commit()
