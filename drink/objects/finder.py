@@ -94,7 +94,13 @@ class ObjectBrowser(drink.Page):
     def query(self, pattern=None, query_type=None):
         pattern = pattern if pattern != None else drink.request.forms.get('pattern')
         query_type = query_type if query_type != None else drink.request.forms.get('qtype')
-        searcher = indexer.searcher()
+        try:
+            searcher = indexer.searcher()
+        except IOError:
+            reset()
+            self.rebuild()
+            searcher = indexer.searcher()
+
         auth = drink.request.identity
 
         if query_type == 'fast':
