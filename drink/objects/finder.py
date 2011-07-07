@@ -20,7 +20,12 @@ def init():
         os.mkdir(INDEX_DIR)
         indexer = create_in(
             INDEX_DIR,
-            Schema(path=ID(stored=True, unique=True), title=TEXT(stored=True), content=TEXT)
+            Schema(
+                path=ID(stored=True, unique=True),
+                title=TEXT(stored=True),
+                tags=KEYWORD(scorable=True),
+                content=TEXT(stored=True),
+                )
         )
 
     qparser = QueryParser("title", schema=indexer.schema)
@@ -32,10 +37,11 @@ def reset():
     init()
 
 def extract_obj(o):
-    return {'path': unicode(o.path),
+    return {
+        'path': unicode(o.path),
         'title': unicode(o.title),
-        'content': "%s %s"%(unicode(o.description),
-            unicode(getattr(o, 'content', ''))),
+        'tags': unicode(o.mime),
+        'content': unicode(o.content) if hasattr(o, 'content') else "%s %s"%(unicode(o.description), unicode(o.description)),
         }
 
 
