@@ -95,6 +95,21 @@ li.entry {
     }
 
 }
+.minipage {
+    background: #cba;
+    @include border-radius($radius);
+    padding: 1em;
+    font-size: 65%;
+    width: 70%;
+    margin-bottom: 1ex;
+    @include box-shadow($shadow_color 2px 2px 2px);
+    b.match {
+        background-color: #ffa;
+        font-style: italic;
+        padding-left: 2px;
+        padding-right: 2px;
+    }
+}
 fieldset.toggler {
     > legend {
         cursor: pointer;
