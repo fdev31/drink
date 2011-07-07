@@ -123,12 +123,12 @@ class ObjectBrowser(drink.Page):
                 hli =  item.highlights('content')
                 if hli:
                     html.append('<a href="%s"><div class="minipage">%s</div></a>'%(item['path'],hli.replace('\n', '<br/>')))
-        html.append('</ul>')
+        html.append('</ul><br/>pages:&nbsp;')
         for page in xrange(1, 1+res.pagecount):
             if page == page_nr:
-                html.append( '<span class="page_nr_cur">[%s]</span>'%page )
+                html.append( '<span class="page_nr_cur">%s</span>'%page )
             else:
-                html.append( '<span class="page_nr"><a href="%s">[%s]</a></span>'%("%squery?pattern=%s&qtype=%s&page=%s"%(self.path, pattern, query_type, page), page ) )
+                html.append( '<a href="%s"><span class="page_nr">%s</span></a>'%("%squery?pattern=%s&qtype=%s&page=%s"%(self.path, pattern, query_type, page), page ) )
 
         self.lastlog[auth.id] = (pat, items)
         drink.transaction.commit()

@@ -95,6 +95,14 @@ li.entry {
     }
 
 }
+span.page_nr_cur {
+    padding: 0.1ex 0.5ex 0.1ex 0.5ex;
+    background: $background;
+}
+span.page_nr {
+    padding: 0.1ex 0.5ex 0.1ex 0.5ex;
+    background: #afa;
+}
 .minipage {
     background: #cba;
     @include border-radius($radius);
