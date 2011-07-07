@@ -379,14 +379,14 @@ class ListPage(Page):
         return (self[v] for v in self.keys())
 
     def values(self):
-        return list(self.itervalues)
+        return list(self.itervalues())
 
     def iteritems(self):
         for k in self.iterkeys():
             yield (k, self[k])
 
     def items(self):
-        return list(self.iteritems)
+        return list(self.iteritems())
 
     def reset_items(self):
         orig_order = []
