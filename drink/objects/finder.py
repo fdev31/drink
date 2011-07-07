@@ -91,9 +91,11 @@ class ObjectBrowser(drink.Page):
         w.update_document(**extract_obj(obj))
         w.commit()
 
-    def query(self, pattern=None, query_type=None):
-        pattern = pattern if pattern != None else drink.request.forms.get('pattern')
-        query_type = query_type if query_type != None else drink.request.forms.get('qtype')
+    def query(self, pattern=None, query_type=None, page=None):
+        pattern = pattern if pattern != None else drink.request.params.get('pattern')
+        query_type = query_type if query_type != None else drink.request.params.get('qtype')
+        page_nr = int(page if page else drink.request.params.get('page', 1))
+
         try:
             searcher = indexer.searcher()
         except IOError:
@@ -108,7 +110,7 @@ class ObjectBrowser(drink.Page):
         else:
             pat = 'title:%(p)s OR content:%(p)s'%dict(p=pattern.strip())
 
-        res = searcher.search(qparser.parse(unicode(pat)))
+        res = searcher.search_page(qparser.parse(unicode(pat)), page_nr)
 
         items = []
         html = ['<ul>']
@@ -118,8 +120,16 @@ class ObjectBrowser(drink.Page):
             if 'r' in auth.access(obj):
                 items.append(obj)
                 html.append('<li><a href="%(path)s">%(title)s</a></li>'%item)
-                html.append('<a href="%s"><div class="minipage">%s</div></a>'%(item['path'], item.highlights('content').replace('\n', '<br/>')))
+                hli =  item.highlights('content')
+                if hli:
+                    html.append('<a href="%s"><div class="minipage">%s</div></a>'%(item['path'],hli.replace('\n', '<br/>')))
         html.append('</ul>')
+        for page in xrange(1, 1+res.pagecount):
+            if page == page_nr:
+                html.append( '<span class="page_nr_cur">[%s]</span>'%page )
+            else:
+                html.append( '<span class="page_nr"><a href="%s">[%s]</a></span>'%("%squery?pattern=%s&qtype=%s&page=%s"%(self.path, pattern, query_type, page), page ) )
+
         self.lastlog[auth.id] = (pat, items)
         drink.transaction.commit()
         return drink.template('main.html', obj=self, html='\n'.join(html),
