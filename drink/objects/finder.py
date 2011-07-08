@@ -1,11 +1,13 @@
 from __future__ import absolute_import
+# http://packages.python.org/Whoosh/querylang.html
+# http://packages.python.org/Whoosh/parsing.html
 
 import os
 import drink
 from whoosh.index import create_in, open_dir
 from whoosh.fields import *
 from whoosh.query import *
-from whoosh.qparser import QueryParser
+from whoosh.qparser import MultifieldParser, OrGroup
 
 INDEX_DIR = os.path.join(drink.DB_PATH, 'whoosh')
 qparser = indexer = None
@@ -28,7 +30,10 @@ def init():
                 )
         )
 
-    qparser = QueryParser("title", schema=indexer.schema)
+    qparser = MultifieldParser(["title", "content"],
+            schema=indexer.schema,
+#            group=OrGroup,
+            )
 
 def reset():
     import shutil
@@ -148,6 +153,7 @@ class ObjectBrowser(drink.Page):
             drink.types.Text('Look for').html('pattern', pat),
             drink.types.CheckboxSet("Search type", values=['fast']).html('qtype', ['fast']),
             '<input class="submit" type="submit" value="GO!"/></form>']
+        form.append('<a href="http://packages.python.org/Whoosh/querylang.html">Overview of language (fields: path, title, content, tags)</a>')
         if items:
             form.append('<h2>Last search</h2>')
 
