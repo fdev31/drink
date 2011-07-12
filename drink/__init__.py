@@ -265,6 +265,7 @@ Drink help
 commands:
     init: reset database
     pack: pack database (more compact/faster)
+    export: EXPERIMENTAL, will try to dump all the data into the given folder
     debug: run a debugger after loading
     help: this help :)
 
