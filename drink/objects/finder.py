@@ -121,7 +121,9 @@ class ObjectBrowser(drink.Page):
         html = ['<ul>']
         root = drink.db.db
         for item in res:
-            obj = drink.get_object(root, item['path'].encode('utf-8'))
+            obj = drink.get_object(root, item['path'].encode('utf-8'), no_raise=True)
+            if obj == None:
+                continue
             if 'r' in auth.access(obj):
                 items.append(obj)
                 html.append('<li><a href="%(path)s">%(title)s</a></li>'%item)

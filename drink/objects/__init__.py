@@ -8,7 +8,7 @@ classes = {}
 
 objects_to_load = [k for k, v in config.items('objects')]
 
-def get_object(current, objpath):
+def get_object(current, objpath, no_raise=False):
 
     path_list = [p for p in objpath.split('/') if p]
     last_idx = len(path_list) - 1
@@ -20,24 +20,32 @@ def get_object(current, objpath):
             try:
                 current = current[elt]
                 if 'r' not in drink.request.identity.access(current):
-                    drink.unauthorized('Not authorized')
+                    if not no_raise:
+                        drink.unauthorized('Not authorized')
                     return
             except (KeyError, AttributeError, TypeError):
                 try:
                     current = getattr(current, elt)
                 except AttributeError:
-                    raise AttributeError(elt)
+                    if not no_raise:
+                        raise AttributeError(elt)
+                    return
             break # found a matching object
         else:
             # traversal
             try:
                 if elt.startswith('_'):
-                    drink.unauthorized('Not authorized')
+                    if not no_raise:
+                        drink.unauthorized('Not authorized')
+                    return
                 current = current[elt]
                 if 't' not in drink.request.identity.access(current):
-                    drink.unauthorized('Not authorized')
+                    if not no_raise:
+                        drink.unauthorized('Not authorized')
                     return
             except (KeyError, AttributeError):
+                if no_raise:
+                    return
                 raise AttributeError(elt)
     return current
 
