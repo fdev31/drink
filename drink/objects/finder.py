@@ -130,13 +130,15 @@ class ObjectBrowser(drink.Page):
                 hli =  item.highlights('content')
                 if hli:
                     html.append('<a href="%s"><div class="minipage">%s</div></a>'%(item['path'],hli.replace('\n', '<br/>')))
-        html.append('</ul><br/>pages:&nbsp;')
-        for page in xrange(1, 1+res.pagecount):
-            if page == page_nr:
-                html.append( '<span class="page_nr_cur">%s</span>'%page )
-            else:
-                html.append( '<a href="%s"><span class="page_nr">%s</span></a>'%("%squery?pattern=%s&qtype=%s&page=%s"%(self.path, pattern, query_type, page), page ) )
-
+        if res.pagecount:
+            html.append('</ul><br/>pages:&nbsp;')
+            for page in xrange(1, 1+res.pagecount):
+                if page == page_nr:
+                    html.append( '<span class="page_nr_cur">%s</span>'%page )
+                else:
+                    html.append( '<a href="%s"><span class="page_nr">%s</span></a>'%("%squery?pattern=%s&qtype=%s&page=%s"%(self.path, pattern, query_type, page), page ) )
+        else:
+            html.append('</ul><br/>No matching documents!')
         self.lastlog[auth.id] = (pat, items)
         drink.transaction.commit()
         return drink.template('main.html', obj=self, html='\n'.join(html),
