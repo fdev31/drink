@@ -95,6 +95,10 @@ li.entry {
     }
 
 }
+.inline {
+    display: inline;
+    vertical-align: 1ex;
+}
 span.page_nr_cur {
     padding: 0.1ex 0.5ex 0.1ex 0.5ex;
     background: $background;

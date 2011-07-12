@@ -47,7 +47,12 @@
         <div class="togglable" >
         <div id="user_actions" >
         <a title="Account settings" href="/users/{{authenticated.id|e}}/edit"><img class="icon" src="/static/actions/personal.png" alt="your account icon" /></a>
-        <a title="Search" href="/search/"><img  alt="find icon" class="icon" src="/static/actions/find.png" /></a>
+        <img  alt="find icon" class="icon" src="/static/actions/find.png" />
+        <form class="autovalidate inline" name="search_form" method="post" action="/search/query">
+            <input type="hidden" name="qtype" value="fast" />
+            <input type="text" class="required" name="pattern" />
+        </form>
+        <!-- <a title="Search" href="/search/"><img  alt="find icon" class="icon" src="/static/actions/find.png" /></a> -->
         <a title="log out" href="/logout"><img  alt="exit icon" class="icon" src="/static/actions/exit.png" /></a>
         </div> <!-- /user actions -->
         <div id="page_actions">
