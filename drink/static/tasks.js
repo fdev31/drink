@@ -22,6 +22,7 @@ function add_item_hook(item) {
 $(document).ready(function() {
 
     $('#calendar').fullCalendar({
+        theme: true,
         header: {
             left: 'prev,today,next',
             center: 'title',
