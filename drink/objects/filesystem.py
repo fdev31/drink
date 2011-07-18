@@ -20,6 +20,10 @@ class PyFile(object):
         else:
             self.mime = 'page'
 
+
+    def edit(self, *a):
+        return self.view()
+
     def view(self):
         if self.mime == 'folder':
             return drink.template('list.html', obj=self, css=[], js=[],
