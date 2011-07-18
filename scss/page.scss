@@ -298,6 +298,7 @@ body {
 	background-color: $background;
 	font-family: Helvetica, sans-serif;
 	color: $main_color;
+	@include min-width(500px);
 }
 legend {
     color: white;
