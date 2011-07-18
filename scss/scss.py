@@ -36,17 +36,10 @@ xCSS:
 
 """
 
-VERSION_INFO = (1, 0, 4)
-BUILD_INFO = "pyScss v1.0 (20110306)"
-AUTHOR = "German M. Bravo (Kronuz)"
-AUTHOR_EMAIL = 'german.mb@gmail.com'
-URL = 'http://github.com/Kronuz/pyScss'
-DOWNLOAD_URL = 'http://github.com/Kronuz/pyScss/tarball/v1.0'
-LICENSE = "MIT"
-PROJECT = "pyScss"
+from scss_meta import BUILD_INFO, PROJECT, VERSION, AUTHOR, AUTHOR_EMAIL, LICENSE
 
 __project__ = PROJECT
-__version__ = VERSION = '.'.join(str(i) for i in VERSION_INFO)
+__version__ = VERSION
 __author__ = AUTHOR + ' <' + AUTHOR_EMAIL + '>'
 __license__ = LICENSE
 
@@ -64,7 +57,11 @@ ASSETS_ROOT = os.path.join(PROJECT_ROOT, 'static/assets/')
 STATIC_URL = '/static/'
 ASSETS_URL = '/static/assets/'
 VERBOSITY = 1
+DEBUG = 0
 ################################################################################
+
+import logging
+log = logging.getLogger(__name__)
 
 try:
     import cPickle as pickle
@@ -273,7 +270,7 @@ _safe_strings = {
     '^curlybracketopen^': '{',
     '^curlybracketclosed^': '}',
 }
-_reverse_safe_strings = dict((v, k) for k, v in _safe_strings.items()) 
+_reverse_safe_strings = dict((v, k) for k, v in _safe_strings.items())
 _safe_strings_re = re.compile('|'.join(map(re.escape, _safe_strings)))
 _reverse_safe_strings_re = re.compile('|'.join(map(re.escape, _reverse_safe_strings)))
 
@@ -315,8 +312,8 @@ for long_k, v in _colors.items():
     _reverse_colors[short_k] = k
     _reverse_colors[rgb_k] = k
     _reverse_colors[rgba_k] = k
-_reverse_colors_re = re.compile(r'(?<![-\w$])(' + '|'.join(map(re.escape, _reverse_colors))+r')(?![-\w])', re.IGNORECASE)
-_colors_re = re.compile(r'(?<![-\w$])(' + '|'.join(map(re.escape, _colors))+r')(?![-\w])', re.IGNORECASE)
+_reverse_colors_re = re.compile(r'(?<![-\w.:#$])(' + '|'.join(map(re.escape, _reverse_colors))+r')(?![-\w])', re.IGNORECASE)
+_colors_re = re.compile(r'(?<![-\w.:#$])(' + '|'.join(map(re.escape, _colors))+r')(?![-\w])', re.IGNORECASE)
 
 _expr_glob_re = re.compile(r'''
     \#\{(.*?)\}                   # Global Interpolation only
@@ -371,6 +368,8 @@ _has_code_re = re.compile('''
     )
 ''', re.VERBOSE)
 
+_css_function_re = re.compile(r'^(from|to|mask|rotate|format|local|url|attr|counter|counters|color-stop|rect|-webkit-.*|-webkit-.*|-moz-.*|-pie-.*|-ms-.*|-o-.*)$')
+
 FILEID = 0
 POSITION = 1
 CODESTR = 2
@@ -380,8 +379,40 @@ OPTIONS = 5
 SELECTORS = 6
 PROPERTIES = 7
 PATH = 8
-FINAL = 9
-MEDIA = 10
+FILE = 9
+FINAL = 10
+MEDIA = 11
+RULE_VARS = {
+    'FILEID': FILEID,
+    'POSITION': POSITION,
+    'CODESTR': CODESTR,
+    'DEPS': DEPS,
+    'CONTEXT': CONTEXT,
+    'OPTIONS': OPTIONS,
+    'SELECTORS': SELECTORS,
+    'PROPERTIES': PROPERTIES,
+    'PATH': PATH,
+    'FILE': FILE,
+    'FINAL': FINAL,
+    'MEDIA': MEDIA,
+}
+def spawn_rule(rule=None, **kwargs):
+    """
+    FILEID, POSITION, CODESTR, DEPS, CONTEXT, OPTIONS, SELECTORS, PROPERTIES, PATH, FILE, FINAL, MEDIA
+    """
+    if rule is None:
+        rule = [ None ] * len(RULE_VARS)
+        rule[DEPS] = set()
+        rule[SELECTORS] = ''
+        rule[PROPERTIES] = []
+        rule[PATH] = './'
+        rule[FILE] = ''
+        rule[FINAL] = False
+    else:
+        rule = list(rule)
+    for k, v in kwargs.items():
+        rule[RULE_VARS[k.upper()]] = v
+    return rule
 
 def print_timing(level=0):
     def _print_timing(func):
@@ -437,6 +468,8 @@ class Scss(object):
 
     def __init__(self):
         self.scss_files = {}
+        self.scss_vars = _default_scss_vars.copy()
+        self.scss_opts = _default_scss_opts.copy()
         self.reset()
 
     def clean(self):
@@ -448,12 +481,12 @@ class Scss(object):
     def reset(self, input_scss=None):
         # Initialize
         self.css_files = []
-        self.scss_vars = _default_scss_vars.copy()
-        self.scss_opts = _default_scss_opts.copy()
+        self._scss_vars = self.scss_vars.copy()
+        self._scss_opts = self.scss_opts.copy()
+        self._scss_files = self.scss_files.copy()
 
         self._contexts = {}
         self._replaces = {}
-        self._scss_files = self.scss_files.copy()
 
         self.clean()
 
@@ -564,11 +597,17 @@ class Scss(object):
                             thin = None
         if depth > 0:
             if not skip:
-                #FIXME: raise exception (block not closed!)
                 _selectors = str[init:start].strip()
                 _codestr = str[start+1:].strip()
                 if _selectors:
                     yield _selectors, _codestr
+                if par:
+                    log.error("Missing closing parenthesis somewhere in block: '%s'", _selectors)
+                elif instr:
+                    log.error("Missing closing string somewhere in block: '%s'", _selectors)
+                else:
+                    log.error("Block never closed: '%s'", _selectors)
+                #FIXME: raise exception? (block not closed!)
                 return
         losestr = str[lose:]
         for _property in losestr.split(';'):
@@ -696,7 +735,7 @@ class Scss(object):
 
     def load_string(self, str):
         # protects content: "..." strings
-        
+
         str = _strings_re.sub(lambda m: _reverse_safe_strings_re.sub(lambda n: _reverse_safe_strings[n.group(0)], m.group(0)), str)
 
         # removes multiple line comments
@@ -723,7 +762,7 @@ class Scss(object):
 
     def parse_scss_string(self, fileid, str):
         str = self.load_string(str)
-        rule = [ fileid, None, str, set(), self.scss_vars, self.scss_opts, '', [], './', False, None ]
+        rule = spawn_rule(fileid=fileid, codestr=str, context=self._scss_vars, options=self._scss_opts, file=fileid)
         self.children.append(rule)
         return str
 
@@ -779,10 +818,25 @@ class Scss(object):
             ####################################################################
             if c_property.startswith('@'):
                 code, name = (c_property.split(None, 1)+[''])[:2]
+                code = code.lower()
                 if code == '@warn':
                     name = self.calculate(name, rule[CONTEXT], rule[OPTIONS], rule)
-                    err = "Warning: %s" % dequote(to_str(name))
-                    print >>sys.stderr, err
+                    log.warn(dequote(to_str(name)))
+                elif code == '@print':
+                    name = self.calculate(name, rule[CONTEXT], rule[OPTIONS], rule)
+                    log.info(dequote(to_str(name)))
+                elif code == '@raw':
+                    name = self.calculate(name, rule[CONTEXT], rule[OPTIONS], rule)
+                    log.info(repr(name))
+                elif code == '@debug':
+                    global DEBUG
+                    name = name.strip()
+                    if name.lower() in ('1', 'true', 't', 'yes', 'y', 'on'):
+                        name = 1
+                    elif name.lower() in ('0', 'false', 'f', 'no', 'n', 'off'):
+                        name = 0
+                    DEBUG = name
+                    log.info("Debug mode is %s", 'On' if DEBUG else 'Off')
                 elif code == '@option':
                     self._settle_options(rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr, code, name)
                 elif code == '@import':
@@ -813,8 +867,10 @@ class Scss(object):
                     _media = (media or []) +  [ name ]
                     rule[CODESTR] = self.construct + ' {' + c_codestr + '}'
                     self.manage_children(rule, p_selectors, p_parents, p_children, scope, _media)
-                else:
+                elif c_codestr is None:
                     rule[PROPERTIES].append((c_property, None))
+                elif scope is None: # needs to have no scope to crawl down the nested rules
+                    self._nest_rules(rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr)
             ####################################################################
             # Properties
             elif c_codestr is None:
@@ -938,8 +994,7 @@ class Scss(object):
             _rule[CONTEXT].update(m_vars)
             self.manage_children(_rule, p_selectors, p_parents, p_children, scope, media)
         else:
-            err = "Error: Required mixin not found: %s:%d" % (funct, num_args)
-            print >>sys.stderr, err
+            log.error("Required mixin not found: %s:%d", funct, num_args)
 
     @print_timing(10)
     def _do_import(self, rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr, code, name):
@@ -962,21 +1017,25 @@ class Scss(object):
                         load_paths = []
                         i_codestr = None
                         for path in [ './' ] + LOAD_PATHS.split(','):
-                            for basepath in [ './', rule[PATH] ]:
+                            for basepath in [ './', os.path.dirname(rule[PATH]) ]:
                                 i_codestr = None
                                 full_path = os.path.realpath(os.path.join(path, basepath, dirname))
                                 if full_path not in load_paths:
                                     try:
-                                        i_codestr = open(os.path.join(full_path, '_'+filename+'.scss')).read()
+                                        full_filename = os.path.join(full_path, '_'+filename+'.scss')
+                                        i_codestr = open(full_filename).read()
                                     except:
                                         try:
-                                            i_codestr = open(os.path.join(full_path, filename+'.scss')).read()
+                                            full_filename = os.path.join(full_path, filename+'.scss')
+                                            i_codestr = open(full_filename).read()
                                         except:
                                             try:
-                                                i_codestr = open(os.path.join(full_path, '_'+filename)).read()
+                                                full_filename = os.path.join(full_path, '_'+filename)
+                                                i_codestr = open(full_filename).read()
                                             except:
                                                 try:
-                                                    i_codestr = open(os.path.join(full_path, filename)).read()
+                                                    full_filename = os.path.join(full_path, filename)
+                                                    i_codestr = open(full_filename).read()
                                                 except:
                                                     pass
                                     if i_codestr is not None:
@@ -989,12 +1048,9 @@ class Scss(object):
                             i_codestr = self._do_magic_import(rule, p_selectors, p_parents, p_children, scope, media, c_property, c_codestr, code, name)
                         i_codestr = self._scss_files[name] = i_codestr and self.load_string(i_codestr)
                     if i_codestr is None:
-                        err = "Warning: File to import not found or unreadable: '" + filename + "'\nLoad paths:\n\t" + "\n\t".join(load_paths)
-                        print >>sys.stderr, err
+                        log.warn("File to import not found or unreadable: '%s'\nLoad paths:\n\t%s", filename, "\n\t".join(load_paths))
                     else:
-                        _rule = list(rule)
-                        _rule[CODESTR] = i_codestr
-                        _rule[PATH] = full_path
+                        _rule = spawn_rule(rule, codestr=i_codestr, path=full_filename, file=name)
                         self.manage_children(_rule, p_selectors, p_parents, p_children, scope, media)
                         rule[OPTIONS]['@import ' + name] = True
         else:
@@ -1015,7 +1071,7 @@ class Scss(object):
 
         if files:
             # Build magic context
-            map_name = os.path.normpath(os.path.dirname(name)).replace('/', '_')
+            map_name = os.path.normpath(os.path.dirname(name)).replace('\\', '_').replace('/', '_')
             kwargs = {}
             def setdefault(var, val):
                 _var = '$' + map_name + '-' + var
@@ -1039,35 +1095,35 @@ class Scss(object):
             rule[CONTEXT]['$' + map_name + '-' + 'sprites'] = sprite_map
             ret = '''
                 @import "compass/utilities/sprites/base";
-                
+
                 // All sprites should extend this class
                 // The %(map_name)s-sprite mixin will do so for you.
                 #{$%(map_name)s-sprite-base-class} {
                     background: $%(map_name)s-sprites;
                 }
-                
+
                 // Use this to set the dimensions of an element
                 // based on the size of the original image.
                 @mixin %(map_name)s-sprite-dimensions($name) {
                     @include sprite-dimensions($%(map_name)s-sprites, $name);
                 }
-                
+
                 // Move the background position to display the sprite.
                 @mixin %(map_name)s-sprite-position($name, $offset-x: 0, $offset-y: 0) {
                     @include sprite-position($%(map_name)s-sprites, $name, $offset-x, $offset-y);
                 }
-                
+
                 // Extends the sprite base class and set the background position for the desired sprite.
                 // It will also apply the image dimensions if $dimensions is true.
                 @mixin %(map_name)s-sprite($name, $dimensions: $%(map_name)s-sprite-dimensions, $offset-x: 0, $offset-y: 0) {
                     @extend #{$%(map_name)s-sprite-base-class};
                     @include sprite($%(map_name)s-sprites, $name, $dimensions, $offset-x, $offset-y);
                 }
-                
+
                 @mixin %(map_name)s-sprites($sprite-names, $dimensions: $%(map_name)s-sprite-dimensions) {
                     @include sprites($%(map_name)s-sprites, $sprite-names, $%(map_name)s-sprite-base-class, $dimensions);
                 }
-                
+
                 // Generates a class for each sprited image.
                 @mixin all-%(map_name)s-sprites($dimensions: $%(map_name)s-sprite-dimensions) {
                     @include %(map_name)s-sprites(%(sprites)s, $dimensions);
@@ -1082,7 +1138,7 @@ class Scss(object):
         """
         if code != '@if':
             if '@if' not in rule[OPTIONS]:
-                print >>sys.stderr, "Warning: @else with no @if!"
+                log.warn("@else with no @if!")
             val = not rule[OPTIONS].get('@if', True)
             name = c_property[9:].strip()
         else:
@@ -1101,7 +1157,7 @@ class Scss(object):
         Implements @else
         """
         if '@if' not in rule[OPTIONS]:
-            print >>sys.stderr, "Warning: @else with no @if!"
+            log.warn("@else with no @if!")
         val = rule[OPTIONS].get('@if', True)
         if not val:
             rule[CODESTR] = c_codestr
@@ -1177,14 +1233,18 @@ class Scss(object):
             if is_var or prop.startswith('$') and value is not None:
                 if isinstance(value, basestring):
                     if '!default' in value:
-                        value = value.replace('!default', '').replace('  ', ' ').strip()
+                        if _prop in rule[CONTEXT]:
+                            value = None
+                        else:
+                            value = value.replace('!default', '').replace('  ', ' ').strip()
                 elif isinstance(value, ListValue):
+                    value = ListValue(value)
                     for k, v in value.value.items():
                         if v == '!default':
-                            del value.value[k]
                             if _prop in rule[CONTEXT]:
                                 value = None
                             else:
+                                del value.value[k]
                                 value = value.first() if len(value) == 1 else value
                             break
                 if value is not None:
@@ -1227,7 +1287,7 @@ class Scss(object):
                 if parents:
                     better_selectors += ' extends ' + '&'.join(sorted(parents))
 
-            _rule = [ rule[FILEID], None, c_codestr, set(), rule[CONTEXT].copy(), rule[OPTIONS].copy(), better_selectors, [], rule[PATH], False, media ]
+            _rule = spawn_rule(fileid=rule[FILEID], codestr=c_codestr, context=rule[CONTEXT].copy(), options=rule[OPTIONS].copy(), selectors=better_selectors, path=rule[PATH], file=rule[FILE], media=media)
             p_children.appendleft(_rule)
 
     @print_timing(4)
@@ -1338,8 +1398,7 @@ class Scss(object):
                     parents = self.link_with_parents(parent, selectors, rules)
 
                     if parents is None:
-                        err = "Warning: Parent rule not found: %s" % parent
-                        print >>sys.stderr, err
+                        log.warn("Parent rule not found: %s", parent)
                     else:
                         # from the parent, inherit the context and the options:
                         new_context = {}
@@ -1372,17 +1431,16 @@ class Scss(object):
         css_files = set()
         old_fileid = None
         for rule in self.rules:
-            if rule[POSITION] is not None:
-                fileid, position, codestr, deps, context, options, selectors, properties, path, final, media = rule
-                #print >>sys.stderr, fileid, position, [ c for c in context if c[1] != '_' ], options.keys(), selectors, deps
-                if properties:
-                    self._rules.setdefault(fileid, [])
-                    self._rules[fileid].append(rule)
-                    if old_fileid != fileid:
-                        old_fileid = fileid
-                        if fileid not in css_files:
-                            css_files.add(fileid)
-                            self.css_files.append(fileid)
+            #print >>sys.stderr, rule[FILEID], rule[POSITION], [ c for c in rule[CONTEXT] if c[1] != '_' ], rule[OPTIONS].keys(), rule[SELECTORS], rule[DEPS]
+            if rule[POSITION] is not None and rule[PROPERTIES]:
+                fileid = rule[FILEID]
+                self._rules.setdefault(fileid, [])
+                self._rules[fileid].append(rule)
+                if old_fileid != fileid:
+                    old_fileid = fileid
+                    if fileid not in css_files:
+                        css_files.add(fileid)
+                        self.css_files.append(fileid)
 
     @print_timing(3)
     def create_css(self, fileid=None):
@@ -1394,7 +1452,7 @@ class Scss(object):
         else:
             rules = self.rules
 
-        compress = self.scss_opts.get('compress', 1)
+        compress = self._scss_opts.get('compress', 1)
         if compress:
             sc, sp, tb, nl = False, '', '', ''
         else:
@@ -1412,17 +1470,18 @@ class Scss(object):
         old_media = None
         old_property = None
 
-        wrap = textwrap.TextWrapper(break_long_words=False, break_on_hyphens=False)
-        wrap.wordsep_simple_re = re.compile(r'(,\s*)')
+        wrap = textwrap.TextWrapper(break_long_words=False)
+        wrap.wordsep_re = re.compile(r'(?<=,)(\s*)')
         wrap = wrap.wrap
 
         result = ''
         for rule in rules:
-            fileid, position, codestr, deps, context, options, selectors, properties, path, final, media = rule
-            #print >>sys.stderr, fileid, media, position, [ c for c in context if not c.startswith('$__') ], options.keys(), selectors, deps
-            if position is not None and properties:
+            #print >>sys.stderr, rule[FILEID], rule[MEDIA], rule[POSITION], [ c for c in rule[CONTEXT] if not c.startswith('$__') ], rule[OPTIONS].keys(), rule[SELECTORS], rule[DEPS]
+            if rule[POSITION] is not None and rule[PROPERTIES]:
+                selectors = rule[SELECTORS]
+                media = rule[MEDIA]
                 _tb = tb if old_media else ''
-                if old_media != media and media is not None:
+                if old_media != media or media is not None:
                     if open_selectors:
                         if not sc:
                             if result[-1] == ';':
@@ -1441,7 +1500,7 @@ class Scss(object):
                     old_media = media
                     old_selectors = None # force entrance to add a new selector
                 _tb = tb if media else ''
-                if old_selectors != selectors and selectors is not None:
+                if old_selectors != selectors or selectors is not None:
                     if open_selectors:
                         if not sc:
                             if result[-1] == ';':
@@ -1450,21 +1509,21 @@ class Scss(object):
                         open_selectors = False
                     if selectors:
                         selector = (',' + sp).join(selectors.split(',')) + sp + '{'
-                        if nl: selector = nl.join(wrap(selector)).replace('\n,' + sp, ',\n')
+                        if nl: selector = nl.join(wrap(selector))
                         result += _tb + selector + nl
                         open_selectors = True
                     old_selectors = selectors
                     scope = set()
                 if selectors:
                     _tb += tb
-                if options.get('verbosity', 0) > 1:
-                    result += _tb + '/* file: ' + fileid + ' */' + nl
-                    if context:
+                if rule[OPTIONS].get('verbosity', 0) > 1:
+                    result += _tb + '/* file: ' + rule[FILEID] + ' */' + nl
+                    if rule[CONTEXT]:
                         result += _tb + '/* vars:' + nl
-                        for k, v in context.items():
+                        for k, v in rule[CONTEXT].items():
                             result += _tb + _tb + k + ' = ' + v + ';' + nl
                         result += _tb + '*/' + nl
-                result += self._print_properties(properties, scope, [old_property], sc, sp, _tb, nl)
+                result += self._print_properties(rule[PROPERTIES], scope, [old_property], sc, sp, _tb, nl, wrap)
 
         if open_media:
             _tb = tb
@@ -1484,12 +1543,17 @@ class Scss(object):
 
         return result + '\n'
 
-    def _print_properties(self, properties, scope=None, old_property=None, sc=True, sp=' ', _tb='', nl='\n'):
+    def _print_properties(self, properties, scope=None, old_property=None, sc=True, sp=' ', _tb='', nl='\n', wrap=None):
+        if wrap is None:
+            wrap = textwrap.TextWrapper(break_long_words=False)
+            wrap.wordsep_re = re.compile(r'(?<=,)(\s*)')
+            wrap = wrap.wrap
         result = ''
         old_property = [None] if old_property is None else old_property
         scope = set() if scope is None else scope
         for prop, value in properties:
             if value is not None:
+                if nl: value = (nl + _tb + _tb).join(wrap(value))
                 property = prop + ':' + sp + value
             else:
                 property = prop
@@ -1551,6 +1615,7 @@ class Scss(object):
         return __calculate_expr
 
     def do_glob_math(self, cont, context, options, rule, _dequote=False):
+        cont = str(cont)
         if '#{' not in cont:
             return cont
         cont = _expr_glob_re.sub(self._calculate_expr(context, options, rule, _dequote), cont)
@@ -1558,12 +1623,12 @@ class Scss(object):
 
     @print_timing(3)
     def post_process(self, cont):
-        compress = self.scss_opts.get('compress', 1) and 'compress_' or ''
+        compress = self._scss_opts.get('compress', 1) and 'compress_' or ''
         # short colors:
-        if self.scss_opts.get(compress+'short_colors', 1):
+        if self._scss_opts.get(compress+'short_colors', 1):
             cont = _short_color_re.sub(r'#\1\2\3', cont)
         # color names:
-        if self.scss_opts.get(compress+'reverse_colors', 1):
+        if self._scss_opts.get(compress+'reverse_colors', 1):
             cont = _reverse_colors_re.sub(lambda m: _reverse_colors[m.group(0).lower()], cont)
         if compress:
             # zero units out (i.e. 0px or 0em -> 0):
@@ -1585,10 +1650,14 @@ try:
     import cStringIO as StringIO
 except:
     import StringIO
+
 try:
     from PIL import Image, ImageDraw
 except ImportError:
-    Image = None
+    try:
+        import Image, ImageDraw
+    except:
+        Image = None
 
 ################################################################################
 
@@ -1610,13 +1679,10 @@ def to_float(num):
     if isinstance(num, (float, int)):
         return float(num)
     num = to_str(num)
-    try:
-        if num and num[-1] == '%':
-            return float(num[:-1]) / 100.0
-        else:
-            return float(num)
-    except ValueError:
-        return 0.0
+    if num and num[-1] == '%':
+        return float(num[:-1]) / 100.0
+    else:
+        return float(num)
 
 hex2rgba = {
     9: lambda c: (int(c[1:3], 16), int(c[3:5], 16), int(c[5:7], 16), int(c[7:9], 16)),
@@ -1650,31 +1716,46 @@ def _rgba(r, g, b, a, type='rgba'):
     col += [ type ]
     return ColorValue(col)
 
-def _rgba2(color, a, type='rgba'):
-    a = NumberValue(a).value
-    col = list(ColorValue(color).value[:3])
+def _color_type(color, a, type):
+    color = ColorValue(color).value
+    a = NumberValue(a).value if a is not None else color[3]
+    col = list(color[:3])
     col += [ 0.0 if a < 0 else 1.0 if a > 1 else a ]
     col += [ type ]
     return ColorValue(col)
 
+def _rgb2(color):
+    return _color_type(color, 1.0, 'rgb')
+
+def _rgba2(color, a=None):
+    return _color_type(color, a, 'rgba')
+
+def _hsl2(color):
+    return _color_type(color, 1.0, 'hsl')
+
+def _hsla2(color, a=None):
+    return _color_type(color, a, 'hsla')
+
 def _ie_hex_str(color):
     c = ColorValue(color).value
-    return StringValue('#%02X%02X%02X%02X' % (c[3]*255, c[0], c[1], c[2]))
+    return StringValue('#%02X%02X%02X%02X' % (round(c[3]*255), round(c[0]), round(c[1]), round(c[2])))
 
 def _hsl(h, s, l, type='hsl'):
     return _hsla(h, s, l, 1.0, type)
 
 def _hsla(h, s, l, a, type='hsla'):
     c = NumberValue(h), NumberValue(s), NumberValue(l), NumberValue(a)
-    col = [ c[0] if (c[0].unit == '%' or c[0].value > 0 and c[0].value <= 1) else (c[0].value % 360.0) / 360.0 ]
-    col += [ c[i].value if (c[i].unit == '%' or c[i].value > 0 and c[i].value <= 1) else
-            0.0 if c[i].value < 0 else
-            1.0 if c[i].value > 1 else
-            c[i].value / 255.0
-            for i in range(1, 4)
-          ]
+    col = [ c[0] if (c[0].unit == '%' and c[0].value > 0 and c[0].value <= 1) else (c[0].value % 360.0) / 360.0 ]
+    col += [ 0.0 if cl <= 0 else 1.0 if cl >= 1.0 else cl
+            for cl in [
+                c[i].value if (c[i].unit == '%' or c[i].value > 0 and c[i].value <= 1) else
+                c[i].value / 100.0
+                for i in range(1, 4)
+              ]
+           ]
     col += [ type ]
-    col = ColorValue(tuple([ c * 255.0 for c in colorsys.hls_to_rgb(col[0], col[2], col[1]) ] + [ col[3], type ]))
+    c = [ c * 255.0 for c in colorsys.hls_to_rgb(col[0], 0.999999 if col[2] == 1 else col[2], 0.999999 if col[1] == 1 else col[1]) ] + [ col[3], type ]
+    col = ColorValue(c)
     return col
 
 def __rgba_op(op, color, r, g, b, a):
@@ -1721,7 +1802,7 @@ def __hsl_op(op, color, h, s, l):
     r = 360.0, 1.0, 1.0
     c = [ 0.0 if c[i] < 0 else r[i] if c[i] > r[i] else c[i] for i in range(3) ]
     # Convert back to RGB:
-    c = colorsys.hls_to_rgb(c[0] / 360.0, c[2], c[1])
+    c = colorsys.hls_to_rgb(c[0] / 360.0, 0.999999 if c[2] == 1 else c[2], 0.999999 if c[1] == 1 else c[1])
     color.value = (c[0] * 255.0, c[1] * 255.0, c[2] * 255.0, color.value[3])
     return color
 
@@ -1959,7 +2040,7 @@ def __color_stops(percentages, *args):
 
 def _grad_color_stops(*args):
     color_stops = __color_stops(True, *args)
-    ret = ', '.join([ 'color-stop(%s, %s)' % (to_str(s), c) for s,c in color_stops ])
+    ret = ', '.join([ 'color-stop(%s, %s)' % (to_str(s), c) for s, c in color_stops ])
     return StringValue(ret)
 
 def __grad_end_position(radial, color_stops):
@@ -1969,8 +2050,7 @@ def __grad_position(index, default, radial, color_stops):
     try:
         stops = NumberValue(color_stops[index][0])
         if radial and stops.unit != 'px' and (index == 0 or index == -1 or index == len(color_stops) -1):
-            err = "Warning: Webkit only supports pixels for the start and end stops for radial gradients. Got %s" % stops
-            print >>sys.stderr, err
+            log.warn("Webkit only supports pixels for the start and end stops for radial gradients. Got %s", stops)
     except IndexError:
         stops = NumberValue(default)
     return stops
@@ -1981,33 +2061,33 @@ def _grad_end_position(*color_stops):
 
 def _color_stops(*args):
     color_stops = __color_stops(False, *args)
-    ret = ', '.join([ '%s %s' % (c, to_str(s)) for s,c in color_stops ])
+    ret = ', '.join([ '%s %s' % (c, to_str(s)) for s, c in color_stops ])
     return StringValue(ret)
 
 def _color_stops_in_percentages(*args):
     color_stops = __color_stops(True, *args)
-    ret = ', '.join([ '%s %s' % (c, to_str(s)) for s,c in color_stops ])
+    ret = ', '.join([ '%s %s' % (c, to_str(s)) for s, c in color_stops ])
     return StringValue(ret)
 
 def _radial_gradient(*args):
     color_stops = args
     position_and_angle = None
     shape_and_size = None
-    if isinstance(args[0], (StringValue, NumberValue)):
+    if isinstance(args[0], (StringValue, NumberValue, basestring)):
         position_and_angle = args[0]
-        if isinstance(args[1], (StringValue, NumberValue)):
+        if isinstance(args[1], (StringValue, NumberValue, basestring)):
             shape_and_size = args[1]
             color_stops = args[2:]
         else:
             color_stops = args[1:]
-    
+
     color_stops = __color_stops(False, *color_stops)
 
     args = [
         position_and_angle if position_and_angle is not None else None,
         shape_and_size if shape_and_size is not None else None,
     ]
-    args.extend('%s %s' % (c, to_str(s)) for s,c in color_stops)
+    args.extend('%s %s' % (c, to_str(s)) for s, c in color_stops)
     to__s = 'radial-gradient(' + ', '.join(to_str(a) for a in args or [] if a is not None) + ')'
     ret = StringValue(to__s)
 
@@ -2016,7 +2096,7 @@ def _radial_gradient(*args):
     ret.to__moz = to__moz
 
     def to__pie():
-        print >>sys.stderr, "Warning: PIE does not support radial-gradient."
+        log.warn("PIE does not support radial-gradient.")
         return StringValue('-pie-radial-gradient(unsupported)')
     ret.to__pie = to__pie
 
@@ -2032,7 +2112,7 @@ def _radial_gradient(*args):
             _grad_point(position_and_angle) if position_and_angle is not None else 'center',
             __grad_end_position(True, color_stops),
         ]
-        args.extend('color-stop(%s, %s)' % (to_str(s), c) for s,c in color_stops)
+        args.extend('color-stop(%s, %s)' % (to_str(s), c) for s, c in color_stops)
         ret = '-webkit-gradient(' + ', '.join(to_str(a) for a in args or [] if a is not None) + ')'
         return StringValue(ret)
     ret.to__webkit = to__webkit
@@ -2046,16 +2126,15 @@ def _radial_gradient(*args):
 def _linear_gradient(*args):
     color_stops = args
     position_and_angle = None
-    if isinstance(args[0], (StringValue, NumberValue)):
+    if isinstance(args[0], (StringValue, NumberValue, basestring)):
         position_and_angle = args[0]
         color_stops = args[1:]
-
     color_stops = __color_stops(False, *color_stops)
-    
+
     args = [
-        position_and_angle if position_and_angle is not None else None,
+        _position(position_and_angle) if position_and_angle is not None else None,
     ]
-    args.extend('%s %s' % (c, to_str(s)) for s,c in color_stops)
+    args.extend('%s %s' % (c, to_str(s)) for s, c in color_stops)
     to__s = 'linear-gradient(' + ', '.join(to_str(a) for a in args or [] if a is not None) + ')'
     ret = StringValue(to__s)
 
@@ -2067,6 +2146,14 @@ def _linear_gradient(*args):
         return StringValue('-pie-' + to__s)
     ret.to__pie = to__pie
 
+    def to__ms():
+        return StringValue('-ms-' + to__s)
+    ret.to__ms = to__ms
+
+    def to__o():
+        return StringValue('-o-' + to__s)
+    ret.to__o = to__o
+
     def to__css2():
         return StringValue('')
     ret.to__css2 = to__css2
@@ -2074,10 +2161,10 @@ def _linear_gradient(*args):
     def to__webkit():
         args = [
             'linear',
-            position_and_angle or 'center top',
+            _position(position_and_angle or 'center top'),
             _opposite_position(position_and_angle or 'center top'),
         ]
-        args.extend('color-stop(%s, %s)' % (to_str(s), c) for s,c in color_stops)
+        args.extend('color-stop(%s, %s)' % (to_str(s), c) for s, c in color_stops)
         ret = '-webkit-gradient(' + ', '.join(to_str(a) for a in args or [] if a is not None) + ')'
         return StringValue(ret)
     ret.to__webkit = to__webkit
@@ -2121,7 +2208,7 @@ def _linear_svg_gradient(*args):
     return StringValue(inline)
 
 def __color_stops_svg(color_stops):
-    ret = ''.join('<stop offset="%s" stop-color="%s"/>' % (to_str(s), c) for s,c in color_stops )
+    ret = ''.join('<stop offset="%s" stop-color="%s"/>' % (to_str(s), c) for s, c in color_stops)
     return ret
 
 def __svg_template(gradient):
@@ -2169,10 +2256,12 @@ def _sprite_map(g, **kwargs):
         sprite_maps[glob]['*'] = datetime.datetime.now()
     elif '..' not in g: # Protect against going to prohibited places...
         vertical = (kwargs.get('direction', 'vertical') == 'vertical')
-        offset_x = NumberValue(kwargs.get('offset-x', 0))
-        offset_y = NumberValue(kwargs.get('offset-y', 0))
+        offset_x = NumberValue(kwargs.get('offset_x', 0))
+        offset_y = NumberValue(kwargs.get('offset_y', 0))
         repeat = StringValue(kwargs.get('repeat', 'no-repeat'))
         position = NumberValue(kwargs.get('position', 0))
+        dst_color = kwargs.get('dst_color')
+        src_color = kwargs.get('src_color')
         if position and position > -1 and position < 1:
             position.units = { '%': _units_weights.get('%', 1), '_': '%' }
         spacing = kwargs.get('spacing', 0)
@@ -2191,8 +2280,7 @@ def _sprite_map(g, **kwargs):
             rfiles = [ (f[len(STATIC_ROOT):], s) for f, s in files ]
 
         if not files:
-            err = "Error: nothing found at '%s'" % glob_path
-            print >>sys.stderr, err
+            log.error("Nothing found at '%s'", glob_path)
             return StringValue(None)
 
         times = []
@@ -2219,7 +2307,8 @@ def _sprite_map(g, **kwargs):
             spacings = []
             tot_spacings = []
             for name in names:
-                _position = kwargs.get(name + '-position')
+                name = name.replace('-', '_')
+                _position = kwargs.get(name + '_position')
                 if _position is None:
                     _position = position
                 else:
@@ -2227,7 +2316,7 @@ def _sprite_map(g, **kwargs):
                     if _position and _position > -1 and _position < 1:
                         _position.units = { '%': _units_weights.get('%', 1), '_': '%' }
                 positions.append(_position)
-                _spacing = kwargs.get(name + '-spacing')
+                _spacing = kwargs.get(name + '_spacing')
                 if _spacing is None:
                     _spacing = spacing
                 else:
@@ -2293,11 +2382,19 @@ def _sprite_map(g, **kwargs):
                     offsets_y.append(y)
                     offset += sizes[i][0] + spacing[1]
 
+            if dst_color:
+                src_color = ColorValue(src_color).value[:3] if src_color else (0, 0, 0)
+                dst_color = list(ColorValue(dst_color).value[:3])
+                pixdata = new_image.load()
+                for y in xrange(new_image.size[1]):
+                    for x in xrange(new_image.size[0]):
+                        if pixdata[x, y][:3] == src_color:
+                            pixdata[x, y] = tuple(dst_color + [ pixdata[x, y][3] ])
+
             try:
                 new_image.save(asset_path)
-            except IOError, e:
-                err = "Error: %s" % e
-                print >>sys.stderr, err
+            except IOError:
+                log.exception("Error while saving image")
             filetime = int(time.mktime(datetime.datetime.now().timetuple()))
 
             url = '%s%s?_=%s' % (ASSETS_URL, asset_file, filetime)
@@ -2320,7 +2417,7 @@ def _sprite_map(g, **kwargs):
     ret = StringValue(asset)
     return ret
 
-def _grid_image(left_gutter, width, right_gutter, height, columns=1, grid_color=None, baseline_color=None, background_color=None):
+def _grid_image(left_gutter, width, right_gutter, height, columns=1, grid_color=None, baseline_color=None, background_color=None, inline=False):
     if not Image:
         raise Exception("Images manipulation require PIL")
     if grid_color == None:
@@ -2338,7 +2435,7 @@ def _grid_image(left_gutter, width, right_gutter, height, columns=1, grid_color=
     else:
         c = ColorValue(background_color).value
         background_color = (c[0], c[1], c[2], int(c[3] * 255.0))
-    _height = int(height) if height >= 1 else int(_height * 1000.0)
+    _height = int(height) if height >= 1 else int(height * 1000.0)
     _width = int(width) if width >= 1 else int(width * 1000.0)
     _left_gutter = int(left_gutter) if left_gutter >= 1 else int(left_gutter * 1000.0)
     _right_gutter = int(right_gutter) if right_gutter >= 1 else int(right_gutter * 1000.0)
@@ -2355,11 +2452,28 @@ def _grid_image(left_gutter, width, right_gutter, height, columns=1, grid_color=
         draw.rectangle((i * _full_width + _left_gutter, 0, i * _full_width + _left_gutter + _width - 1, _height - 1),  fill=grid_color)
     if _height > 1:
         draw.rectangle((0, _height - 1, _full_width * int(columns) - 1, _height - 1),  fill=baseline_color)
-    output = StringIO.StringIO()
-    new_image.save(output, format='PNG')
-    contents = output.getvalue()
-    output.close()
-    url = 'data:image/png;base64,' + base64.b64encode(contents)
+    if not inline:
+        grid_name = 'grid_'
+        if left_gutter: grid_name += str(int(left_gutter)) + '+'
+        grid_name += str(int(width))
+        if right_gutter: grid_name += '+' + str(int(right_gutter))
+        if height and height > 1: grid_name += 'x' + str(int(height))
+        key = (columns, grid_color, baseline_color, background_color)
+        key = grid_name + '-' + base64.urlsafe_b64encode(hashlib.md5(repr(key)).digest()).rstrip('=').replace('-', '_')
+        asset_file = key + '.png'
+        asset_path = os.path.join(ASSETS_ROOT, asset_file)
+        try:
+            new_image.save(asset_path)
+        except IOError:
+            log.exception("Error while saving image")
+            inline = True # Retry inline version
+        url = '%s%s' % (ASSETS_URL, asset_file)
+    if inline:
+        output = StringIO.StringIO()
+        new_image.save(output, format='PNG')
+        contents = output.getvalue()
+        output.close()
+        url = 'data:image/png;base64,' + base64.b64encode(contents)
     inline = 'url("%s")' % escape(url)
     return StringValue(inline)
 
@@ -2377,10 +2491,10 @@ def _image_color(color, width=1, height=1):
         color = (c[0], c[1], c[2], int(c[3] * 255.0))
     )
     output = StringIO.StringIO()
-    new_image.save(output, format='PNG' if c[3] == 1 else 'GIF')
+    new_image.save(output, format='PNG')
     contents = output.getvalue()
     output.close()
-    mime_type = 'image/gif' if c[3] == 1 else 'image/png'
+    mime_type = 'image/png'
     url = 'data:' + mime_type + ';base64,' + base64.b64encode(contents)
     inline = 'url("%s")' % escape(url)
     return StringValue(inline)
@@ -2390,16 +2504,13 @@ def _sprite_map_name(map):
     Returns the name of a sprite map The name is derived from the folder than
     contains the sprites.
     """
-    try:
-        map = StringValue(map).value
-        sprite_map = sprite_maps.get(map, {})
-        if sprite_map:
-            return StringValue(sprite_map['*n*'])
-        return StringValue(None)
-    except:
-        import traceback
-        traceback.print_exc()
-        raise
+    map = StringValue(map).value
+    sprite_map = sprite_maps.get(map)
+    if not sprite_map:
+        log.error("No sprite map found: %s", map)
+    if sprite_map:
+        return StringValue(sprite_map['*n*'])
+    return StringValue(None)
 
 def _sprite_file(map, sprite):
     """
@@ -2408,11 +2519,13 @@ def _sprite_file(map, sprite):
     image_width and image_height helpers.
     """
     map = StringValue(map).value
-    sprite = StringValue(sprite).value
-
-    sprite_map = sprite_maps.get(map, {})
-    sprite = sprite_map.get(sprite)
-
+    sprite_name = StringValue(sprite).value
+    sprite_map = sprite_maps.get(map)
+    sprite = sprite_map and sprite_map.get(sprite_name)
+    if not sprite_map:
+        log.error("No sprite map found: %s", map)
+    elif not sprite:
+        log.error("No sprite found: %s in %s", sprite_name, sprite_map['*n*'])
     if sprite:
         return QuotedStringValue(sprite[1][0])
     return StringValue(None)
@@ -2428,9 +2541,13 @@ def _sprite(map, sprite, offset_x=None, offset_y=None):
     property
     """
     map = StringValue(map).value
-    sprite = StringValue(sprite).value
-    sprite_map = sprite_maps.get(map, {})
-    sprite = sprite_map.get(sprite)
+    sprite_name = StringValue(sprite).value
+    sprite_map = sprite_maps.get(map)
+    sprite = sprite_map and sprite_map.get(sprite_name)
+    if not sprite_map:
+        log.error("No sprite map found: %s", map)
+    elif not sprite:
+        log.error("No sprite found: %s in %s", sprite_name, sprite_map['*n*'])
     if sprite:
         url = '%s%s?_=%s' % (ASSETS_URL, sprite_map['*f*'], sprite_map['*t*'])
         x = NumberValue(offset_x or 0, 'px')
@@ -2448,10 +2565,13 @@ def _sprite_url(map):
     Returns a url to the sprite image.
     """
     map = StringValue(map).value
-    if map in sprite_maps:
-        sprite_map = sprite_maps[map]
+    sprite_map = sprite_maps.get(map)
+    if not sprite_map:
+        log.error("No sprite map found: %s", map)
+    if sprite_map:
         url = '%s%s?_=%s' % (ASSETS_URL, sprite_map['*f*'], sprite_map['*t*'])
-        return QuotedStringValue(url)
+        url = "url(%s)" % escape(url)
+        return StringValue(url)
     return StringValue(None)
 
 def _sprite_position(map, sprite, offset_x=None, offset_y=None):
@@ -2460,15 +2580,30 @@ def _sprite_position(map, sprite, offset_x=None, offset_y=None):
     This is suitable for use as a value to background-position.
     """
     map = StringValue(map).value
-    sprite = StringValue(sprite).value
-    sprite = sprite_maps.get(map, {}).get(sprite)
+    sprite_name = StringValue(sprite).value
+    sprite_map = sprite_maps.get(map)
+    sprite = sprite_map and sprite_map.get(sprite_name)
+    if not sprite_map:
+        log.error("No sprite map found: %s", map)
+    elif not sprite:
+        log.error("No sprite found: %s in %s", sprite_name, sprite_map['*n*'])
     if sprite:
-        x = NumberValue(offset_x or 0, 'px')
-        y = NumberValue(offset_y or 0, 'px')
-        if not x or (x <= -1 or x >= 1) and x.unit != '%':
-            x -= sprite[2]
-        if not y or (y <= -1 or y >= 1) and y.unit != '%':
-            y -= sprite[3]
+        x = None
+        if offset_x is not None and not isinstance(offset_x, NumberValue):
+            x = str(offset_x)
+        if x not in ('left', 'right', 'center'):
+            if x: offset_x = None
+            x = NumberValue(offset_x or 0, 'px')
+            if not x or (x <= -1 or x >= 1) and x.unit != '%':
+                x -= sprite[2]
+        y = None
+        if offset_y is not None and not isinstance(offset_y, NumberValue):
+            y = str(offset_y)
+        if y not in ('top', 'bottom', 'center'):
+            if y: offset_y = None
+            y = NumberValue(offset_y or 0, 'px')
+            if not y or (y <= -1 or y >= 1) and y.unit != '%':
+                y -= sprite[3]
         pos = '%s %s' % (x, y)
         return StringValue(pos)
     return StringValue('0 0')
@@ -2499,26 +2634,64 @@ def _inline_image(image, mime_type=None):
     inline = 'url("%s")' % escape(url)
     return StringValue(inline)
 
-def _image_url(image):
+def _image_url(image, dst_color=None, src_color=None):
     """
     Generates a path to an asset found relative to the project's images
     directory.
     """
+    if src_color and dst_color:
+        if not Image:
+            raise Exception("Images manipulation require PIL")
     file = StringValue(image).value
+    path = None
     if callable(STATIC_ROOT):
         try:
             _file, _storage = list(STATIC_ROOT(file))[0]
             d_obj = _storage.modified_time(_file)
             filetime = int(time.mktime(d_obj.timetuple()))
+            if dst_color:
+                path = _storage.open(_file)
         except:
             filetime = 'NA'
     else:
-        path = os.path.join(STATIC_ROOT, file)
-        if os.path.exists(path):
-            filetime = int(os.path.getmtime(path))
+        _path = os.path.join(STATIC_ROOT, file)
+        if os.path.exists(_path):
+            filetime = int(os.path.getmtime(_path))
+            if dst_color:
+                path = open(_path, 'rb')
         else:
             filetime = 'NA'
-    url = 'url("%s%s?_=%s")' % (STATIC_URL, file, filetime)
+    BASE_URL = STATIC_URL
+    if path:
+        src_color = tuple( int(round(c)) for c in ColorValue(src_color).value[:3] ) if src_color else (0, 0, 0)
+        dst_color = [ int(round(c)) for c in ColorValue(dst_color).value[:3] ]
+
+        file_name, file_ext = os.path.splitext(os.path.normpath(file).replace('\\', '_').replace('/', '_'))
+        key = (filetime, src_color, dst_color)
+        key = file_name + '-' + base64.urlsafe_b64encode(hashlib.md5(repr(key)).digest()).rstrip('=').replace('-', '_')
+        asset_file = key + file_ext
+        asset_path = os.path.join(ASSETS_ROOT, asset_file)
+
+        if os.path.exists(asset_path):
+            file = asset_file
+            BASE_URL = ASSETS_URL
+            filetime = int(os.path.getmtime(asset_path))
+        else:
+            image = Image.open(path)
+            image = image.convert("RGBA")
+            pixdata = image.load()
+            for y in xrange(image.size[1]):
+                for x in xrange(image.size[0]):
+                    if pixdata[x, y][:3] == src_color:
+                        new_color = tuple(dst_color + [ pixdata[x, y][3] ])
+                        pixdata[x, y] = new_color
+            try:
+                image.save(asset_path)
+                file = asset_file
+                BASE_URL = ASSETS_URL
+            except IOError:
+                log.exception("Error while saving image")
+    url = 'url("%s%s?_=%s")' % (BASE_URL, file, filetime)
     return StringValue(url)
 
 def _image_width(image):
@@ -2549,9 +2722,7 @@ def _image_width(image):
             size = image.size
             width = size[0]
             sprite_images[file] = size
-    ret = NumberValue(width)
-    ret.units = { 'px': _units_weights.get('px', 1), '_': 'px' }
-    return ret
+    return NumberValue(width, 'px')
 
 def _image_height(image):
     """
@@ -2581,32 +2752,35 @@ def _image_height(image):
             size = image.size
             height = size[1]
             sprite_images[file] = size
-    ret = NumberValue(height)
-    ret.units['px'] = _units_weights.get('px', 1)
-    return ret
+    return NumberValue(height, 'px')
 
 ################################################################################
-def _opposite_position(*p):
+def __position(opposite, *p):
     pos = set()
     hrz = vrt = None
     for _p in p:
         pos.update(StringValue(_p).value.split())
     if 'left' in pos:
-        hrz = 'right'
+        hrz = 'right' if opposite else 'left'
     elif 'right' in pos:
-        hrz = 'left'
-    elif 'center' in pos:
+        hrz = 'left' if opposite else 'right'
+    else:
         hrz = 'center'
     if 'top' in pos:
-        vrt = 'bottom'
+        vrt = 'bottom' if opposite else 'top'
     elif 'bottom' in pos:
-        vrt = 'top'
-    elif 'center' in pos:
+        vrt = 'top' if opposite else 'bottom'
+    else:
         vrt = 'center'
     if hrz == vrt:
         vrt = None
-    ret = ListValue(list(v for v in (hrz, vrt) if v is not None))
-    return ret
+    return ListValue(list(v for v in (hrz, vrt) if v is not None))
+
+def _position(*p):
+    return __position(False, *p)
+
+def _opposite_position(*p):
+    return __position(True, *p)
 
 def _grad_point(*p):
     pos = set()
@@ -2621,8 +2795,7 @@ def _grad_point(*p):
         vrt = NumberValue(0, '%')
     elif 'bottom' in pos:
         vrt = NumberValue(1, '%')
-    ret = ListValue(list(v for v in (hrz, vrt) if v is not None))
-    return ret
+    return ListValue(list(v for v in (hrz, vrt) if v is not None))
 
 
 ################################################################################
@@ -2682,7 +2855,8 @@ def __compass_slice(lst, start_index, end_index=None):
     return ListValue(ret)
 
 def _first_value_of(*lst):
-    return ListValue(lst).first()
+    ret = ListValue(lst).first()
+    return ret.__class__(ret)
 
 def _nth(lst, n=1):
     """
@@ -2705,7 +2879,7 @@ def _nth(lst, n=1):
             ret = lst[n]
         except:
             ret = ''
-    return StringValue(ret)
+    return ret.__class__(ret)
 
 def _join(lst1, lst2, separator=None):
     ret = ListValue(lst1)
@@ -2723,12 +2897,9 @@ def _length(*lst):
     return NumberValue(len(lst))
 
 def _append(lst, val, separator=None):
-    ret = ListValue(lst)
-    ret.value[len(ret.value)] = val
-    if separator is not None:
-        separator = StringValue(separator).value
-        if separator:
-            ret.value['_'] = separator
+    separator = separator and StringValue(separator).value
+    ret = ListValue(lst, separator)
+    ret.value[len(ret)] = val
     return ret
 
 ################################################################################
@@ -2764,9 +2935,7 @@ def _prefix(prefix, *args):
                 args[i] = to_fnct()
     if len(args) == 1:
         return args[0]
-    ret = ListValue(args)
-    ret.value['_'] = ','
-    return ret
+    return ListValue(args, ',')
 
 def __moz(*args):
     return _prefix('_moz', *args)
@@ -2801,8 +2970,7 @@ def _percentage(value):
 
 def _unitless(value):
     value = NumberValue(value)
-    value.units.clear()
-    return value
+    return BooleanValue(not bool(value.unit))
 
 def _unquote(*args):
     return StringValue(' '.join([ StringValue(s).value for s in args ]))
@@ -2828,10 +2996,10 @@ def _type_of(obj): # -> bool, number, string, color, list
         return StringValue('color')
     if isinstance(obj, ListValue):
         return StringValue('list')
-    return 'string'
+    return StringValue('string')
 
 def _if(condition, if_true, if_false=''):
-    return if_true if bool(BooleanValue(condition)) else if_false
+    return if_true.__class__(if_true) if bool(condition) else if_true.__class__(if_false)
 
 def _unit(number): # -> px, em, cm, etc.
     unit = NumberValue(number).unit
@@ -2899,10 +3067,19 @@ def _enumerate(prefix, frm, through, separator='-'):
     separator = StringValue(separator).value
     frm = int(getattr(frm, 'value', frm))
     through = int(getattr(through, 'value', through))
-    ret = [ prefix + separator + str(i) for i in range(frm, through + 1) ]
+    if prefix:
+        ret = [ prefix + separator + str(i) for i in range(frm, through + 1) ]
+    else:
+        ret = [ NumberValue(i) for i in range(frm, through + 1) ]
     ret = dict(enumerate(ret))
     ret['_'] = ','
     return ret
+
+def _range(frm, through=None):
+    if not through:
+        through = frm
+        frm = 0
+    return _enumerate(None, frm, through)
 
 ################################################################################
 # Specific to pyScss parser functions:
@@ -3004,7 +3181,8 @@ class Value(object):
         return self.value and True or False
     def __add__(self, other):
         return self._do_op(self, other, operator.__add__)
-    __radd__ = __add__
+    def __radd__(self, other):
+        return self._do_op(other, self, operator.__add__)
     def __div__(self, other):
         return self._do_op(self, other, operator.__div__)
     def __rdiv__(self, other):
@@ -3015,7 +3193,8 @@ class Value(object):
         return self._do_op(other, self, operator.__sub__)
     def __mul__(self, other):
         return self._do_op(self, other, operator.__mul__)
-    __rmul__ = __mul__
+    def __rmul__(self, other):
+        return self._do_op(other, self, operator.__mul__)
     def convert_to(self, type):
         return self.value.convert_to(type)
     def merge(self, obj):
@@ -3057,6 +3236,25 @@ class BooleanValue(Value):
         return op(first, second)
     @classmethod
     def _do_op(cls, first, second, op):
+        if isinstance(first, ListValue) and isinstance(second, ListValue):
+            ret = ListValue(first)
+            for k,v in ret.items():
+                try:
+                    ret.value[k] = op(ret.value[k], second.value[k])
+                except KeyError:
+                    pass
+            return ret
+        if isinstance(first, ListValue):
+            ret = ListValue(first)
+            for k,v in ret.items():
+                ret.value[k] = op(ret.value[k], second)
+            return ret
+        if isinstance(second, ListValue):
+            ret = ListValue(second)
+            for k,v in ret.items():
+                ret.value[k] = op(first, ret.value[k])
+            return ret
+
         first = BooleanValue(first)
         second = BooleanValue(second)
         val = op(first.value, second.value)
@@ -3090,11 +3288,11 @@ class NumberValue(Value):
                 else:
                     self.value = to_float(tokens)
             except ValueError:
-                self.value = 0.0
+                raise ValueError("Value is not a Number!")
         elif isinstance(tokens, (int, float)):
             self.value = float(tokens)
         else:
-            self.value = 0.0
+            raise ValueError("Value is not a Number!")
         if type is not None:
             self.units = { type: _units_weights.get(type, 1), '_': type }
     def __repr__(self):
@@ -3110,8 +3308,11 @@ class NumberValue(Value):
         return val
     @classmethod
     def _do_cmps(cls, first, second, op):
-        first = NumberValue(first)
-        second = NumberValue(second)
+        try:
+            first = NumberValue(first)
+            second = NumberValue(second)
+        except ValueError:
+            return op(getattr(first, 'value', first), getattr(second, 'value', second))
         first_type = _conv_type.get(first.unit)
         second_type = _conv_type.get(second.unit)
         if first_type == second_type or first_type is None or second_type is None:
@@ -3120,11 +3321,35 @@ class NumberValue(Value):
             return op(first_type, second_type)
     @classmethod
     def _do_op(cls, first, second, op):
+        if isinstance(first, ListValue) and isinstance(second, ListValue):
+            ret = ListValue(first)
+            for k,v in ret.items():
+                try:
+                    ret.value[k] = op(ret.value[k], second.value[k])
+                except KeyError:
+                    pass
+            return ret
+        if isinstance(first, ListValue):
+            ret = ListValue(first)
+            for k,v in ret.items():
+                ret.value[k] = op(ret.value[k], second)
+            return ret
+        if isinstance(second, ListValue):
+            ret = ListValue(second)
+            for k,v in ret.items():
+                ret.value[k] = op(first, ret.value[k])
+            return ret
+
+        if isinstance(first, basestring):
+            first = StringValue(first)
+        elif isinstance(first, (int, float)):
+            first = NumberValue(first)
+        if isinstance(second, basestring):
+            second = StringValue(second)
+        elif isinstance(second, (int, float)):
+            second = NumberValue(second)
+
         if op == operator.__mul__:
-            first = StringValue(first) if isinstance(first, basestring) else first
-            first = NumberValue(first) if not isinstance(first, QuotedStringValue) else first
-            second = StringValue(second) if isinstance(second, basestring) else second
-            second = NumberValue(second) if not isinstance(second, QuotedStringValue) else second
             if isinstance(first, NumberValue) and isinstance(second, QuotedStringValue):
                 first.value = int(first.value)
                 val = op(second.value, first.value)
@@ -3133,9 +3358,9 @@ class NumberValue(Value):
                 second.value = int(second.value)
                 val = op(first.value, second.value)
                 return first.__class__(val)
-        else:
-            first = NumberValue(first)
-            second = NumberValue(second)
+
+        if not isinstance(first, NumberValue) or not isinstance(second, NumberValue):
+            return op(first.value if isinstance(first, NumberValue) else first, second.value if isinstance(second, NumberValue) else second)
 
         first_unit = first.unit
         second_unit = second.unit
@@ -3196,7 +3421,7 @@ class NumberValue(Value):
         return unit
 
 class ListValue(Value):
-    def __init__(self, tokens):
+    def __init__(self, tokens, separator=None):
         self.tokens = tokens
         if tokens is None:
             self.value = {}
@@ -3211,20 +3436,47 @@ class ListValue(Value):
         elif isinstance(tokens, (list, tuple)):
             self.value = dict(enumerate(tokens))
         else:
-            sp = None
             lst = [ i for i in to_str(tokens).split() if i ]
             if len(lst) == 1:
                 lst = [ i.strip() for i in lst[0].split(',') if i.strip() ]
                 if len(lst) > 1:
-                    sp = ','
+                    separator = ',' if separator is None else separator
+                else:
+                    lst = [ tokens ]
             self.value = dict(enumerate(lst))
-            if sp:
-                self.value['_'] = ','
+        if separator is None:
+            separator = self.value.pop('_', None)
+        if separator:
+            self.value['_'] = separator
+
     @classmethod
     def _do_cmps(cls, first, second, op):
-        first = ListValue(first)
-        second = ListValue(second)
+        try:
+            first = ListValue(first)
+            second = ListValue(second)
+        except ValueError:
+            return op(getattr(first, 'value', first), getattr(second, 'value', second))
         return op(first.value, second.value)
+    @classmethod
+    def _do_op(cls, first, second, op):
+        if isinstance(first, ListValue) and isinstance(second, ListValue):
+            ret = ListValue(first)
+            for k,v in ret.items():
+                try:
+                    ret.value[k] = op(ret.value[k], second.value[k])
+                except KeyError:
+                    pass
+            return ret
+        if isinstance(first, ListValue):
+            ret = ListValue(first)
+            for k,v in ret.items():
+                ret.value[k] = op(ret.value[k], second)
+            return ret
+        if isinstance(second, ListValue):
+            ret = ListValue(second)
+            for k,v in ret.items():
+                ret.value[k] = op(first, ret.value[k])
+            return ret
     def _reorder_list(self, lst):
         return dict((i if isinstance(k, int) else k, v) for i, (k, v) in enumerate(sorted(lst.items())))
     def __nonzero__(self):
@@ -3234,7 +3486,7 @@ class ListValue(Value):
     def __str__(self):
         return to_str(self.value)
     def __tuple__(self):
-        return tuple(sorted((k, v) for k, v in value.items() if k != '_'))
+        return tuple(sorted((k, v) for k, v in self.value.items() if k != '_'))
     def __iter__(self):
         return iter(self.values())
     def values(self):
@@ -3288,7 +3540,7 @@ class ColorValue(Value):
                 except ValueError:
                     try:
                         hex.replace(' ', '').lower()
-                        type, _, colors = hex.pertition('(').rstrip(')')
+                        type, _, colors = hex.partition('(').rstrip(')')
                         if type in ('rgb', 'rgba'):
                             c = tuple(colors.split(','))
                             try:
@@ -3298,19 +3550,19 @@ class ColorValue(Value):
                                 self.value = tuple(col)
                                 self.types = { type: 1 }
                             except:
-                                pass
-                        if type in ('hsl', 'hsla'):
+                                raise ValueError("Value is not a Color!")
+                        elif type in ('hsl', 'hsla'):
                             c = colors.split(',')
                             try:
                                 c = [ to_float(c[i]) for i in range(4) ]
                                 col = [ c[0] % 360.0 ] / 360.0
                                 col += [ 0.0 if c[i] < 0 else 1.0 if c[i] > 1 else c[i] for i in range(1,4) ]
-                                self.value = tuple([ c * 255.0 for c in colorsys.hls_to_rgb(col[0], col[2], col[1]) ] + [ col[3] ])
+                                self.value = tuple([ c * 255.0 for c in colorsys.hls_to_rgb(col[0], 0.999999 if col[2] == 1 else col[2], 0.999999 if col[1] == 1 else col[1]) ] + [ col[3] ])
                                 self.types = { type: 1 }
                             except:
-                                pass
+                                raise ValueError("Value is not a Number!")
                     except:
-                        pass
+                        raise ValueError("Value is not a Number!")
     def __repr__(self):
         return '<%s: %s, %s>' % (self.__class__.__name__, repr(self.value), repr(self.types))
     def __str__(self):
@@ -3318,10 +3570,10 @@ class ColorValue(Value):
         c = self.value
         if type == 'hsl' or type == 'hsla' and c[3] == 1:
             h, l, s = colorsys.rgb_to_hls(c[0] / 255.0, c[1] / 255.0, c[2] / 255.0)
-            return 'hsl(%sdeg, %s%%, %s%%)' % (to_str(h * 360.0), to_str(s * 100.0), to_str(l * 100.0))
+            return 'hsl(%s, %s%%, %s%%)' % (to_str(h * 360.0), to_str(s * 100.0), to_str(l * 100.0))
         if type == 'hsla':
             h, l, s = colorsys.rgb_to_hls(c[0] / 255.0, c[1] / 255.0, c[2] / 255.0)
-            return 'hsla(%sdeg, %s%%, %s%%, %s)' % (to_str(h * 360.0), to_str(s * 100.0), to_str(l * 100.0), to_str(a))
+            return 'hsla(%s, %s%%, %s%%, %s)' % (to_str(h * 360.0), to_str(s * 100.0), to_str(l * 100.0), to_str(c[3]))
         r, g, b = to_str(c[0]), to_str(c[1]), to_str(c[2])
         _, _, r = r.partition('.')
         _, _, g = g.partition('.')
@@ -3335,11 +3587,33 @@ class ColorValue(Value):
         return 'rgba(%d, %d, %d, %s)' % (round(c[0]), round(c[1]), round(c[2]), to_str(c[3]))
     @classmethod
     def _do_cmps(cls, first, second, op):
-        first = ColorValue(first)
-        second = ColorValue(second)
+        try:
+            first = ColorValue(first)
+            second = ColorValue(second)
+        except ValueError:
+            return op(getattr(first, 'value', first), getattr(second, 'value', second))
         return op(first.value, second.value)
     @classmethod
     def _do_op(cls, first, second, op):
+        if isinstance(first, ListValue) and isinstance(second, ListValue):
+            ret = ListValue(first)
+            for k,v in ret.items():
+                try:
+                    ret.value[k] = op(ret.value[k], second.value[k])
+                except KeyError:
+                    pass
+            return ret
+        if isinstance(first, ListValue):
+            ret = ListValue(first)
+            for k,v in ret.items():
+                ret.value[k] = op(ret.value[k], second)
+            return ret
+        if isinstance(second, ListValue):
+            ret = ListValue(second)
+            for k,v in ret.items():
+                ret.value[k] = op(first, ret.value[k])
+            return ret
+
         first = ColorValue(first)
         second = ColorValue(second)
         val = [ op(first.value[i], second.value[i]) for i in range(4) ]
@@ -3395,6 +3669,25 @@ class QuotedStringValue(Value):
         return op(first.value, second.value)
     @classmethod
     def _do_op(cls, first, second, op):
+        if isinstance(first, ListValue) and isinstance(second, ListValue):
+            ret = ListValue(first)
+            for k,v in ret.items():
+                try:
+                    ret.value[k] = op(ret.value[k], second.value[k])
+                except KeyError:
+                    pass
+            return ret
+        if isinstance(first, ListValue):
+            ret = ListValue(first)
+            for k,v in ret.items():
+                ret.value[k] = op(ret.value[k], second)
+            return ret
+        if isinstance(second, ListValue):
+            ret = ListValue(second)
+            for k,v in ret.items():
+                ret.value[k] = op(first, ret.value[k])
+            return ret
+
         first = QuotedStringValue(first)
         first_value = first.value
         if op == operator.__mul__:
@@ -3416,17 +3709,25 @@ class StringValue(QuotedStringValue):
     def __str__(self):
         return self.value
     def __add__(self, other):
+        if isinstance(other, ListValue):
+            return self._do_op(self, other, operator.__add__)
+        string_class = StringValue
         if self.__class__ == QuotedStringValue or other.__class__ == QuotedStringValue:
-            other = QuotedStringValue(other)
-            return QuotedStringValue(self.value + other.value)
-        other = StringValue(other)
-        return StringValue(self.value + '+' + other.value)
+            string_class = QuotedStringValue
+        other = string_class(other)
+        if not isinstance(other, (QuotedStringValue, basestring)):
+            return string_class(self.value + '+' + other.value)
+        return string_class(self.value + other.value)
     def __radd__(self, other):
+        if isinstance(other, ListValue):
+            return self._do_op(other, self, operator.__add__)
+        string_class = StringValue
         if self.__class__ == QuotedStringValue or other.__class__ == QuotedStringValue:
-            other = QuotedStringValue(other)
-            return QuotedStringValue(other.value + self.value)
-        other = StringValue(other)
-        return StringValue(other.value + '+' + self.value)
+            string_class = QuotedStringValue
+        other = string_class(other)
+        if not isinstance(other, (QuotedStringValue, basestring)):
+            return string_class(other.value + '+' + self.value)
+        return string_class(other.value + self.value)
 
 # Parser/functions map:
 fnct = {
@@ -3450,6 +3751,8 @@ fnct = {
     'inline-image:1': _inline_image,
     'inline-image:2': _inline_image,
     'image-url:1': _image_url,
+    'image-url:2': _image_url,
+    'image-url:3': _image_url,
     'image-width:1': _image_width,
     'image-height:1': _image_height,
 
@@ -3490,8 +3793,13 @@ fnct = {
     'mix:2': _mix,
     'mix:3': _mix,
     'hsl:3': _hsl,
+    'hsl:1': _hsl2,
+    'hsla:1': _hsla2,
+    'hsla:2': _hsla2,
     'hsla:4': _hsla,
     'rgb:3': _rgb,
+    'rgb:1': _rgb2,
+    'rgba:1': _rgba2,
     'rgba:2': _rgba2,
     'rgba:4': _rgba,
     'ie-hex-str:1': _ie_hex_str,
@@ -3537,6 +3845,8 @@ fnct = {
     'headers:2': _headers,
     'enumerate:3': _enumerate,
     'enumerate:4': _enumerate,
+    'range:1': _range,
+    'range:2': _range,
 
     'percentage:1': _percentage,
     'unitless:1': _unitless,
@@ -3565,12 +3875,12 @@ for u in _units:
 
 def interpolate(v, R):
     C, O = R[CONTEXT], R[OPTIONS]
-    v = C.get(v, v)
-    if isinstance(v, basestring):
-        vi = eval_expr(v, R, True)
-        if vi is not None:
-            v = vi
-    return v
+    vi = C.get(v, v)
+    if v != vi and isinstance(vi, basestring):
+        _vi = eval_expr(vi, R, True)
+        if _vi is not None:
+            vi = _vi
+    return vi
 
 def call(name, args, R, is_function=True):
     C, O = R[CONTEXT], R[OPTIONS]
@@ -3578,7 +3888,7 @@ def call(name, args, R, is_function=True):
     _name = name.replace('_', '-')
     s = args and args.value.items() or []
     _args = [ v for n,v in s if isinstance(n, int) ]
-    _kwargs = dict( (str(n[1:]),v) for n,v in s if not isinstance(n, int) and n != '_' )
+    _kwargs = dict( (str(n[1:]).replace('-', '_'), v) for n,v in s if not isinstance(n, int) and n != '_' )
     _fn_a = '%s:%d' % (_name, len(_args))
     #print >>sys.stderr, '#', _fn_a, _args, _kwargs
     _fn_n = '%s:n' % _name
@@ -3599,9 +3909,8 @@ def call(name, args, R, is_function=True):
     except KeyError:
         sp = args and args.value.get('_') or ''
         if is_function:
-            if _name not in ('url',):
-                err = "Error: Required function not found: %s" % _fn_a
-                print >>sys.stderr, err
+            if not _css_function_re.match(_name):
+                log.error("Required function not found (\"%s\"): %s", R[FILE], _fn_a)
             _args = (sp + ' ').join( to_str(v) for n,v in s if isinstance(n, int) )
             _kwargs = (sp + ' ').join( '%s: %s' % (n, to_str(v)) for n,v in s if not isinstance(n, int) and n != '_' )
             if _args and _kwargs:
@@ -3688,7 +3997,7 @@ class Scanner(object):
             self.tokens = self.tokens[:i]
             self.restrictions = self.restrictions[:i]
             self.pos = token[0]
-    
+
     def scan(self, restrict):
         """
         Should scan another token and add it to the list, self.tokens,
@@ -3767,13 +4076,13 @@ class Parser(object):
             raise SyntaxError(tok[0], "Trying to find " + type)
         self._pos += 1
         return tok[3]
-    
+
     def _rewind(self, n=1):
         self._pos -= min(n, self._pos)
         self._scanner.rewind(self._pos)
 
 ################################################################################
-#'(?:'+'|'.join(_units)+')(?![-\w])'
+#'(?<!\\s)(?:'+'|'.join(_units)+')(?![-\w])'
 ## Grammar compiled using Yapps:
 class CalculatorScanner(Scanner):
     patterns = [
@@ -3788,9 +4097,9 @@ class CalculatorScanner(Scanner):
         ('ADD', re.compile('[+]')),
         ('SUB', re.compile('-\\s')),
         ('SIGN', re.compile('-(?![a-zA-Z_])')),
-        ('AND', re.compile('(?<![-\w])and(?![-\w])')),
-        ('OR', re.compile('(?<![-\w])or(?![-\w])')),
-        ('NOT', re.compile('(?<![-\w])not(?![-\w])')),
+        ('AND', re.compile('(?<![-\\w])and(?![-\\w])')),
+        ('OR', re.compile('(?<![-\\w])or(?![-\\w])')),
+        ('NOT', re.compile('(?<![-\\w])not(?![-\\w])')),
         ('NE', re.compile('!=')),
         ('INV', re.compile('!')),
         ('EQ', re.compile('==')),
@@ -3800,11 +4109,12 @@ class CalculatorScanner(Scanner):
         ('GT', re.compile('>')),
         ('STR', re.compile("'[^']*'")),
         ('QSTR', re.compile('"[^"]*"')),
-        ('UNITS', re.compile('(?:'+'|'.join(_units)+')(?![-\w])')),
+        ('UNITS', re.compile('(?<!\\s)(?:'+'|'.join(_units)+')(?![-\\w])')),
         ('NUM', re.compile('(?:\\d+(?:\\.\\d*)?|\\.\\d+)')),
-        ('BOOL', re.compile('(?<![-\w])(?:true|false)(?![-\w])')),
+        ('BOOL', re.compile('(?<![-\\w])(?:true|false)(?![-\\w])')),
         ('COLOR', re.compile('#(?:[a-fA-F0-9]{6}|[a-fA-F0-9]{3})(?![a-fA-F0-9])')),
         ('VAR', re.compile('\\$[-a-zA-Z0-9_]+')),
+        ('FNCT', re.compile('[-a-zA-Z_][-a-zA-Z0-9_]*(?=\\()')),
         ('ID', re.compile('[-a-zA-Z_][-a-zA-Z0-9_]*')),
     ]
     def __init__(self):
@@ -3942,16 +4252,16 @@ class Calculator(Parser):
             return expr_lst.first() if len(expr_lst) == 1 else expr_lst
         elif _token_ == 'ID':
             ID = self._scan('ID')
-            v = ID
-            if self._peek(self.atom_rsts) == 'LPAR':
-                v = None
-                LPAR = self._scan('LPAR')
-                if self._peek(self.atom_rsts_) != 'RPAR':
-                    expr_lst = self.expr_lst(R)
-                    v = expr_lst
-                RPAR = self._scan('RPAR')
-                return call(ID, v, R)
-            return v
+            return ID
+        elif _token_ == 'FNCT':
+            FNCT = self._scan('FNCT')
+            v = None
+            LPAR = self._scan('LPAR')
+            if self._peek(self.atom_rsts) != 'RPAR':
+                expr_lst = self.expr_lst(R)
+                v = expr_lst
+            RPAR = self._scan('RPAR')
+            return call(FNCT, v, R)
         elif _token_ == 'NUM':
             NUM = self._scan('NUM')
             return NumberValue(ParserValue(NUM))
@@ -3978,8 +4288,7 @@ class Calculator(Parser):
             if self._peek(self.expr_lst_rsts_) == '":"':
                 self._scan('":"')
                 n = VAR
-            else:
-                self._rewind()
+            else: self._rewind()
         expr_slst = self.expr_slst(R)
         v = { n or 0: expr_slst }
         while self._peek(self.expr_lst_rsts__) == 'COMMA':
@@ -4004,26 +4313,26 @@ class Calculator(Parser):
             v[len(v)] = expr
         return ListValue(ParserValue(v)) if len(v) > 1 else v[0]
 
-    not_test_rsts_ = set(['AND', 'LPAR', 'QSTR', 'END', 'COLOR', 'INV', 'SIGN', 'VAR', 'ADD', 'NUM', 'COMMA', 'STR', 'NOT', 'BOOL', 'ID', 'RPAR', 'OR'])
+    not_test_rsts_ = set(['AND', 'LPAR', 'QSTR', 'END', 'COLOR', 'INV', 'SIGN', 'VAR', 'ADD', 'NUM', 'COMMA', 'FNCT', 'STR', 'NOT', 'BOOL', 'ID', 'RPAR', 'OR'])
     m_expr_chks = set(['MUL', 'DIV'])
-    comparison_rsts = set(['LPAR', 'QSTR', 'RPAR', 'LE', 'COLOR', 'NE', 'LT', 'NUM', 'COMMA', 'GT', 'END', 'SIGN', 'ADD', 'STR', 'VAR', 'EQ', 'ID', 'AND', 'INV', 'GE', 'BOOL', 'NOT', 'OR'])
-    atom_rsts = set(['LPAR', 'SUB', 'QSTR', 'RPAR', 'VAR', 'MUL', 'DIV', 'LE', 'COLOR', 'NE', 'LT', 'NUM', 'COMMA', 'GT', 'END', 'SIGN', 'GE', 'STR', 'UNITS', 'EQ', 'ID', 'AND', 'INV', 'ADD', 'BOOL', 'NOT', 'OR'])
+    comparison_rsts = set(['LPAR', 'QSTR', 'RPAR', 'LE', 'COLOR', 'NE', 'LT', 'NUM', 'COMMA', 'GT', 'END', 'SIGN', 'ADD', 'FNCT', 'STR', 'VAR', 'EQ', 'ID', 'AND', 'INV', 'GE', 'BOOL', 'NOT', 'OR'])
+    atom_rsts = set(['LPAR', 'QSTR', 'COLOR', 'INV', 'SIGN', 'NOT', 'ADD', 'NUM', 'BOOL', 'FNCT', 'STR', 'VAR', 'RPAR', 'ID'])
     not_test_chks = set(['NOT', 'INV'])
-    u_expr_chks = set(['LPAR', 'COLOR', 'QSTR', 'NUM', 'BOOL', 'STR', 'VAR', 'ID'])
-    m_expr_rsts = set(['LPAR', 'SUB', 'QSTR', 'RPAR', 'MUL', 'DIV', 'LE', 'COLOR', 'NE', 'LT', 'NUM', 'COMMA', 'GT', 'END', 'SIGN', 'GE', 'STR', 'VAR', 'EQ', 'ID', 'AND', 'INV', 'ADD', 'BOOL', 'NOT', 'OR'])
-    expr_lst_rsts_ = set(['LPAR', 'QSTR', 'COLOR', 'INV', 'SIGN', 'VAR', 'ADD', 'NUM', 'BOOL', '":"', 'STR', 'NOT', 'ID'])
-    expr_lst_rsts = set(['LPAR', 'QSTR', 'COLOR', 'INV', 'SIGN', 'NOT', 'ADD', 'NUM', 'BOOL', 'STR', 'VAR', 'ID'])
-    and_test_rsts = set(['AND', 'LPAR', 'QSTR', 'END', 'COLOR', 'INV', 'SIGN', 'VAR', 'ADD', 'NUM', 'COMMA', 'STR', 'NOT', 'BOOL', 'ID', 'RPAR', 'OR'])
-    u_expr_rsts_ = set(['LPAR', 'SUB', 'QSTR', 'RPAR', 'VAR', 'MUL', 'DIV', 'LE', 'COLOR', 'NE', 'LT', 'NUM', 'COMMA', 'GT', 'END', 'SIGN', 'GE', 'STR', 'UNITS', 'EQ', 'ID', 'AND', 'INV', 'ADD', 'BOOL', 'NOT', 'OR'])
-    u_expr_rsts = set(['LPAR', 'COLOR', 'QSTR', 'SIGN', 'ADD', 'NUM', 'BOOL', 'STR', 'VAR', 'ID'])
-    expr_rsts = set(['LPAR', 'QSTR', 'END', 'COLOR', 'INV', 'SIGN', 'VAR', 'ADD', 'NUM', 'COMMA', 'STR', 'NOT', 'BOOL', 'ID', 'RPAR', 'OR'])
-    not_test_rsts = set(['LPAR', 'QSTR', 'COLOR', 'INV', 'SIGN', 'VAR', 'ADD', 'NUM', 'BOOL', 'STR', 'NOT', 'ID'])
-    atom_rsts_ = set(['LPAR', 'QSTR', 'COLOR', 'INV', 'SIGN', 'NOT', 'ADD', 'NUM', 'BOOL', 'STR', 'VAR', 'RPAR', 'ID'])
+    u_expr_chks = set(['LPAR', 'COLOR', 'QSTR', 'NUM', 'BOOL', 'FNCT', 'STR', 'VAR', 'ID'])
+    m_expr_rsts = set(['LPAR', 'SUB', 'QSTR', 'RPAR', 'MUL', 'DIV', 'LE', 'COLOR', 'NE', 'LT', 'NUM', 'COMMA', 'GT', 'END', 'SIGN', 'GE', 'FNCT', 'STR', 'VAR', 'EQ', 'ID', 'AND', 'INV', 'ADD', 'BOOL', 'NOT', 'OR'])
+    expr_lst_rsts_ = set(['LPAR', 'QSTR', 'COLOR', 'INV', 'SIGN', 'VAR', 'ADD', 'NUM', 'BOOL', '":"', 'STR', 'NOT', 'ID', 'FNCT'])
+    expr_lst_rsts = set(['LPAR', 'QSTR', 'COLOR', 'INV', 'SIGN', 'NOT', 'ADD', 'NUM', 'BOOL', 'FNCT', 'STR', 'VAR', 'ID'])
+    and_test_rsts = set(['AND', 'LPAR', 'QSTR', 'END', 'COLOR', 'INV', 'SIGN', 'VAR', 'ADD', 'NUM', 'COMMA', 'FNCT', 'STR', 'NOT', 'BOOL', 'ID', 'RPAR', 'OR'])
+    u_expr_rsts_ = set(['LPAR', 'SUB', 'QSTR', 'RPAR', 'VAR', 'MUL', 'DIV', 'LE', 'COLOR', 'NE', 'LT', 'NUM', 'COMMA', 'GT', 'END', 'SIGN', 'GE', 'FNCT', 'STR', 'UNITS', 'EQ', 'ID', 'AND', 'INV', 'ADD', 'BOOL', 'NOT', 'OR'])
+    u_expr_rsts = set(['LPAR', 'COLOR', 'QSTR', 'SIGN', 'ADD', 'NUM', 'BOOL', 'FNCT', 'STR', 'VAR', 'ID'])
+    expr_rsts = set(['LPAR', 'QSTR', 'END', 'COLOR', 'INV', 'SIGN', 'VAR', 'ADD', 'NUM', 'COMMA', 'FNCT', 'STR', 'NOT', 'BOOL', 'ID', 'RPAR', 'OR'])
+    not_test_rsts = set(['LPAR', 'QSTR', 'COLOR', 'INV', 'SIGN', 'VAR', 'ADD', 'NUM', 'BOOL', 'FNCT', 'STR', 'NOT', 'ID'])
     comparison_chks = set(['GT', 'GE', 'NE', 'LT', 'LE', 'EQ'])
-    expr_slst_rsts = set(['LPAR', 'QSTR', 'END', 'COLOR', 'INV', 'RPAR', 'VAR', 'ADD', 'NUM', 'COMMA', 'STR', 'NOT', 'BOOL', 'SIGN', 'ID'])
+    expr_slst_rsts = set(['LPAR', 'QSTR', 'END', 'COLOR', 'INV', 'RPAR', 'VAR', 'ADD', 'NUM', 'COMMA', 'FNCT', 'STR', 'NOT', 'BOOL', 'SIGN', 'ID'])
     a_expr_chks = set(['ADD', 'SUB'])
-    a_expr_rsts = set(['LPAR', 'SUB', 'QSTR', 'RPAR', 'LE', 'COLOR', 'NE', 'LT', 'NUM', 'COMMA', 'GT', 'END', 'SIGN', 'GE', 'STR', 'VAR', 'EQ', 'ID', 'AND', 'INV', 'ADD', 'BOOL', 'NOT', 'OR'])
+    a_expr_rsts = set(['LPAR', 'SUB', 'QSTR', 'RPAR', 'LE', 'COLOR', 'NE', 'LT', 'NUM', 'COMMA', 'GT', 'END', 'SIGN', 'GE', 'FNCT', 'STR', 'VAR', 'EQ', 'ID', 'AND', 'INV', 'ADD', 'BOOL', 'NOT', 'OR'])
     expr_lst_rsts__ = set(['END', 'COMMA', 'RPAR'])
+
 
     expr_lst_rsts_ = None
 
@@ -4044,12 +4353,15 @@ def eval_expr(expr, rule, raw=False):
             #print >>sys.stderr, '==',val,'=='
             return val
     except SyntaxError:
-        return#@@@#
+        if not DEBUG:
+            return#@@@#
         raise
     except:
-        return#@@@#
+        if not DEBUG:
+            log.exception("Exception!")
+            return#@@@#
         raise
-__doc__ += """
+__doc__ = """
 >>> css = Scss()
 
 VARIABLES
@@ -4258,20 +4570,20 @@ http://xcss.antpaw.org/docs/syntax/extends
 ... ''') #doctest: +NORMALIZE_WHITESPACE
 .basicList li,
 .specialClass li {
-	padding: 5px 10px;
-	border-bottom: 1px solid #000;
+    padding: 5px 10px;
+    border-bottom: 1px solid #000;
 }
 .basicList dd,
 .specialClass dd {
-	margin: 4px;
+    margin: 4px;
 }
 .basicList span,
 .specialClass span {
-	display: inline-block;
+    display: inline-block;
 }
 .roundBox,
 .specialClass {
-	some: props;
+    some: props;
 }
 
 >>> print css.compile('''
@@ -4321,9 +4633,9 @@ http://xcss.antpaw.org/docs/syntax/math
 ... }
 ... ''') #doctest: +NORMALIZE_WHITESPACE
 .selector {
-	padding: 10px;
-	color: #fff;
-	background-color: #ede343;
+    padding: 10px;
+    color: #fff;
+    background-color: #ede343;
 }
 
 
@@ -4334,7 +4646,7 @@ http://xcss.antpaw.org/docs/syntax/math
 ... }
 ... ''') #doctest: +NORMALIZE_WHITESPACE
 .selector {
-	padding: 4px;
+    padding: 4px;
 }
 
 
@@ -4346,8 +4658,8 @@ http://xcss.antpaw.org/docs/syntax/math
 ... }
 ... ''') #doctest: +NORMALIZE_WHITESPACE
 .selector {
-	padding: 31px;
-	margin: 10 20%;
+    padding: 31px;
+    margin: 10 20%;
 }
 
 
@@ -4370,17 +4682,17 @@ http://sass-lang.com/tutorial.html
 ... }
 ... ''') #doctest: +NORMALIZE_WHITESPACE
 #navbar {
-	width: 80%;
-	height: 23px;
+    width: 80%;
+    height: 23px;
 }
 #navbar ul {
-	list-style-type: none;
+    list-style-type: none;
 }
 #navbar li {
-	float: left;
+    float: left;
 }
 #navbar li a {
-	font-weight: bold;
+    font-weight: bold;
 }
 
 
@@ -4402,11 +4714,11 @@ http://sass-lang.com/tutorial.html
 ... }
 ... ''') #doctest: +NORMALIZE_WHITESPACE
 .fakeshadow {
-	border-style: solid;
-	border-left-width: 4px;
-	border-left-color: #888;
-	border-right-width: 2px;
-	border-right-color: #ccc;
+    border-style: solid;
+    border-left-width: 4px;
+    border-left-color: #888;
+    border-right-width: 2px;
+    border-right-color: #ccc;
 }
 
 
@@ -4420,13 +4732,13 @@ http://sass-lang.com/tutorial.html
 ... }
 ... ''') #doctest: +NORMALIZE_WHITESPACE
 a {
-	color: #ce4dd6;
+    color: #ce4dd6;
 }
 a:hover {
-	color: #ffb3ff;
+    color: #ffb3ff;
 }
 a:visited {
-	color: #c458cb;
+    color: #c458cb;
 }
 
 
@@ -4453,14 +4765,14 @@ http://sass-lang.com/tutorial.html
 ... }
 ... ''') #doctest: +NORMALIZE_WHITESPACE
 #navbar {
-	border-bottom-color: #ce4dd6;
-	border-bottom-style: solid;
+    border-bottom-color: #ce4dd6;
+    border-bottom-style: solid;
 }
 a {
-	color: #ce4dd6;
+    color: #ce4dd6;
 }
 a:hover {
-	border-bottom: solid 1px;
+    border-bottom: solid 1px;
 }
 
 
@@ -4481,9 +4793,9 @@ http://sass-lang.com/tutorial.html
 ... }
 ... ''') #doctest: +NORMALIZE_WHITESPACE
 .rounded-top {
-	border-top-radius: 10px;
-	-moz-border-radius-top: 10px;
-	-webkit-border-top-radius: 10px;
+    border-top-radius: 10px;
+    -moz-border-radius-top: 10px;
+    -webkit-border-top-radius: 10px;
 }
 
 
@@ -4508,14 +4820,14 @@ http://sass-lang.com/tutorial.html
 ... #footer { @include rounded-top; }
 ... ''') #doctest: +NORMALIZE_WHITESPACE
 #navbar li {
-	border-top-radius: 10px;
-	-moz-border-radius-top: 10px;
-	-webkit-border-top-radius: 10px;
+    border-top-radius: 10px;
+    -moz-border-radius-top: 10px;
+    -webkit-border-top-radius: 10px;
 }
 #footer {
-	border-top-radius: 10px;
-	-moz-border-radius-top: 10px;
-	-webkit-border-top-radius: 10px;
+    border-top-radius: 10px;
+    -moz-border-radius-top: 10px;
+    -webkit-border-top-radius: 10px;
 }
 
 
@@ -4534,19 +4846,19 @@ http://sass-lang.com/tutorial.html
 ... #sidebar { @include rounded(left, 8px); }
 ... ''') #doctest: +NORMALIZE_WHITESPACE
 #navbar li {
-	border-top-radius: 10px;
-	-moz-border-radius-top: 10px;
-	-webkit-border-top-radius: 10px;
+    border-top-radius: 10px;
+    -moz-border-radius-top: 10px;
+    -webkit-border-top-radius: 10px;
 }
 #footer {
-	border-top-radius: 5px;
-	-moz-border-radius-top: 5px;
-	-webkit-border-top-radius: 5px;
+    border-top-radius: 5px;
+    -moz-border-radius-top: 5px;
+    -webkit-border-top-radius: 5px;
 }
 #sidebar {
-	border-left-radius: 8px;
-	-moz-border-radius-left: 8px;
-	-webkit-border-left-radius: 8px;
+    border-left-radius: 8px;
+    -moz-border-radius-left: 8px;
+    -webkit-border-left-radius: 8px;
 }
 
 
@@ -4570,15 +4882,15 @@ http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html#extend
 ... ''') #doctest: +NORMALIZE_WHITESPACE
 .error,
 .seriousError {
-	border: 1px red;
-	background-color: #fdd;
+    border: 1px red;
+    background-color: #fdd;
 }
 .error.intrusion,
 .seriousError.intrusion {
-	background-image: url("/image/hacked.png");
+    background-image: url("/image/hacked.png");
 }
 .seriousError {
-	border-width: 3px;
+    border-width: 3px;
 }
 
 
@@ -4600,16 +4912,16 @@ Multiple Extends
 ... ''') #doctest: +NORMALIZE_WHITESPACE
 .error,
 .seriousError {
-	border: 1px red;
-	background-color: #fdd;
+    border: 1px red;
+    background-color: #fdd;
 }
 .attention,
 .seriousError {
-	font-size: 3em;
-	background-color: #ff0;
+    font-size: 3em;
+    background-color: #ff0;
 }
 .seriousError {
-	border-width: 3px;
+    border-width: 3px;
 }
 
 Multiple Extends
@@ -4633,18 +4945,18 @@ Multiple Extends
 ... }
 ... ''') #doctest: +NORMALIZE_WHITESPACE
 .bad, .seriousError {
-	color: red !important;
+    color: red !important;
 }
 .error, .seriousError {
-	border: 1px red;
-	background-color: #fdd;
+    border: 1px red;
+    background-color: #fdd;
 }
 .attention, .seriousError {
-	font-size: 3em;
-	background-color: #ff0;
+    font-size: 3em;
+    background-color: #ff0;
 }
 .seriousError {
-	border-width: 3px;
+    border-width: 3px;
 }
 
 
@@ -4660,7 +4972,7 @@ http://groups.google.com/group/xcss/browse_thread/thread/6989243973938362#
 ... }
 ... ''') #doctest: +NORMALIZE_WHITESPACE
 body {
-	_width: expression(document.body.clientWidth > 1440? "1440px" : "auto");
+    _width: expression(document.body.clientWidth > 1440? "1440px" : "auto");
 }
 
 
@@ -4681,16 +4993,16 @@ http://groups.google.com/group/xcss/browse_thread/thread/2d27ddec3c15c385#
 ... }
 ... ''') #doctest: +NORMALIZE_WHITESPACE
 *html .a {
-	color: #fff;
+    color: #fff;
 }
 *html .b {
-	color: #000;
+    color: #000;
 }
 *:first-child+html .a {
-	color: #fff;
+    color: #fff;
 }
 *:first-child+html .b {
-	color: #000;
+    color: #000;
 }
 
 
@@ -4738,17 +5050,17 @@ http://groups.google.com/group/xcss/browse_thread/thread/5f4f3af046883c3b#
 ... ''') #doctest: +NORMALIZE_WHITESPACE
 .parent,
 .some-selector {
-	some: prop;
+    some: prop;
 }
 .parent .children,
 .some-selector-more {
-	some: proop;
+    some: proop;
 }
 .parent {
-	height: auto;
+    height: auto;
 }
 .parent .children {
-	height: autoo;
+    height: autoo;
 }
 
 
@@ -4767,13 +5079,13 @@ http://groups.google.com/group/xcss/browse_thread/thread/540f8ad0771c053b#
 ... ''') #doctest: +NORMALIZE_WHITESPACE
 .errorBox,
 .noticeBox {
-	background-color: red;
+    background-color: red;
 }
 .errorBox p,
 .errorBox span,
 .noticeBox p,
 .noticeBox span {
-	some: props;
+    some: props;
 }
 
 http://groups.google.com/group/xcss/browse_thread/thread/b5757c24586c1519#
@@ -4799,18 +5111,18 @@ http://groups.google.com/group/xcss/browse_thread/thread/b5757c24586c1519#
 .cleanBox,
 .cleanBoxExtended,
 .mod {
-	margin: 10px;
+    margin: 10px;
 }
 .articleBox h1,
 .cleanBox h1,
 .cleanBoxExtended h1,
 .mod h1 {
-	font-size: 40px;
+    font-size: 40px;
 }
 .articleBox h1,
 .cleanBox h1,
 .cleanBoxExtended h1 {
-	font-size: 60px;
+    font-size: 60px;
 }
 
 
@@ -4847,11 +5159,11 @@ http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html
 ... }
 ... ''') #doctest: +NORMALIZE_WHITESPACE
 a {
-	color: rgb(87.254%, 48.482%, 37.546%);
-	color: hsl(13.2deg, 66.1%, 62.4%);
-	color-hue: 13.2deg;
-	color-saturation: 66.1%;
-	color-lightness: 62.4%;
+    color: rgb(87.254%, 48.482%, 37.546%);
+    color: hsl(13.2, 66.1%, 62.4%);
+    color-hue: 13.2deg;
+    color-saturation: 66.1%;
+    color-lightness: 62.4%;
 }
 
 >>> print css.compile('''
@@ -4903,16 +5215,16 @@ a {
     opacify2: #001;
     transparentize1: rgba(0, 0, 0, 0.4);
     transparentize2: rgba(0, 0, 0, 0.6);
-    lighten1: hsl(0deg, 0%, 30%);
+    lighten1: hsl(0, 0%, 30%);
     lighten2: #e00;
-    darken1: hsl(25deg, 100%, 50%);
+    darken1: hsl(25, 100%, 50%);
     darken2: #200;
-    saturate1: hsl(120deg, 50%, 90%);
+    saturate1: hsl(120, 50%, 90%);
     saturate2: #9e3f3f;
-    desaturate1: hsl(120deg, 10%, 90%);
+    desaturate1: hsl(120, 10%, 90%);
     desaturate2: #726b6b;
-    adjust1: hsl(180deg, 30%, 90%);
-    adjust2: hsl(60deg, 30%, 90%);
+    adjust1: hsl(180, 30%, 90%);
+    adjust2: hsl(60, 30%, 90%);
     adjust3: #886a11;
     mix1: purple;
     mix2: #4000bf;
@@ -4937,8 +5249,8 @@ a {
 ... }
 ... ''') #doctest: +NORMALIZE_WHITESPACE
     .coloredClass {
-    	padding: 20px;
-    	background-color: green;
+        padding: 20px;
+        background-color: green;
     }
 
 
@@ -4999,7 +5311,7 @@ All styles defined for a:hover are also applied to .hoverlink:
 ... ''') #doctest: +NORMALIZE_WHITESPACE
 .hoverlink,
 a:hover {
-	text-decoration: underline;
+    text-decoration: underline;
 }
 
 
@@ -5015,36 +5327,36 @@ http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html
 ... ''') #doctest: +NORMALIZE_WHITESPACE
 #fake-links .link,
 a {
-	color: #00f;
+    color: #00f;
 }
 #fake-links .link:hover,
 a:hover {
-	text-decoration: underline;
+    text-decoration: underline;
 }
 
 
 >>> print css.compile('''
 ... @option compress:no, short_colors:yes, reverse_colors:yes;
 ... .mod {
-... 	margin: 10px;
+...     margin: 10px;
 ... }
 ... .mod h1 {
-... 	font-size: 40px;
+...     font-size: 40px;
 ... }
 ... .cleanBox h1 extends .mod {
-... 	font-size: 60px;
+...     font-size: 60px;
 ... }
 ... ''') #doctest: +NORMALIZE_WHITESPACE
 .cleanBox h1,
 .mod {
-	margin: 10px;
+    margin: 10px;
 }
 .cleanBox h1,
 .mod h1 {
-	font-size: 40px;
+    font-size: 40px;
 }
 .cleanBox h1 {
-	font-size: 60px;
+    font-size: 60px;
 }
 
 >>> print css.compile('''
@@ -5080,9 +5392,9 @@ Issue #2 test
 ...   position: relative;
 ... }
 ... ''') #doctest: +NORMALIZE_WHITESPACE
-.pull-1, .pull-10, .pull-11, .pull-12, .pull-13, .pull-14, .pull-15, 
-.pull-16, .pull-17, .pull-18, .pull-19, .pull-2, .pull-20, .pull-21, 
-.pull-22, .pull-23, .pull-24, .pull-3, .pull-4, .pull-5, .pull-6, 
+.pull-1, .pull-10, .pull-11, .pull-12, .pull-13, .pull-14, .pull-15,
+.pull-16, .pull-17, .pull-18, .pull-19, .pull-2, .pull-20, .pull-21,
+.pull-22, .pull-23, .pull-24, .pull-3, .pull-4, .pull-5, .pull-6,
 .pull-7, .pull-8, .pull-9 {
   display: inline;
   float: left;
@@ -5150,7 +5462,42 @@ Issue #7 test
 a.button:hover, button:hover {
   color: #000000;
 }
-   
+
+Issue #10 test
+>>> print css.compile('''
+... @option compress: no, short_colors: no;
+... .yellow {
+...   color: yelow;
+... }
+... ''') #doctest: +NORMALIZE_WHITESPACE
+.yellow {
+  color: yelow;
+}
+
+Issue #21 test
+>>> print css.compile('''
+... @option compress:no, short_colors: no;
+... h2 {
+...     background: green;
+...     @media screen{
+...         background:blue;
+...     }
+... }
+... h1 {
+...     background:yellow;
+... }
+... ''') #doctest: +NORMALIZE_WHITESPACE
+h2 {
+  background: #008000;
+}
+@media screen {
+  h2 {
+    background: blue;
+  }
+}
+h1 {
+  background: yellow;
+}
 """
 """
 ADVANCED STUFF, NOT SUPPORTED (FROM SASS):
@@ -5165,7 +5512,7 @@ Any rule that uses a:hover will also work for .hoverlink, even if they have othe
 ... ''') #doctest: +NORMALIZE_WHITESPACE
 .comment a.user:hover,
 .comment .hoverlink.user {
-	font-weight: bold;
+    font-weight: bold;
 }
 
 
@@ -5183,176 +5530,196 @@ Sass generates only selectors that are likely to be useful.
 #admin .tabbar a,
 #admin .tabbar #demo .overview .fakelink,
 #demo .overview #admin .tabbar .fakelink {
-	font-weight: bold;
+    font-weight: bold;
 }
 
 --------------------------------------------------------------------------------
 """
 
-def usage():
-    print "Usage: ",sys.argv[0]," [options]\n"
-    print "Description:"
-    print "Converts Scss files to CSS.\n"
-    print "Options:"
-    print "        --time                       Display compilation times."
-    print "    -i, --interactive                Run an interactive Scss shell."
-    print "    -I, --load-path PATH             Add a scss import path."
-    print "    -S, --static-root PATH           Static root path (Where images and static resources are located)"
-    print "    -A, --assets-root PATH           Assets root path (Sprite images will be created here)"
-    print "    -?, -h, --help                   Show this message"
-    print "    -v, --version                    Print version"
-    sys.exit(2)
-
 def main():
-    import getopt
-    try:
-        import atexit
-        import readline
-        histfile = os.path.join(os.environ["HOME"], ".scss-history")
-        try:
-            readline.read_history_file(histfile)
-        except IOError:
-            pass
-        atexit.register(readline.write_history_file, histfile)
-    except ImportError:
-        pass
-    try:
-        # parse options
-        opts, args = getopt.getopt(sys.argv[1:], '?hvtiI:S:A:', ['help', 'version', 'time', 'test', 'interactive', 'load-path=', 'static-root=', 'assets-root='])
-    except getopt.GetoptError, err:
-        # print help information and exit:
-        print str(err) # will print something like "option -a not recognized"
-        usage()
-    else:
-        global LOAD_PATHS, VERBOSITY, STATIC_ROOT, ASSETS_ROOT
-        VERBOSITY = 0
-        load_paths = [ p.strip() for p in LOAD_PATHS.split(',') ]
-        for o, a in opts:
-            if o in ('-S', '--static-root'):
-                STATIC_ROOT = a
-            elif o in ('-A', '--assets-root'):
-                ASSETS_ROOT = a
-            elif o in ('-I', '--load-path'):
-                for p in a.replace(';', ',').split(','):
-                    p = p.strip()
-                    if p and p not in load_paths:
-                        load_paths.append(p)
-            elif o == '--time':
-                VERBOSITY = 2
+    from optparse import OptionGroup, OptionParser, SUPPRESS_HELP
+
+    parser = OptionParser(usage="Usage: %prog [options] [file]",
+                          description="Converts Scss files to CSS.",
+                          add_help_option=False)
+    parser.add_option("-i", "--interactive", action="store_true",
+                      help="Run an interactive Scss shell")
+    parser.add_option("-o", "--output", metavar="FILE",
+                      help="Write output to FILE")
+    parser.add_option("--time", action="store_true",
+                      help="Display compliation times")
+    parser.add_option("-t", "--test", action="store_true", help=SUPPRESS_HELP)
+    parser.add_option("-?", action="help", help=SUPPRESS_HELP)
+    parser.add_option("-h", "--help", action="help",
+                      help="Show this message and exit")
+    parser.add_option("-v", "--version", action="store_true",
+                      help="Print version and exit")
+
+    paths_group = OptionGroup(parser, "Resource Paths")
+    paths_group.add_option("-I", "--load-path", metavar="PATH", dest="load_path",
+                      help="Add a scss import path")
+    paths_group.add_option("-S", "--static-root", metavar="PATH", dest="static_root",
+                      help="Static root path (Where images and static resources are located)")
+    paths_group.add_option("-A", "--assets-root", metavar="PATH", dest="assets_root",
+                      help="Assets root path (Sprite images will be created here)")
+    parser.add_option_group(paths_group)
+
+    (options, args) = parser.parse_args()
+
+    # General runtime configuration
+    global LOAD_PATHS, VERBOSITY, STATIC_ROOT, ASSETS_ROOT
+    VERBOSITY = 0
+
+    if options.time:
+        VERBOSITY = 2
+    if options.static_root is not None:
+        STATIC_ROOT = options.static_root
+    if options.assets_root is not None:
+        ASSETS_ROOT = options.assets_root
+    if options.load_path is not None:
+        load_paths = [p.strip() for p in LOAD_PATHS.split(',')]
+        for p in options.load_path.replace(';', ',').split(','):
+            p = p.strip()
+            if p and p not in load_paths:
+                load_paths.append(p)
         LOAD_PATHS = ','.join(load_paths)
-        opts = dict(opts)
-        if '-t' in opts or '--test' in opts:
-            import doctest
-            doctest.testmod()
-        elif '-h' in opts or '--help' in opts:
-            usage()
-        elif '-v' in opts or '--version' in opts:
-            print BUILD_INFO
-            sys.exit(2)
-        elif '-i' in opts or '--interactive' in opts:
-            from pprint import pprint
-            css = Scss()
-            context = css.scss_vars
-            options = css.scss_opts
-            print 'Welcome to ' + BUILD_INFO + " interactive shell"
-            while True:
-                try: s = raw_input('>>> ').strip()
-                except EOFError: print ''; break
-                except KeyboardInterrupt: print''; break
-                if s in ('exit', 'quit'): break
-                for s in s.split(';'):
-                    s = css.load_string(s.strip())
-                    if not s:
+
+    # Execution modes
+    if options.test:
+        import doctest
+        doctest.testmod()
+    elif options.version:
+        print BUILD_INFO
+    elif options.interactive:
+        from pprint import pprint
+        try:
+            import atexit
+            import readline
+            histfile = os.path.expanduser('~/.scss-history')
+            try:
+                readline.read_history_file(histfile)
+            except IOError:
+                pass
+            atexit.register(readline.write_history_file, histfile)
+        except ImportError:
+            pass
+
+        css = Scss()
+        context = css._scss_vars
+        options = css._scss_opts
+        rule = [ None, None, '', set(), context, options, '', [], './', False, None ]
+        print 'Welcome to ' + BUILD_INFO + " interactive shell"
+        while True:
+            try: s = raw_input('>>> ').strip()
+            except EOFError: print ''; break
+            except KeyboardInterrupt: print''; break
+            if s in ('exit', 'quit'): break
+            for s in s.split(';'):
+                s = css.load_string(s.strip())
+                if not s:
+                    continue
+                elif s.startswith('@'):
+                    properties = []
+                    children = deque()
+                    rule = [ 'string', None, s, set(), context, options, '', properties, './', False, None ]
+                    code, name = (s.split(None, 1)+[''])[:2]
+                    if code == '@option':
+                        css._settle_options(rule, [''], set(), children, None, None, s, None, code, name)
                         continue
-                    elif s.startswith('@'):
-                        properties = []
-                        children = deque()
-                        rule = [ 'string', None, s, set(), context, options, '', properties, './', False, None ]
-                        code, name = (s.split(None, 1)+[''])[:2]
-                        if code == '@option':
-                            css._settle_options(rule, [''], set(), children, None, s, None, code, name)
-                            continue
-                        elif code == '@import':
-                            css._do_import(rule, [''], set(), children, None, s, None, code, name)
-                            continue
-                        elif code == '@include':
-                            final_cont = ''
-                            css._do_include(rule, [''], set(), children, None, s, None, code, name)
-                            code = css._print_properties(properties).rstrip('\n')
+                    elif code == '@import':
+                        css._do_import(rule, [''], set(), children, None, None, s, None, code, name)
+                        continue
+                    elif code == '@include':
+                        final_cont = ''
+                        css._do_include(rule, [''], set(), children, None, None, s, None, code, name)
+                        code = css._print_properties(properties).rstrip('\n')
+                        if code:
+                            final_cont += code
+                        if children:
+                            css.children.extendleft(children)
+                            css.parse_children()
+                            code = css._create_css(css.rules).rstrip('\n')
                             if code:
                                 final_cont += code
-                            if children:
-                                css.children.extendleft(children)
-                                css.parse_children()
-                                code = css._create_css(css.rules).rstrip('\n')
-                                if code:
-                                    final_cont += code
-                            final_cont = css.post_process(final_cont)
-                            print final_cont
-                            continue
-                    elif s == 'ls' or s.startswith('show(') or s.startswith('show ') or s.startswith('ls(') or s.startswith('ls '):
-                        m = re.match(r'(?:show|ls)(\()?\s*([^,/\\) ]*)(?:[,/\\ ]([^,/\\ )]+))*(?(1)\))', s, re.IGNORECASE)
-                        if m:
-                            name = m.group(2)
-                            code = m.group(3)
-                            name = name and name.strip().rstrip('s') # remove last 's' as in functions
-                            code = code and code.strip()
-                            if not name:
-                                pprint(sorted(['vars', 'options', 'mixins', 'functions']))
-                            elif name in ('v', 'var', 'variable'):
-                                if code == '*':
-                                    d = dict((k, v) for k, v in context.items())
-                                    pprint(d)
-                                elif code:
-                                    d = dict((k, v) for k, v in context.items() if code in k)
-                                    pprint(d)
-                                else:
-                                    d = dict((k, v) for k, v in context.items() if k.startswith('$') and not k.startswith('$__'))
-                                    pprint(d)
-                            elif name in ('o', 'opt', 'option'):
-                                if code == '*':
-                                    d = dict((k, v) for k, v in options.items())
-                                    pprint(d)
-                                elif code:
-                                    d = dict((k, v) for k, v in options.items() if code in k)
-                                    pprint(d)
-                                else:
-                                    d = dict((k, v) for k, v in options.items() if not k.startswith('@'))
-                                    pprint(d)
-                            elif name in ('m', 'mix', 'mixin', 'f', 'func', 'funct', 'function'):
-                                if name.startswith('m'): name = 'mixin'
-                                elif name.startswith('f'): name = 'function'
-                                if code == '*':
-                                    d = dict((k[len(name)+2:], v) for k, v in options.items() if k.startswith('@' + name + ' '))
-                                    pprint(sorted(d))
-                                elif code:
-                                    d = dict((k, v) for k, v in options.items() if k.startswith('@' + name + ' ') and code in k)
-                                    seen = set()
-                                    for k, mixin in d.items():
-                                        mixin = getattr(mixin, 'mixin', mixin)
-                                        fn_name, _, _ = k.partition(':')
-                                        if fn_name not in seen:
-                                            seen.add(fn_name)
-                                            print fn_name + '(' + ', '.join( p + (': ' + mixin[1].get(p) if p in mixin[1] else '') for p in mixin[0] ) + ') {'
-                                            print '  ' + '\n  '.join(l for l in mixin[2].split('\n'))
-                                            print '}'
-                                else:
-                                    d = dict((k[len(name)+2:].split(':')[0], v) for k, v in options.items() if k.startswith('@' + name + ' '))
-                                    pprint(sorted(d))
-                            continue
-                    elif s.startswith('$') and (':' in s or '=' in s):
-                        prop, value = [ a.strip() for a in _prop_split_re.split(s, 1) ]
-                        value = css.calculate(value, context, options, None)
-                        context[prop] = value
+                        final_cont = css.post_process(final_cont)
+                        print final_cont
                         continue
-                    s = to_str(css.calculate(s, context, options, None))
-                    s = css.post_process(s)
-                    print s
-            print 'Bye!'
+                elif s == 'ls' or s.startswith('show(') or s.startswith('show ') or s.startswith('ls(') or s.startswith('ls '):
+                    m = re.match(r'(?:show|ls)(\()?\s*([^,/\\) ]*)(?:[,/\\ ]([^,/\\ )]+))*(?(1)\))', s, re.IGNORECASE)
+                    if m:
+                        name = m.group(2)
+                        code = m.group(3)
+                        name = name and name.strip().rstrip('s') # remove last 's' as in functions
+                        code = code and code.strip()
+                        if not name:
+                            pprint(sorted(['vars', 'options', 'mixins', 'functions']))
+                        elif name in ('v', 'var', 'variable'):
+                            if code == '*':
+                                d = dict((k, v) for k, v in context.items())
+                                pprint(d)
+                            elif code:
+                                d = dict((k, v) for k, v in context.items() if code in k)
+                                pprint(d)
+                            else:
+                                d = dict((k, v) for k, v in context.items() if k.startswith('$') and not k.startswith('$__'))
+                                pprint(d)
+                        elif name in ('o', 'opt', 'option'):
+                            if code == '*':
+                                d = dict((k, v) for k, v in options.items())
+                                pprint(d)
+                            elif code:
+                                d = dict((k, v) for k, v in options.items() if code in k)
+                                pprint(d)
+                            else:
+                                d = dict((k, v) for k, v in options.items() if not k.startswith('@'))
+                                pprint(d)
+                        elif name in ('m', 'mix', 'mixin', 'f', 'func', 'funct', 'function'):
+                            if name.startswith('m'): name = 'mixin'
+                            elif name.startswith('f'): name = 'function'
+                            if code == '*':
+                                d = dict((k[len(name)+2:], v) for k, v in options.items() if k.startswith('@' + name + ' '))
+                                pprint(sorted(d))
+                            elif code:
+                                d = dict((k, v) for k, v in options.items() if k.startswith('@' + name + ' ') and code in k)
+                                seen = set()
+                                for k, mixin in d.items():
+                                    mixin = getattr(mixin, 'mixin', mixin)
+                                    fn_name, _, _ = k.partition(':')
+                                    if fn_name not in seen:
+                                        seen.add(fn_name)
+                                        print fn_name + '(' + ', '.join( p + (': ' + mixin[1].get(p) if p in mixin[1] else '') for p in mixin[0] ) + ') {'
+                                        print '  ' + '\n  '.join(l for l in mixin[2].split('\n'))
+                                        print '}'
+                            else:
+                                d = dict((k[len(name)+2:].split(':')[0], v) for k, v in options.items() if k.startswith('@' + name + ' '))
+                                pprint(sorted(d))
+                        continue
+                elif s.startswith('$') and (':' in s or '=' in s):
+                    prop, value = [ a.strip() for a in _prop_split_re.split(s, 1) ]
+                    value = css.calculate(value, context, options, rule)
+                    context[prop] = value
+                    continue
+                s = to_str(css.calculate(s, context, options, rule))
+                s = css.post_process(s)
+                print s
+        print 'Bye!'
+    else:
+        if options.output is not None:
+            output = open(options.output, 'wt')
         else:
-            css = Scss()
-            sys.stdout.write(css.compile(sys.stdin.read()))
-            for f, t in profiling.items():
-                print >>sys.stderr, '%s took %0.3fs' % (f, t)
+            output = sys.stdout
+
+        css = Scss()
+        if args:
+            for path in args:
+                finput = open(path, 'rt')
+                output.write(css.compile(finput.read()))
+        else:
+            output.write(css.compile(sys.stdin.read()))
+
+        for f, t in profiling.items():
+            print >>sys.stderr, '%s took %03fs' % (f, t)
+
 if __name__ == "__main__":
+    logging.basicConfig(format='%(levelname)s: %(message)s')
     main()
