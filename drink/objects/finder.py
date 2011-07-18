@@ -7,6 +7,7 @@ import drink
 from whoosh.index import create_in, open_dir
 from whoosh.fields import *
 from whoosh.query import *
+from whoosh import highlight
 from whoosh.qparser import MultifieldParser, OrGroup
 
 INDEX_DIR = os.path.join(drink.DB_PATH, 'whoosh')
@@ -32,7 +33,7 @@ def init():
 
     qparser = MultifieldParser(["title", "content"],
             schema=indexer.schema,
-#            group=OrGroup,
+            group=OrGroup,
             )
 
 def reset():
@@ -110,15 +111,14 @@ class ObjectBrowser(drink.Page):
 
         auth = drink.request.identity
 
-        if query_type == 'fast':
-            pat = pattern.strip()
-        else:
-            pat = 'title:%(p)s OR content:%(p)s'%dict(p=pattern.strip())
+        pat = pattern.strip()
 
         res = searcher.search_page(qparser.parse(unicode(pat)), page_nr)
+        sentence_frag = highlight.SentenceFragmenter()
+        whole_frag = highlight.WholeFragmenter()
 
         items = []
-        html = ['<ul>']
+        html = ['<ul class="results">']
         root = drink.db.db
         for item in res:
             obj = drink.get_object(root, item['path'].encode('utf-8'), no_raise=True)
@@ -126,8 +126,9 @@ class ObjectBrowser(drink.Page):
                 continue
             if 'r' in auth.access(obj):
                 items.append(obj)
-                html.append('<li><a href="%(path)s">%(title)s</a></li>'%item)
-                hli =  item.highlights('content')
+                title =  item.highlights('title', fragmenter=whole_frag) or item['title']
+                hli =  item.highlights('content', fragmenter=sentence_frag)
+                html.append('<li><a href="%s">%s</a></li>'%(item['path'], title))
                 if hli:
                     html.append('<a href="%s"><div class="minipage">%s</div></a>'%(item['path'],hli.replace('\n', '<br/>')))
         if res.pagecount:
@@ -155,7 +156,7 @@ class ObjectBrowser(drink.Page):
 
         form = ['<form class="query_form" id="query_form" action="query" method="post">',
             drink.types.Text('Look for').html('pattern', pat),
-            drink.types.CheckboxSet("Search type", values=['fast']).html('qtype', ['fast']),
+#            drink.types.CheckboxSet("Search type", values=['fast']).html('qtype', ['fast']),
             '<input class="submit" type="submit" value="GO!"/></form>']
         form.append('<a href="http://packages.python.org/Whoosh/querylang.html">Overview of language (fields: path, title, content, tags)</a>')
         if items:

@@ -56,6 +56,13 @@ def unauthorized(message='Action NOT allowed'):
     else:
         rdr('/')
 
+#import cgi
+#def escape(text):
+#    """ Escapes the given string """
+#    # TODO: in python3, use html.escape
+#    assert isinstance(text, unicode)
+#    return cgi.escape(text).encode('ascii', 'xmlcharrefreplace')
+
 # Declare "drink" wsgi loader
 class DrinkServer(bottle.ServerAdapter):
     """ Drink-flavored bottle runner.
