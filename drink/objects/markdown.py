@@ -105,7 +105,13 @@ class MarkdownPage(drink.Page):
                 }
             )
 
-        return self._template % self._v_wikifier_cache.convert(data or drink.request.params.get('data'))
+        data = data or drink.request.params.get('data')
+        if not isinstance(data, unicode):
+            try:
+                data = data.decode('utf-8')
+            except UnicodeError:
+                data = data.decode('latin1')
+        return self._template % self._v_wikifier_cache.convert(data)
 
     def view(self):
 
