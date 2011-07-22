@@ -44,10 +44,10 @@ def reset():
 
 def extract_obj(o):
     return {
-        'path': unicode(o.path),
-        'title': unicode(o.title),
-        'tags': unicode(o.mime),
-        'content': unicode(o.content) if hasattr(o, 'content') else "%s %s"%(unicode(o.description), unicode(o.description)),
+        'path': o.path.decode('latin1'),
+        'title': o.title.decode('utf-8'),
+        'tags': o.mime.decode('utf-8'),
+        'content': u"%s %s"%(o.description.decode('utf-8'), o.description.decode('utf-8')) if  hasattr(o, 'description') else o.content.decode('utf-8'),
         }
 
 
