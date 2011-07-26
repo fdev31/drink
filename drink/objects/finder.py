@@ -114,9 +114,10 @@ class ObjectBrowser(drink.Page):
 
         auth = drink.request.identity
 
-        pat = pattern.strip()
+        pat = unicode(pattern.strip())
+        qpat = qparser.parse(pat)
 
-        res = searcher.search_page(qparser.parse(unicode(pat)), page_nr)
+        res = searcher.search_page(qpat, page_nr, pagelen=10)
         sentence_frag = highlight.SentenceFragmenter()
         whole_frag = highlight.WholeFragmenter()
 
@@ -142,6 +143,8 @@ class ObjectBrowser(drink.Page):
                 else:
                     html.append( '<a href="%s"><span class="page_nr">%s</span></a>'%("%squery?pattern=%s&qtype=%s&page=%s"%(self.path, pattern, query_type, page), page ) )
         else:
+            #corr = searcher.correct_query(qparser, pat)
+            #html.append('</ul><br/>No matching documents!<br/>Did you mean <a href="%squery?pattern=%s&qtype=%s">%s</a>'%(self.path, corr.string, query_type, corr.string))
             html.append('</ul><br/>No matching documents!')
         self.lastlog[auth.id] = (pat, items)
         drink.transaction.commit()
