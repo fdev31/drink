@@ -12,7 +12,7 @@ function add_new_item(obj) {
         $('#new_obj_class').val($(all_opts[1]).val());
         $('#new_obj_class').hide();
         $('#name_choice').css('visibility', 'visible').show();
-        $('#new_obj_name').focus()
+        $('#new_obj_name').focus();
       } else {
         $('#new_obj_class').css('visibility', 'visible').show();
     }
@@ -43,7 +43,6 @@ function get_matching_elts(path_elt, callback) {
 $(document).ready(function(){
     // debug mode
     //$.validator.setDefaults({debug: true});
-
     $(".autovalidate").each(function(index, ob) { $(ob).validate() } );
 
     $('#auto_edit_form').keypress( function(ev, elt) {
@@ -128,5 +127,7 @@ $(document).ready(function(){
 
     $('.editable span').addClass('toggler');
     $('.auto_date').datepicker({dateFormat: "dd/mm/yy"});
+    // focus first entry
+    $("input:text:visible:first").focus();
 
 });
