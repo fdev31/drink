@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 import os
+from urllib import quote
 from datetime import datetime
 from mimetypes import guess_type
 import transaction
@@ -31,10 +32,10 @@ def get_struct_from_obj(obj, childs, full):
     auth = a(obj)
 
     if 'r' in auth:
-        d['id'] = obj.id
+        d['id'] = quote(obj.id.encode('utf-8'))
         d['title'] = obj.title
         d['description'] = obj.description
-        d['path'] = obj.rootpath
+        d['path'] = quote(obj.rootpath.encode('utf-8'))
         d['mime'] = obj.mime
         d['_perm'] = auth
 
@@ -139,18 +140,18 @@ class Page(Model):
             # Root object special case, will pass the dict or None...
             if name is not None:
                 self.data.update(name)
-            name = '/'
-            self.id = '.'
+            name = u'/'
+            self.id = u'.'
         else:
             if not name or name[0] in r'/.$%_':
                 drink.unauthorized('Wrong identifier: %r'%name)
             # minor sanity check
-            self.id = name.replace(' ', '-').replace('\t','_').replace('/','.').replace('?', '')
+            self.id = name.replace(u' ', u'-').replace(u'\t', u'_').replace(u'/', u'.').replace(u'?', u'')
 
         self.rootpath = rootpath
 
         if not hasattr(self, 'title'):
-            self.title = name.replace('_', ' ').replace('-', ' ').capitalize()
+            self.title = name.replace(u'_', u' ').replace(u'-', u' ').capitalize()
 
         try:
             self.owner
@@ -159,6 +160,14 @@ class Page(Model):
 
     def __hash__(self):
         return hash(self.id)
+
+    @property
+    def quoted_path(self):
+        return quote(self.path.encode('utf-8'))
+
+    @property
+    def quoted_id(self):
+        return quote(self.id.encode('utf-8'))
 
     def view(self):
         drink.response.content_type = "text/html; charset=utf-8"
@@ -171,7 +180,7 @@ class Page(Model):
 
     @property
     def path(self):
-        return self.rootpath + self.id + '/'
+        return self.rootpath + self.id + u'/'
 
     def edit(self, resume=None):
         """ Edit form
@@ -218,12 +227,13 @@ class Page(Model):
                 if attr in files:
                     caster.set(self, attr, request.files.get(attr))
                 elif attr in editable:
-                    caster.set(self, attr, forms.get(attr))
+                    v = forms.get(attr)
+                    caster.set(self, attr, v.decode('utf-8') if v else u'')
 
             database = drink.db.db
             if 'search' in database:
                 database['search']._update_object(self)
-            return (drink.rdr, self.path)
+            return (drink.rdr, self.quoted_path)
         else:
             if not items:
                 form = ['<div class="error_message">Not editable, sorry...</div>']
@@ -257,7 +267,10 @@ class Page(Model):
         self.editable_fields['content'].set(self, 'content', obj)
 
     def upload(self):
-        filename = request.GET.get('qqfile', None)
+        try:
+            filename = request.GET.get('qqfile', '').decode('utf-8')
+        except UnicodeError:
+            filename = request.GET['qqfile'].decode('latin1')
         if not filename:
             return {'error': True, 'message': 'Incorrect parameters. Action aborted.'}
 
@@ -280,11 +293,11 @@ class Page(Model):
         return data
 
     def rm(self):
-        name = request.GET.get('name')
+        name = request.GET.get('name').decode('utf-8')
         if not ('a' in request.identity.access(self) and 'w' in request.identity.access(self[name])):
             return drink.unauthorized("Not authorized")
         try:
-            parent_path = self.path
+            parent_path = self.quoted_path
         except AttributeError: # XXX: unclean
             parent_path = '.'
         old_obj = self[name]
@@ -307,7 +320,7 @@ class Page(Model):
         if 'r' not in request.identity.access(self):
             return drink.unauthorized("Not authorized")
 
-        return self._match(pattern or request.params.get('pattern') )
+        return self._match(pattern or request.params.get('pattern').decode('utf-8') )
 
     def _add(self, name, cls, read_groups, write_groups):
         if isinstance(cls, basestring):
@@ -334,7 +347,7 @@ class Page(Model):
         if 'a' not in auth.access(self):
             return drink.unauthorized("Not authorized")
 
-        name = name or request.params.get('name')
+        name = name or request.params.get('name').decode('utf-8')
 
         if name in self:
             drink.unauthorized("%r is already defined!"%name)
@@ -346,7 +359,7 @@ class Page(Model):
         if request.is_ajax:
             return o.struct()
         else:
-            return drink.rdr(o.path+'edit')
+            return drink.rdr(o.quoted_path+'edit')
 
     def list(self):
         return template('list.html', obj=self, css=self.css, js=self.js,
@@ -374,7 +387,7 @@ class ListPage(Page):
         return list(self.forced_order)
 
     def move(self):
-        self.forced_order = request.params.get('set').split('/')
+        self.forced_order = request.params.get('set').decode('utf-8').split('/')
 
     def itervalues(self):
         return (self[v] for v in self.keys())

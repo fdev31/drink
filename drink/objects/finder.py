@@ -10,7 +10,7 @@ from whoosh.query import *
 from whoosh import highlight
 from whoosh.qparser import MultifieldParser, OrGroup
 from whoosh.query import FuzzyTerm
-
+from urllib import quote
 
 INDEX_DIR = os.path.join(drink.DB_PATH, 'whoosh')
 qparser = indexer = None
@@ -47,10 +47,10 @@ def reset():
 
 def extract_obj(o):
     return {
-        'path': o.path.decode('latin1'),
-        'title': o.title.decode('utf-8'),
-        'tags': o.mime.decode('utf-8'),
-        'content': u"%s %s"%(o.description.decode('utf-8'), o.description.decode('utf-8')) if  hasattr(o, 'description') else o.content.decode('utf-8'),
+        'path': o.path,
+        'title': unicode(o.title),
+        'tags': unicode(o.mime),
+        'content': u"%s %s"%(o.description, o.content) if  hasattr(o, 'content') else o.description if isinstance(o.description, unicode) else o.description.decode('utf-8'),
         }
 
 
@@ -73,7 +73,7 @@ class ObjectBrowser(drink.Page):
         drink.response.content_type = "text/plain; charset=utf-8"
         objs = [drink.db.db['pages']]
         for obj in objs:
-            yield "%s\n"%obj.title
+            yield (u"%s\n"%obj.title).encode('utf-8')
             c = obj.values()
             if c:
                 objs.extend(c)
@@ -99,9 +99,10 @@ class ObjectBrowser(drink.Page):
         w = indexer.writer()
         w.update_document(**extract_obj(obj))
         w.commit()
+
     # TODO: make a js-friendly function & use it
     def query(self, pattern=None, query_type=None, page=None):
-        pattern = pattern if pattern != None else drink.request.params.get('pattern')
+        pattern = pattern if pattern != None else drink.request.params.get('pattern').decode('utf-8')
         query_type = query_type if query_type != None else drink.request.params.get('qtype')
         page_nr = int(page if page else drink.request.params.get('page', 1))
 
@@ -114,7 +115,7 @@ class ObjectBrowser(drink.Page):
 
         auth = drink.request.identity
 
-        pat = unicode(pattern.strip(), 'utf-8')
+        pat = pattern.strip()
         qpat = qparser.parse(pat)
 
         res = searcher.search_page(qpat, page_nr, pagelen=10)
@@ -125,7 +126,7 @@ class ObjectBrowser(drink.Page):
         html = ['<ul class="results">']
         root = drink.db.db
         for item in res:
-            obj = drink.get_object(root, item['path'].encode('utf-8'), no_raise=True)
+            obj = drink.get_object(root, quote(item['path'].encode('utf-8')), no_raise=True)
             if obj == None:
                 continue
             if 'r' in auth.access(obj):

@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import drink
 from markdown import Markdown
 
-DEFAULT_CONTENT = """
+DEFAULT_CONTENT = u"""
 <!- hehe, you can add html tags directly too: -->
 
 Main title of the document
@@ -34,9 +34,9 @@ class MarkdownEditor(drink.types._Editable):
 class MarkdownPage(drink.Page):
     content = DEFAULT_CONTENT
 
-    mime = "markdown"
+    mime = u"markdown"
 
-    description = "A markdown rendered page"
+    description = u"A markdown rendered page"
 
     js = drink.Page.js + ['/static/markitup/jquery.markitup.js',
         '/static/markitup/sets/markdown/set.js']

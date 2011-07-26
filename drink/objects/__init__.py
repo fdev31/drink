@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from drink.config import config
 import drink
+from urllib import unquote
 
 __all__ = ['classes', 'get_object', 'init']
 
@@ -10,7 +11,7 @@ objects_to_load = [k for k, v in config.items('objects')]
 
 def get_object(current, objpath, no_raise=False):
 
-    path_list = [p for p in objpath.split('/') if p]
+    path_list = [unquote(p).decode('utf-8') for p in objpath.split('/') if p]
     last_idx = len(path_list) - 1
     for i, elt in enumerate(path_list):
         if elt[0] in '._':

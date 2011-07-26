@@ -62,7 +62,6 @@ class Text(_Editable):
         self.size = size
         self._type = type
 
-
 DATE_FMT = r'%d/%m/%Y'
 
 #DATETIME_FMT = r'%d/%m/%Y %H:%M'
@@ -243,7 +242,11 @@ class File(_Editable):
     def set(self, obj, name, val):
         if val == '':
             return
-        setattr(obj, name+"_name", val.filename)
+        try:
+            fname = unicode(val.filename, 'utf-8')
+        except UnicodeError:
+            fname = val.finame.decode('latin1')
+        setattr(obj, name+"_name", fname)
         new_o = DataBlob()
         setattr(obj, name, new_o)
         o_fd = new_o.open('w')
