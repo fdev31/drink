@@ -99,7 +99,7 @@ class ObjectBrowser(drink.Page):
         w = indexer.writer()
         w.update_document(**extract_obj(obj))
         w.commit()
-
+    # TODO: make a js-friendly function & use it
     def query(self, pattern=None, query_type=None, page=None):
         pattern = pattern if pattern != None else drink.request.params.get('pattern')
         query_type = query_type if query_type != None else drink.request.params.get('qtype')
@@ -151,6 +151,7 @@ class ObjectBrowser(drink.Page):
         return drink.template('main.html', obj=self, html='\n'.join(html),
                     authenticated=auth, classes=self.classes)
 
+    # TODO: Change that to Javascript code, use a refactored `make_li` to create new items
     def view(self):
         auth = drink.request.identity
 
