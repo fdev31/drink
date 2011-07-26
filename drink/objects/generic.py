@@ -473,9 +473,9 @@ class WebFile(Page):
                 html.append('<img src="raw" />')
             elif mime in ('application/xml', ) or mime.startswith('text/'):
                 f = self.content.open('r')
-                html.append('<pre>')
-                html.append(f.read())
-                html.append('</pre>')
+                html.append(u'<pre>')
+                html.append(unicode(f.read(), 'utf-8'))
+                html.append(u'</pre>')
 
         return drink.template('main.html', obj=self, css=self.css, js=self.js, html='\n'.join(html),
              classes=self.classes, authenticated=request.identity)

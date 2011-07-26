@@ -114,7 +114,7 @@ class ObjectBrowser(drink.Page):
 
         auth = drink.request.identity
 
-        pat = unicode(pattern.strip())
+        pat = unicode(pattern.strip(), 'utf-8')
         qpat = qparser.parse(pat)
 
         res = searcher.search_page(qpat, page_nr, pagelen=10)
