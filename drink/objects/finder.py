@@ -9,6 +9,8 @@ from whoosh.fields import *
 from whoosh.query import *
 from whoosh import highlight
 from whoosh.qparser import MultifieldParser, OrGroup
+from whoosh.query import FuzzyTerm
+
 
 INDEX_DIR = os.path.join(drink.DB_PATH, 'whoosh')
 qparser = indexer = None
@@ -34,6 +36,7 @@ def init():
     qparser = MultifieldParser(["title", "content"],
             schema=indexer.schema,
             group=OrGroup,
+            termclass=FuzzyTerm,
             )
 
 def reset():
