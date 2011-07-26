@@ -70,7 +70,7 @@ class ObjectBrowser(drink.Page):
         self.lastlog = {}
 
     def rebuild(self):
-        drink.response.content_type = "text/plain"
+        drink.response.content_type = "text/plain; charset=utf-8"
         objs = [drink.db.db['pages']]
         for obj in objs:
             yield "%s\n"%obj.title
