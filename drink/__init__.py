@@ -284,6 +284,22 @@ if DEBUG environment variable is set, it will start in debug mode.
         db.pack()
     elif len(sys.argv) == 2 and sys.argv[1] == "pack":
         db.pack()
+    elif len(sys.argv) == 2 and sys.argv[1] == "foo":
+        objs = [db.db]
+        for o in objs:
+            objs.extend(o.values())
+            if hasattr(o, 'path'):
+                for field in ('path', 'description', 'content', 'id', 'title', 'mime'):
+                    try:
+                        _d = getattr(o, field)
+                        if isinstance(_d, basestring):
+                            d = unicode(_d, 'utf-8')
+                            print repr(d)
+                            setattr(o, field, d)
+                    except AttributeError:
+                        print "err %s.%s"%(o, field)
+        transaction.commit()
+
     elif len(sys.argv) == 3 and sys.argv[1] == "export":
         import json
         import datetime

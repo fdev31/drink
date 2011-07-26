@@ -161,6 +161,7 @@ class Page(Model):
         return hash(self.id)
 
     def view(self):
+        drink.response.content_type = "text/html; charset=utf-8"
         return drink.template('main.html', obj=self,
             css=self.css, js=self.js, html=self.html,
             classes=self.classes, authenticated=request.identity)
@@ -465,7 +466,8 @@ class WebFile(Page):
         return r
 
     def view(self):
-        html = ['<div class="download"><a href="raw">Download file (original name: %r)</a></div>'%self.content_name]
+        drink.response.content_type = "text/html; charset=utf-8"
+        html = [u'<div class="download"><a href="raw">Download file (original name: %r)</a></div>'%self.content_name]
 
         if self.content:
             mime = self.mimetype
