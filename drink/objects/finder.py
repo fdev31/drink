@@ -50,7 +50,7 @@ def extract_obj(o):
         'path': o.path,
         'title': unicode(o.title),
         'tags': unicode(o.mime),
-        'content': u"%s %s"%(o.description, o.content) if  hasattr(o, 'content') else o.description if isinstance(o.description, unicode) else o.description.decode('utf-8'),
+        'content': u"%s %s"%(o.description, o.content) if  hasattr(o, 'content') else unicode(o.description),
         }
 
 
