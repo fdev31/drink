@@ -284,21 +284,47 @@ if DEBUG environment variable is set, it will start in debug mode.
         db.pack()
     elif len(sys.argv) == 2 and sys.argv[1] == "pack":
         db.pack()
-    elif len(sys.argv) == 2 and sys.argv[1] == "foo":
+    elif len(sys.argv) == 2 and sys.argv[1] == "rebuild":
+        def omni(txt):
+            if isinstance(txt, unicode):
+                return txt
+            try:
+                return txt.decode('utf-8')
+            except UnicodeError:
+                return txt.decode('latin1')
+
         objs = [db.db]
         for o in objs:
-            objs.extend(o.values())
+            items = o.items()
+            for k, v in items:
+                if k != v.id or not isinstance(k, unicode):
+                    print "Incorrect object", k, v
+                    fk = omni(k)
+                    v.id = fk
+                    del o[k]
+                    o[fk] = v
+                objs.append(v)
+
             if hasattr(o, 'path'):
                 for field in ('path', 'description', 'content', 'id', 'title', 'mime'):
                     try:
                         _d = getattr(o, field)
                         if isinstance(_d, basestring):
-                            d = unicode(_d, 'utf-8')
-                            print repr(d)
-                            setattr(o, field, d)
+                            setattr(o, field, omni(_d))
                     except AttributeError:
-                        print "err %s.%s"%(o, field)
-        transaction.commit()
+                        print "Could not set %s.%s"%(o.id, field)
+            if hasattr(o, 'editable_fields'):
+                for name in o.editable_fields.keys():
+                    v = getattr(o, name)
+                    if isinstance(v, basestring):
+                        try:
+                            o.set_field(name, v)
+                        except AttributeError:
+                            print "Could not refresh %s.%s"%(o.id, field)
+            try:
+                transaction.commit()
+            except ValueError:
+                print "** cannot commit **"
 
     elif len(sys.argv) == 3 and sys.argv[1] == "export":
         import json

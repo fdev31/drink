@@ -182,6 +182,9 @@ class Page(Model):
     def path(self):
         return self.rootpath + self.id + u'/'
 
+    def set_field(self, name, val):
+        self.editable_fields[name].set(self, name, val)
+
     def edit(self, resume=None):
         """ Edit form
 
