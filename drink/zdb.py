@@ -69,8 +69,8 @@ class Database(object):
             transaction.commit()
 
 class DataBlob(persistent.Persistent):
-    def __init__(self):
-        self._o = Blob()
+    def __init__(self, orig_blob=None):
+        self._o = orig_blob if orig_blob != None else Blob()
 
     def open(self, mode='r'):
         """ Opens the blob, returns a file descriptor """

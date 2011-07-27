@@ -288,6 +288,9 @@ if DEBUG environment variable is set, it will start in debug mode.
         finder.indexer.optimize()
         db.pack()
     elif len(sys.argv) == 2 and sys.argv[1] == "rebuild":
+
+        from .zdb import Blob, DataBlob
+
         def omni(txt):
             if isinstance(txt, unicode):
                 return txt
@@ -324,7 +327,10 @@ if DEBUG environment variable is set, it will start in debug mode.
             if hasattr(o, 'editable_fields'):
                 for name in o.editable_fields.keys():
                     v = getattr(o, name)
-                    if isinstance(v, basestring):
+                    if isinstance(v, Blob):
+                        blob = DataBlob(v)
+                        setattr(o, name, blob)
+                    elif isinstance(v, basestring):
                         try:
                             o.set_field(name, v)
                         except AttributeError:
