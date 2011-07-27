@@ -92,6 +92,10 @@ class MarkdownPage(drink.Page):
         self._wikilinks = cache
         return ret
 
+    @property
+    def indexable(self):
+        return u"%s %s"%(self.description, self.content)
+
     def process(self, data=None):
         if not hasattr(self, '_v_wikifier_cache'):
             self._v_wikifier_cache = Markdown(

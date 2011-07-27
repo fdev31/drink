@@ -162,6 +162,10 @@ class Page(Model):
         return hash(self.id)
 
     @property
+    def indexable(self):
+        return self.description
+
+    @property
     def quoted_path(self):
         return quote(self.path.encode('utf-8'))
 
@@ -462,6 +466,13 @@ class WebFile(Page):
 
     content = ''
     content_name = "unnamed"
+
+    @property
+    def indexable(self):
+        if self.mimetype.startswith('text'):
+            return u"%s %s"%(self.description, self.content)
+        else:
+            return self.description
 
     def raw(self):
         root, fname = os.path.split(self.content.filename)

@@ -50,7 +50,7 @@ def extract_obj(o):
         'path': o.path,
         'title': unicode(o.title),
         'tags': unicode(o.mime),
-        'content': u"%s %s"%(o.description, o.content) if  hasattr(o, 'content') else unicode(o.description),
+        'content': o.indexable,
         }
 
 
@@ -123,7 +123,6 @@ class ObjectBrowser(drink.Page):
 
         pat = pattern.strip()
         qpat = qparser.parse(pat)
-
         res = searcher.search_page(qpat, page_nr, pagelen=10)
         sentence_frag = highlight.SentenceFragmenter()
         whole_frag = highlight.WholeFragmenter()
