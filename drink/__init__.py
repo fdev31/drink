@@ -295,8 +295,9 @@ if DEBUG environment variable is set, it will start in debug mode.
 
         objs = [db.db]
         for o in objs:
-            items = o.items()
-            for k, v in items:
+            keys = set(o.keys())
+            for k in keys:
+                v = o[k]
                 if k != v.id or not isinstance(k, unicode):
                     print "Incorrect object", k, v
                     fk = omni(k)
@@ -304,6 +305,10 @@ if DEBUG environment variable is set, it will start in debug mode.
                     del o[k]
                     o[fk] = v
                 objs.append(v)
+            try:
+                o.reset_items()
+            except AttributeError:
+                pass
 
             if hasattr(o, 'path'):
                 for field in ('path', 'description', 'content', 'id', 'title', 'mime'):
