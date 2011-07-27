@@ -1,8 +1,13 @@
 - refactor actions
 - First choice is misaka instead of markdown: http://misaka.61924.nl/
 - pdf indexed via pyPdf or slate
-- html indexed via html2text / html2rest
-- export presentations via landslide (or rst2pdf)
+- html indexed via html2text / html2rest (two new actions)
+- export presentations via landslide
 - Includes an automatic image gallery in listing mode with a div id=image_gallery : http://nivo.dev7studios.com/#usage
+- possibility to select docs to move them or remove them (listing mode)
 - output complex pdfs from multiple documents (xhtml2pdf + pypdf ?)
   => pdf compilation (pypdf, http://pypi.python.org/pypi/xhtml2pdf/0.0.3)
+- add login icon when not logged-in, that asks for login & password
+- add ad-hoc password by object, which asks for password if authorized (in all cases but admin & owner)
+- add option to apply permissions on all sub-directories
+- add possibility to edit partial content of markdown from view page
