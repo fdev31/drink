@@ -71,6 +71,12 @@ class ObjectBrowser(drink.Page):
 
     def rebuild(self):
         drink.response.content_type = "text/plain; charset=utf-8"
+
+        w = indexer.writer()
+        w.delete_by_query(qparser.parse(u"*"))
+        w.commit()
+        indexer.optimize()
+
         objs = [drink.db.db['pages']]
         for obj in objs:
             yield (u"%s\n"%obj.title).encode('utf-8')
