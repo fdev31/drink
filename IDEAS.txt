@@ -1,6 +1,0 @@
-Includes an automatic image gallery in listing mode with a div id=image_gallery : http://nivo.dev7studios.com/#usage
-First choice is misaka instead of markdown: http://misaka.61924.nl/
-- optional html conversion with html2text
-- rst2pdf / landslide
-- pdf compilation (pypdf, http://pypi.python.org/pypi/xhtml2pdf/0.0.3)
-- pdfminer pour indexer les pdf ?

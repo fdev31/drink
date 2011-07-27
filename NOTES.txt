@@ -1,3 +1,8 @@
-- revoir le get_object => inclue le /view 
-
-- bjoern is not un-escaping %20 & so... 
+- refactor actions
+- First choice is misaka instead of markdown: http://misaka.61924.nl/
+- pdf indexed via pyPdf or slate
+- html indexed via html2text / html2rest
+- export presentations via landslide (or rst2pdf)
+- Includes an automatic image gallery in listing mode with a div id=image_gallery : http://nivo.dev7studios.com/#usage
+- output complex pdfs from multiple documents (xhtml2pdf + pypdf ?)
+  => pdf compilation (pypdf, http://pypi.python.org/pypi/xhtml2pdf/0.0.3)
