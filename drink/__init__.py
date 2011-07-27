@@ -283,6 +283,9 @@ if DEBUG environment variable is set, it will start in debug mode.
         init()
         db.pack()
     elif len(sys.argv) == 2 and sys.argv[1] == "pack":
+        from drink.objects import finder
+        finder.init()
+        finder.indexer.optimize()
         db.pack()
     elif len(sys.argv) == 2 and sys.argv[1] == "rebuild":
         def omni(txt):
