@@ -106,12 +106,8 @@ class ObjectBrowser(drink.Page):
         w.update_document(**extract_obj(obj))
         w.commit()
 
-    # TODO: make a js-friendly function & use it
-    def query(self, pattern=None, query_type=None, page=None):
-        pattern = pattern if pattern != None else drink.request.params.get('pattern').decode('utf-8')
-        query_type = query_type if query_type != None else drink.request.params.get('qtype')
-        page_nr = int(page if page else drink.request.params.get('page', 1))
-
+    def _query(self, pattern=None, query_type=None, page_nr=1, results=10):
+        # Fire up searcher
         try:
             searcher = indexer.searcher()
         except IOError:
@@ -123,39 +119,69 @@ class ObjectBrowser(drink.Page):
 
         pat = pattern.strip()
         qpat = qparser.parse(pat)
-        res = searcher.search_page(qpat, page_nr, pagelen=10)
+        res = searcher.search_page(qpat, page_nr, pagelen=results)
         sentence_frag = highlight.SentenceFragmenter()
         whole_frag = highlight.WholeFragmenter()
 
         items = []
-        html = ['<ul class="results">']
+        result = []
         root = drink.db.db
+
         for item in res:
             obj = drink.get_object(root, quote(item['path'].encode('utf-8')), no_raise=True)
             if obj == None:
+                # TODO: add a log here
                 continue
+
             if 'r' in auth.access(obj):
+                match = {'path': item['path'], 'item': item['path']}
                 items.append(obj)
                 title =  item.highlights('title', fragmenter=whole_frag) or item['title']
-                hli =  item.highlights('content', fragmenter=sentence_frag)
-                html.append('<li><a href="%s">%s</a></li>'%(item['path'], title))
-                if hli:
-                    html.append('<a href="%s"><div class="minipage">%s</div></a>'%(item['path'],hli.replace('\n', '<br/>')))
-        if res.pagecount:
+                match['hi_title'] = title
+                match['hi'] =  item.highlights('content', fragmenter=sentence_frag)
+                result.append(match)
+        return result
+
+    # TODO: Use self.path to answer
+    def query(self):
+        # parse Query parameters
+        pattern =  drink.request.params.get('pattern').decode('utf-8')
+        query_type = drink.request.params.get('qtype')
+        page_nr = int(drink.request.params.get('page', 1))
+        results = int(drink.request.params.get('results', 10))
+
+        # Let's compute
+
+        matches = self._query(pattern, query_type, page_nr, results)
+
+        # make html
+        html = ['<ul class="results">']
+        for item in matches:
+            if isinstance(item, basestring):
+                continue
+            html.append('<li><a href="%(path)s">%(hi_title)s</a></li>'%item)
+            if 'hi' in item:
+                html.append('<a href="%s"><div class="minipage">%s</div></a>'%(item['path'], item['hi'].replace('\n', '<br/>')))
+
+        if matches > 1:
             html.append('</ul><br/>pages:&nbsp;')
-            for page in xrange(1, 1+res.pagecount):
-                if page == page_nr:
-                    html.append( '<span class="page_nr_cur">%s</span>'%page )
-                else:
-                    html.append( '<a href="%s"><span class="page_nr">%s</span></a>'%("%squery?pattern=%s&qtype=%s&page=%s"%(self.path, pattern, query_type, page), page ) )
-        else:
-            #corr = searcher.correct_query(qparser, pat)
-            #html.append('</ul><br/>No matching documents!<br/>Did you mean <a href="%squery?pattern=%s&qtype=%s">%s</a>'%(self.path, corr.string, query_type, corr.string))
+            sz = len(matches)
+
+            if sz != 1:
+                for page in xrange(1, 1+sz):
+                    if page == page_nr:
+                        html.append( '<span class="page_nr_cur">%s</span>'%page )
+                    else:
+                        html.append( '<a href="%s"><span class="page_nr">%s</span></a>'%("%squery?pattern=%s&qtype=%s&page=%s"%(self.path, pattern, query_type, page), page ) )
+        elif not matches:
             html.append('</ul><br/>No matching documents!')
-        self.lastlog[auth.id] = (pat, items)
-        drink.transaction.commit()
+
+        # save log
+        self.lastlog[drink.request.identity.id] = (pattern, matches)
+
+        # render
         return drink.template('main.html', obj=self, html='\n'.join(html),
-                    authenticated=auth, classes=self.classes)
+                    authenticated=drink.request.identity, classes=self.classes)
 
     # TODO: Change that to Javascript code, use a refactored `make_li` to create new items
     def view(self):
@@ -175,7 +201,7 @@ class ObjectBrowser(drink.Page):
         if items:
             form.append('<h2>Last search</h2>')
 
-            form.extend('<li><a href="%s">%s</a></li>'%(i.path, i.title) for i in items)
+            form.extend('<li><a href="%(path)s">%(title)s</a></li>'%i for i in items)
 
         return drink.template('main.html', obj=self, html='\n'.join(form), authenticated=auth, classes=self.classes)
 
