@@ -48,7 +48,7 @@ def reset():
 def extract_obj(o):
     return {
         'path': o.path,
-        'title': unicode(o.title),
+        'title': o.title,
         'tags': unicode(o.mime),
         'content': o.indexable,
         }
