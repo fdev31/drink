@@ -115,16 +115,15 @@ class ObjectBrowser(drink.Page):
             self.rebuild()
             searcher = indexer.searcher()
 
-        auth = drink.request.identity
 
-        pat = pattern.strip()
-        qpat = qparser.parse(pat)
+        qpat = qparser.parse(pattern.strip())
         res = searcher.search_page(qpat, page_nr, pagelen=results)
-        sentence_frag = highlight.SentenceFragmenter()
-        whole_frag = highlight.WholeFragmenter()
 
         items = []
         result = []
+        auth = drink.request.identity
+        sentence_frag = highlight.SentenceFragmenter()
+        whole_frag = highlight.WholeFragmenter()
         root = drink.db.db
 
         for item in res:
@@ -140,20 +139,24 @@ class ObjectBrowser(drink.Page):
                 match['hi_title'] = title
                 match['hi'] =  item.highlights('content', fragmenter=sentence_frag)
                 result.append(match)
-        return result
+        return (res.pagecount, result)
 
     # TODO: Use self.path to answer
     def query(self):
         # parse Query parameters
-        pattern =  drink.request.params.get('pattern').decode('utf-8')
+        pattern =  drink.request.params.get('pattern')
         query_type = drink.request.params.get('qtype')
         page_nr = int(drink.request.params.get('page', 1))
         results = int(drink.request.params.get('results', 10))
         fmt = drink.request.params.get('fmt', 'html')
+        if pattern:
+            pattern = pattern.decode('utf-8')
+        else:
+            return 'Give me a pattern please !'
 
         # Let's compute
 
-        matches = self._query(pattern, query_type, page_nr, results)
+        pages, matches = self._query(pattern, query_type, page_nr, results)
 
         if fmt == 'js':
             return dict(items=matches)
@@ -167,17 +170,17 @@ class ObjectBrowser(drink.Page):
             if 'hi' in item:
                 html.append('<a href="%s"><div class="minipage">%s</div></a>'%(item['path'], item['hi'].replace('\n', '<br/>')))
 
-        if matches > 1:
+        if pages > 1:
             html.append('</ul><br/>pages:&nbsp;')
-            sz = len(matches)
 
-            if sz != 1:
-                for page in xrange(1, 1+sz):
-                    if page == page_nr:
-                        html.append( '<span class="page_nr_cur">%s</span>'%page )
-                    else:
-                        html.append( '<a href="%s"><span class="page_nr">%s</span></a>'%("%squery?pattern=%s&qtype=%s&page=%s"%(self.path, pattern, query_type, page), page ) )
-        elif not matches:
+            for page in xrange(1, 1+pages):
+                if page == page_nr:
+                    html.append( '<span class="page_nr_cur">%s</span>'%page )
+                else:
+                    html.append( '<a href="%s"><span class="page_nr">%s</span></a>'%("%squery?pattern=%s&qtype=%s&page=%s"%(self.path, pattern, query_type, page), page ) )
+        elif pages == 1:
+            html.append('</ul>')
+        elif not pages:
             html.append('</ul><br/>No matching documents!')
 
         # save log
