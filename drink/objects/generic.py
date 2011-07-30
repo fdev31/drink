@@ -368,7 +368,7 @@ class Page(Model):
             cls = request.params.get('class')
 
         o = self._add(name, cls, auth.user.default_read_groups, auth.user.default_write_groups)
-        if not o:
+        if o is None:
             drink.unauthorized("You can't create %r objects!"%name)
 
         if request.is_ajax:
