@@ -116,7 +116,7 @@ class Page(Model):
     #: list of javascript files included in the views
     js = []
     #: short description of the object or instance
-    description = 'An abstract page'
+    description = u'An abstract page'
     #: dictionnary of classes allowed in that contect
     classes = drink.classes
 
@@ -373,7 +373,7 @@ class Page(Model):
             classes=self.classes, authenticated=request.identity)
 
 class ListPage(Page):
-    description = "An ordered folder-like display"
+    description = u"An ordered folder-like display"
 
     mime = "folder"
 
@@ -444,7 +444,7 @@ class WebFile(Page):
 
     mime = "page"
     mimetype = "text/plain"
-    description = "Some file"
+    description = u"Some file"
     classes = {}
 
     owner_fields = {

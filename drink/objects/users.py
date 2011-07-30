@@ -8,7 +8,7 @@ class User(drink.Page):
 
     mime = "user"
 
-    description = "User object"
+    description = u"User object"
 
     password = ''
 
@@ -82,7 +82,7 @@ class User(drink.Page):
 
 
 class UserList(drink.ListPage):
-    description = "Users folder"
+    description = u"Users folder"
     mime = "group"
 
     classes = {'User': User}
@@ -105,7 +105,7 @@ class Group(drink.Page):
 
 
 class GroupList(drink.ListPage):
-    description = "Groups"
+    description = u"Groups"
     mime = "groups"
 
     classes = {'Group': Group}

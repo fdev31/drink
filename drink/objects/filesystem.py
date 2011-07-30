@@ -5,7 +5,7 @@ from fs.osfs import OSFS
 from drink.objects.generic import get_struct_from_obj, Model, guess_type
 
 class PyFile(object):
-    description = 'File from disk'
+    description = u'File from disk'
     min_rights = ''
 
     def __init__(self, parent_clone, parent_path, real_path, uuid, fd):

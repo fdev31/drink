@@ -10,7 +10,7 @@ from drink.types import dt2str, dt2ts
 
 class TODO(drink.Page):
 
-    description = "Something to do"
+    description = u"Something to do"
 
     mime = "note"
 
@@ -87,7 +87,7 @@ class TODO(drink.Page):
 
 class TODOList(drink.Page):
 
-    description = "A TODO list"
+    description = u"A TODO list"
 
     classes = {'TODO': TODO}
 
