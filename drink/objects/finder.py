@@ -159,7 +159,7 @@ class ObjectBrowser(drink.Page):
         pages, matches = self._query(pattern, query_type, page_nr, results)
 
         if fmt == 'js':
-            return dict(items=matches)
+            return dict(pages=pages, items=matches)
 
         # make html
         html = ['<ul class="results">']
