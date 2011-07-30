@@ -35,7 +35,7 @@ function startcode(data, status, req) {
             element: $('#file-uploader')[0],
             action: 'upload',
             debug: true,
-            showMessage: function(message){ alert(message); },
+            showMessage: function(message){ $('<div title="Drop zone">'+message+'</div>'); },
             onComplete: function(id, fileName, data){
                 if ( data.id ) {
                     sortable.add_entry(data);
@@ -68,16 +68,29 @@ $.fn.extend({
         return e;
     },
     remove_entry: function(item) {
-        $.ajax({
-            url:'rm?name='+encodeURI(item),
-        }).success(function() {
-            var safe_name = item.replace( /"/g, '\\"');
-            $('#edit_form select option[value="'+safe_name+'"]').remove();
-            $('#rm_form select option[value="'+safe_name+'"]').remove();
-            $('#rm_form select option[value="'+safe_name+'"]').remove();
-            $('ul > li.entry:data(item='+item+')').slideUp('slow', function() {$(this).remove()});
-            delete child_items[item];
-        }).error(function(){alert('Error removing "'+item+'"')});
+        $('<div id="remove-confirm" title="Do you really want to remove this item ?">Please, confirm removal.</div>').dialog({
+			modal: true,
+			buttons: {
+			    Accept: function() {
+			     	$( this ).dialog( "close" );
+		            $.ajax({
+                        url:'rm?name='+encodeURI(item),
+                    }).success(function() {
+                        var safe_name = item.replace( /"/g, '\\"');
+                        $('#edit_form select option[value="'+safe_name+'"]').remove();
+                        $('#rm_form select option[value="'+safe_name+'"]').remove();
+                        $('#rm_form select option[value="'+safe_name+'"]').remove();
+                        $('ul > li.entry:data(item='+item+')').slideUp('slow', function() {$(this).remove()});
+                        delete child_items[item];
+                    }).error(function(){
+                        $('<div title="Error occured">Sorry, something didn\'t work correctly</div>').dialog();
+                       });
+			    },
+				Cancel: function() {
+					$( this ).dialog( "close" );
+				}
+			}
+		});
 
     }
 });
