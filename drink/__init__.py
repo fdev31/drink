@@ -397,10 +397,6 @@ if DEBUG environment variable is set, it will start in debug mode.
             if reset_required:
                 init()
 
-        for name, klass in classes.items():
-            if getattr(klass, 'hidden_class', False):
-                del classes[name]
-
         # And now, http/wsgi part
 
         host = config.get('server', 'host')

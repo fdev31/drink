@@ -1,11 +1,20 @@
 from __future__ import absolute_import
 from drink.config import config
 import drink
+from drink import request
 from urllib import unquote
 
 __all__ = ['classes', 'get_object', 'init']
 
-classes = {}
+class _AuthDict(dict):
+    def iterkeys(self):
+        adm = request.identity.admin
+        return (k for k in dict.iterkeys(self) if not self[k].hidden_class or adm)
+
+    def keys(self):
+        return list(self.iterkeys())
+
+classes = _AuthDict()
 
 objects_to_load = [k for k, v in config.items('objects')]
 

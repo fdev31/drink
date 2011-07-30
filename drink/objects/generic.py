@@ -123,6 +123,9 @@ class Page(Model):
     #: default action if none specified
     default_action = "view"
 
+    #: Is that type of object only accessible by admin ?
+    hidden_class = False
+
     #: map used for upload action, to bind extensions to factories
     upload_map = {
         '*': 'WebFile',
@@ -334,6 +337,8 @@ class Page(Model):
             klass = self.classes[cls] if self.classes else classes[cls]
         else:
             klass = cls
+        if klass.hidden_class and not request.identity.admin:
+            return None
         new_obj = klass(name, self.path)
         if not new_obj.read_groups:
             new_obj.read_groups = set(read_groups)
@@ -363,6 +368,9 @@ class Page(Model):
             cls = request.params.get('class')
 
         o = self._add(name, cls, auth.user.default_read_groups, auth.user.default_write_groups)
+        if not o:
+            drink.unauthorized("You can't create %r objects!"%name)
+
         if request.is_ajax:
             return o.struct()
         else:
