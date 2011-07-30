@@ -272,6 +272,7 @@ Drink help
 commands:
     init: reset database
     pack: pack database (more compact/faster)
+    rebuild: EXPERIMENTAL, will try to convert & clean an old database to newer format
     export: EXPERIMENTAL, will try to dump all the data into the given folder
     debug: run a debugger after loading
     help: this help :)
@@ -299,7 +300,7 @@ if DEBUG environment variable is set, it will start in debug mode.
             except UnicodeError:
                 return txt.decode('latin1')
 
-        objs = [db.db]
+        objs = list(db.db.values())
         for o in objs:
             keys = set(o.keys())
             for k in keys:
@@ -316,25 +317,30 @@ if DEBUG environment variable is set, it will start in debug mode.
             except AttributeError:
                 pass
 
-            if hasattr(o, 'path'):
-                for field in ('path', 'description', 'content', 'id', 'title', 'mime'):
+            f_set = set(('path', 'description', 'id', 'title', 'mime'))
+            for name, caster in o.editable_fields.iteritems():
+                v = caster.get(o, name)
+                if isinstance(v, Blob):
+                    blob = DataBlob(v)
+                    setattr(o, name, blob)
+                else:
                     try:
-                        _d = getattr(o, field)
-                        if isinstance(_d, basestring):
-                            setattr(o, field, omni(_d))
+                        o.set_field(name, str(v))
+                        f_set.discard(name)
                     except AttributeError:
-                        print "Could not set %s.%s"%(o.id, field)
-            if hasattr(o, 'editable_fields'):
-                for name in o.editable_fields.keys():
-                    v = getattr(o, name)
-                    if isinstance(v, Blob):
-                        blob = DataBlob(v)
-                        setattr(o, name, blob)
-                    elif isinstance(v, basestring):
-                        try:
-                            o.set_field(name, v)
-                        except AttributeError:
-                            print "Could not refresh %s.%s"%(o.id, field)
+                        print "Could not refresh %r on %r"%(field, o.id)
+                    except TypeError, e:
+                        import pdb; pdb.set_trace()
+            for field in f_set:
+                try:
+                    _d = getattr(o, field)
+                    if isinstance(_d, basestring):
+                        setattr(o, field, omni(_d))
+                except AttributeError:
+                    print "Could not set %r on %r"%(field, o.id)
+                except TypeError, e:
+                    import pdb; pdb.set_trace()
+
             try:
                 transaction.commit()
             except ValueError:

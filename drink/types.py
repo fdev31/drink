@@ -33,6 +33,9 @@ class _Editable(object):
 
         return (pfx+(_template or self._template)+'</div>')%d
 
+    def get(self, obj, name):
+        return getattr(obj, name)
+
     set = setattr
 
 class EasyPermissions(_Editable):
@@ -104,6 +107,9 @@ class Date(Text):
 
     def set(self, obj, name, val):
         setattr(obj, name, str2d(val))
+
+    def get(self, obj, name):
+        return dt2str(getattr(obj, name))
 
     def html(self, name, value, _template=None, no_label=False):
         return Text.html(self, name, dt2str(value), _template, no_label)
