@@ -2,11 +2,13 @@ from __future__ import absolute_import
 import drink
 import fs
 from fs.osfs import OSFS
-from drink.objects.generic import get_struct_from_obj, Model, guess_type
+from drink.objects.generic import get_struct_from_obj, Model, get_type
 
 class PyFile(object):
     description = u'File from disk'
     min_rights = ''
+
+    _v_mime = None
 
     def __init__(self, parent_clone, parent_path, real_path, uuid, fd):
         self.o = parent_clone
@@ -15,11 +17,12 @@ class PyFile(object):
         self.realpath = real_path
         self.rootpath = parent_path
         self.path = parent_path + uuid + '/'
-        if self.o.fd.isdir(self.realpath):
-            self.mime = 'folder'
-        else:
-            self.mime = 'page'
 
+    @property
+    def mime(self):
+        if not self._v_mime:
+            self._v_mime = 'folder' if self.o.fd.isdir(self.realpath) else 'page'
+        return self._v_mime
 
     def edit(self, *a):
         return self.view()
@@ -29,7 +32,13 @@ class PyFile(object):
             return drink.template('list.html', obj=self, css=[], js=[],
                 classes={}, authenticated=drink.request.identity)
         else:
-            drink.response.headers['Content-Type'] = guess_type(self.id)
+            mime = get_type(self.id)
+
+            if mime.startswith('text'):
+                mime += ' ; charset=utf-8'
+            else:
+                drink.response.headers['Content-Disposition'] = 'attachment; filename="%s"'%self.id
+            drink.response.headers['Content-Type'] = mime
             drink.response.headers['Content-Length'] = self.o.fd.getsize(self.realpath)
 
             CZ = 2**20
@@ -77,7 +86,7 @@ class PyFile(object):
     def values(self):
         return list(self.itervalues())
 
-class Filesystem(PyFile, drink.ListPage):
+class Filesystem(drink.ListPage, PyFile):
 
     local_path = ''
     default_view = 'list'
@@ -91,17 +100,28 @@ class Filesystem(PyFile, drink.ListPage):
     })
 
     def __init__(self, name, rootpath):
+        self.fd = None
+        self.default_view = 'edit'
         drink.ListPage.__init__(self, name, rootpath)
-        self.fd = OSFS(self.local_path, thread_synchronize=True)
+        self._make_fd()
         PyFile.__init__(self, self, rootpath, self.id, self.id, None)
 
     def _edit(self):
         r = drink.ListPage._edit(self)
-        self.fd = OSFS(self.local_path, thread_synchronize=True)
+        self._make_fd()
+        if self.fd:
+            self.default_view = 'list'
         return r
 
+    def _make_fd(self):
+        if self.local_path and not self.fd:
+            try:
+                self.fd = OSFS(self.local_path, thread_synchronize=True)
+            except fs.ResourceNotFoundError:
+                self.fd = None
+
     def keys(self):
-        if self.local_path:
+        if self.fd:
             return self.fd.listdir()
         else:
             return []
@@ -112,7 +132,7 @@ class Filesystem(PyFile, drink.ListPage):
         return Model.__getattribute__(self, name)
 
     def __getitem__(self, name):
-        if name in ('edit', 'list', 'view', 'struct'):
+        if name in ('edit', 'list', 'view', 'add', 'struct'):
             raise KeyError()
         return PyFile(self, self.path, name, name, self.fd)
 

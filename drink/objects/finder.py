@@ -57,7 +57,7 @@ def extract_obj(o):
 class ObjectBrowser(drink.Page):
     mime = "search"
 
-    doc = "A very basic object finder"
+    doc = u"A very basic object finder"
 
     classes = {}
 
