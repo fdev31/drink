@@ -1,5 +1,6 @@
 __all__ = ['_Editable',
     'Text', 'TextArea', 'GroupListArea', 'GroupCheckBoxes',
+    'Date',
     'Id', 'Int', 'Password', 'File']
 
 import os
