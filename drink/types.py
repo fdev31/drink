@@ -98,7 +98,6 @@ def str2d(text):
     except AttributeError:
         return text
 
-
 class Date(Text):
 
     _template = r'''<input class="auto_date" type="text" size="%(size)d" id="%(id)s" value="%(value)s" name="%(name)s" />'''

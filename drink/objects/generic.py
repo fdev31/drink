@@ -166,7 +166,10 @@ class Page(Model):
 
     @property
     def indexable(self):
-        return self.description
+        if isinstance(self.description, unicode):
+            return self.description
+        else:
+            return self.description.decode('utf-8')
 
     @property
     def quoted_path(self):
@@ -483,10 +486,15 @@ class WebFile(Page):
 
     @property
     def indexable(self):
-        if self.mimetype.startswith('text'):
-            return u"%s %s"%(self.description, self.content)
+        if isinstance(self.description, unicode):
+            desc = self.description
         else:
-            return self.description
+            desc = self.description.decode('utf-8')
+        if isinstance(self.content, unicode):
+            cont = self.description
+        else:
+            cont = u''
+        return u'%s\n%s'%(desc, cont)
 
     def raw(self):
         root, fname = os.path.split(self.content.filename)

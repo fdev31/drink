@@ -325,7 +325,7 @@ if DEBUG environment variable is set, it will start in debug mode.
                     setattr(o, name, blob)
                 else:
                     try:
-                        o.set_field(name, str(v))
+                        o.set_field(name, v)
                         f_set.discard(name)
                     except AttributeError:
                         print "Could not refresh %r on %r"%(field, o.id)
