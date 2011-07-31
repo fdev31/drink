@@ -273,6 +273,9 @@ class Page(Model):
                 </div></form>''')
                 form.insert(0, '''<form
                  class="auto_edit_form" id="auto_edit_form" action="edit" %s method="post">'''%(' '.join(form_opts)))
+
+            if request.params.get('embedded', None):
+                return '\n'.join(form)
             return drink.template('main.html', obj=self, html='\n'.join(form), css=self.css, js=self.js,
                  classes=self.classes, authenticated=request.identity)
 
