@@ -62,7 +62,11 @@ class TODO(drink.Page):
     def event(self):
         drink.response.headers['Content-Type'] = 'application/json'
         # TODO: improve this line
-        start_hour, start_min = (int(x.strip()) for x in self.start_time.split(':'))
+        try:
+            start_hour, start_min = (int(x) for x in self.start_time.split(':'))
+        except ValueError:
+            start_hour = int(self.start_time)
+            start_min = 0
 
         today = date.today()
         if self.auto_report and today > self.date:
