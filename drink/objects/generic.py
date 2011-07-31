@@ -192,6 +192,9 @@ class Page(Model):
     def set_field(self, name, val):
         self.editable_fields[name].set(self, name, val)
 
+    def get_field(self, name):
+        return self.editable_fields[name].get(self, name)
+
     def edit(self, resume=None):
         """ Edit form
 
