@@ -6,7 +6,6 @@ from drink.objects.generic import get_struct_from_obj, Model, get_type
 
 class PyFile(object):
     description = u'File from disk'
-    min_rights = ''
 
     _v_mime = None
 
@@ -29,7 +28,7 @@ class PyFile(object):
 
     def view(self):
         if self.mime == 'folder':
-            return drink.template('list.html', obj=self, css=[], js=[],
+            yield drink.template('list.html', obj=self, css=[], js=[],
                 classes={}, authenticated=drink.request.identity)
         else:
             mime = get_type(self.id)
@@ -42,12 +41,12 @@ class PyFile(object):
             drink.response.headers['Content-Length'] = self.o.fd.getsize(self.realpath)
 
             CZ = 2**20
-            fd = self.o.fd.open(self.realpath)
+            fd = self.o.fd.open(self.realpath, 'rb')
             while True:
                 data = fd.read(CZ)
                 if not data:
                     break
-                return data
+                yield data
 
     def struct(self, childs=True, full=None):
         return get_struct_from_obj(self, childs, full)
