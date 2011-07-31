@@ -56,6 +56,14 @@ function add_item_hook(data) {
 }
 
 $.fn.extend({
+    edit_entry: function(data) {
+       frame = $('<iframe title="Edit object" src="'+document.location.href+'/'+data+'/edit">No iframe support :(</iframe>');
+        frame.dialog({width: '90%', height:800, modal:true});
+        frame.css('width', '100%');
+        frame.css('height', '100%');
+        frame.css('padding', '0');
+        frame.css('margin', '0');
+    },
     add_entry: function(data) {
         var e = make_li(data)
         sortable.append(e);
@@ -135,7 +143,7 @@ function popup_actions(event) {
         $(this).data('edit_called', setTimeout(function() {
             var item_name = me.data('item');
             var edit_span = $('<span class="actions"></span>');
-            edit_span.append('<a title="Edit" href="./'+encodeURI(item_name)+'/edit"><img class="minicon" src="/static/actions/edit.png" /></a>');
+            edit_span.append('<a title="Edit" onclick="sortable.edit_entry(\''+item_name+'\')"><img class="minicon" src="/static/actions/edit.png" /></a>');
             edit_span.append('<a title="Delete" onclick="sortable.remove_entry(\''+item_name+'\')" ><img class="minicon" src="/static/actions/delete.png" /></a>');
             edit_span.fadeIn('slow');
             me.append(edit_span);

@@ -1,4 +1,5 @@
 - refactor actions
+- add "embedded" modes in view/edit & co, that stays on page & disable headers
 - First choice is misaka instead of markdown: http://misaka.61924.nl/
 - pdf indexed via pyPdf or slate
 - html indexed via html2text / html2rest (two new actions)
