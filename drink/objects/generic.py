@@ -414,7 +414,11 @@ class ListPage(Page):
         self.forced_order = request.params.get('set').decode('utf-8').split('/')
 
     def itervalues(self):
-        return (self[v] for v in self.keys())
+        for k in self.iterkeys():
+            try:
+                yield self[k]
+            except KeyError:
+                print "Err, no such key: %r"%k
 
     def values(self):
         return list(self.itervalues())

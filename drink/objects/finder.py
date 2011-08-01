@@ -81,7 +81,7 @@ class ObjectBrowser(drink.Page):
         for obj in objs:
             yield (u"%s\n"%obj.title).encode('utf-8')
             c = obj.values()
-            if c:
+            if c and not getattr(obj, '_no_scan', False):
                 objs.extend(c)
         self._add_object(objs)
         yield "-eof-"

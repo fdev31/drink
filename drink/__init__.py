@@ -289,10 +289,12 @@ if DEBUG environment variable is set, it will start in debug mode.
         finder.indexer.optimize()
         db.pack()
     elif len(sys.argv) == 2 and sys.argv[1] == "rebuild":
+        from urllib import unquote
 
         from .zdb import Blob, DataBlob
 
         def omni(txt):
+            txt =  unquote(txt).decode('utf-8')
             if isinstance(txt, unicode):
                 return txt
             try:
@@ -302,20 +304,33 @@ if DEBUG environment variable is set, it will start in debug mode.
 
         objs = list(db.db.values())
         for o in objs:
-            keys = set(o.keys())
-            for k in keys:
-                v = o[k]
-                if k != v.id or not isinstance(k, unicode):
-                    print "Incorrect object", k, v
-                    fk = omni(k)
-                    v.id = fk
+            try:
+                print "+%r"% o.id
+            except Exception, e:
+                import pdb; pdb.set_trace()
+
+            for k, v in o.iteritems():
+                k2 = omni(k)
+                k3 = omni(v.id)
+                try:
                     del o[k]
-                    o[fk] = v
-                objs.append(v)
+                except KeyError:
+                    pass
+                try:
+                    del o[k2]
+                except KeyError:
+                    pass
+
+                v.id = k3
+                o[v.id] = v
+
             try:
                 o.reset_items()
             except AttributeError:
                 pass
+
+            if not getattr(o, '_no_scan', None):
+                objs.extend(o.values())
 
             f_set = set(('path', 'description', 'id', 'title', 'mime'))
             for name, caster in o.editable_fields.iteritems():
@@ -329,7 +344,7 @@ if DEBUG environment variable is set, it will start in debug mode.
                         f_set.discard(name)
                     except AttributeError:
                         print "Could not refresh %r on %r"%(field, o.id)
-                    except TypeError, e:
+                    except (UnicodeError, TypeError), e:
                         import pdb; pdb.set_trace()
             for field in f_set:
                 try:
@@ -338,13 +353,17 @@ if DEBUG environment variable is set, it will start in debug mode.
                         setattr(o, field, omni(_d))
                 except AttributeError:
                     print "Could not set %r on %r"%(field, o.id)
-                except TypeError, e:
+                except (UnicodeError, TypeError), e:
                     import pdb; pdb.set_trace()
 
             try:
                 transaction.commit()
             except ValueError:
                 print "** cannot commit **"
+
+        print "Whooshing..."
+        for x in db.db['search'].rebuild():
+            print x.strip()
 
     elif len(sys.argv) == 3 and sys.argv[1] == "export":
         import json

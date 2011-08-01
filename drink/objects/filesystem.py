@@ -9,6 +9,8 @@ class PyFile(object):
 
     _v_mime = None
 
+    _no_scan = True
+
     def __init__(self, parent_clone, parent_path, real_path, uuid, fd):
         self.o = parent_clone
         self.id = uuid
@@ -22,6 +24,13 @@ class PyFile(object):
         if not self._v_mime:
             self._v_mime = 'folder' if self.o.fd.isdir(self.realpath) else 'page'
         return self._v_mime
+
+    @property
+    def indexable(self):
+        if isinstance(self.id, unicode):
+            return self.id
+        else:
+            return self.id.decode('utf-8')
 
     def edit(self, *a):
         return self.view()
