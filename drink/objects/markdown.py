@@ -121,7 +121,7 @@ class MarkdownPage(drink.Page):
 
         html = self.process(self.content)
 
-        return drink.template('main.html', obj=self, embed=False,
+        return drink.template('main.html', obj=self, embed=int(drink.request.params.get('embedded', '')),
              html=html, authenticated=drink.request.identity,
              # do not include js code, or css code, it's only for editing
              classes=self.classes,

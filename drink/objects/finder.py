@@ -188,7 +188,8 @@ class ObjectBrowser(drink.Page):
 
         # render
         return drink.template('main.html', obj=self, html='\n'.join(html),
-                    authenticated=drink.request.identity, classes=self.classes, embed=False)
+                    embed=int(drink.request.params.get('embedded', '')),
+                    authenticated=drink.request.identity, classes=self.classes)
 
     # TODO: Change that to Javascript code, use a refactored `make_li` to create new items
     def view(self):
@@ -210,7 +211,7 @@ class ObjectBrowser(drink.Page):
 
             form.extend('<li><a href="%(path)s">%(title)s</a></li>'%i for i in items)
 
-        return drink.template('main.html', obj=self, html='\n'.join(form), authenticated=auth, classes=self.classes, embed=False)
+        return drink.template('main.html', obj=self, html='\n'.join(form), authenticated=auth, classes=self.classes, embed=int(drink.request.params.get('embedded', '')))
 
 init()
 

@@ -38,7 +38,7 @@ class PyFile(object):
     def view(self):
         if self.mime == 'folder':
             yield drink.template('list.html', obj=self, css=[], js=[],
-                    embed=False, classes={}, authenticated=drink.request.identity)
+                    embed=int(drink.request.params.get('embedded', '')), classes={}, authenticated=drink.request.identity)
         else:
             mime = get_type(self.id)
 
