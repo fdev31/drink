@@ -30,5 +30,5 @@ setup(
 
         },
     packages=find_packages(),
-    install_requires = ['setuptools', 'jinja2', 'markdown', 'ZODB3', 'whoosh>=2.0', 'fs>=0.3', 'bottle>=0.9.1'],
+    install_requires = ['setuptools', 'jinja2', 'markdown', 'ZODB3', 'whoosh>=2.0', 'fs>=0.3', 'bottle>=0.9.6'],
 )
