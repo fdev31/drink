@@ -58,9 +58,11 @@ function add_item_hook(data) {
 $.fn.extend({
     edit_entry: function(data) {
        frame = $('<iframe title="Edit object" src="'+document.location.href+'/'+data+'/edit?embedded=1">No iframe support :(</iframe>');
-        frame.dialog({width: '80%', height:'300em', modal:true});
+        frame.dialog({modal:true, width:'90%'});
         frame.css('width', '100%');
-        frame.css('height', '100%');
+        frame.css('padding', '0');
+        frame.css('margin', 'auto');
+        frame.css('height', '66%');
     },
     add_entry: function(data) {
         var e = make_li(data)

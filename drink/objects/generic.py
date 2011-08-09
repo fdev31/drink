@@ -182,7 +182,7 @@ class Page(Model):
     def view(self):
         drink.response.content_type = "text/html; charset=utf-8"
         return drink.template('main.html', obj=self,
-            css=self.css, js=self.js, html=self.html,
+            css=self.css, js=self.js, html=self.html, embed=bool(drink.request.params.get('embedded', False)),
             classes=self.classes, authenticated=request.identity)
 
     def struct(self, childs=True, full=None):
@@ -230,6 +230,7 @@ class Page(Model):
             items += self.admin_fields.items()
 
         forms = request.forms
+        embedded = bool(request.params.get('embedded', ''))
 
         if forms:
             if '_dk_fields' in forms:
@@ -249,7 +250,7 @@ class Page(Model):
             database = drink.db.db
             if 'search' in database:
                 database['search']._update_object(self)
-            return (drink.rdr, self.quoted_path)
+            return (drink.rdr, "%s?embedded=%s"%(self.quoted_path, '1' if embedded else '' ))
         else:
             if not items:
                 form = ['<div class="error_message">Not editable, sorry...</div>']
@@ -258,7 +259,9 @@ class Page(Model):
                 items.sort(key=lambda o: o[1].group+o[0])
                 current_group = None
                 form_opts = []
-                form = ['<input type="hidden" name="_dk_fields" value="%s">'%('/'.join(x[0] for x in items))]
+                form = ['<input type="hidden" name="_dk_fields" value="%s" />'%('/'.join(x[0] for x in items))]
+                if embedded:
+                    form.append('<input type="hidden" name="embedded" value="1" />')
                 for field, factory in items:
                     if factory.form_attr:
                         form_opts.append(factory.form_attr)
@@ -277,10 +280,8 @@ class Page(Model):
                 form.insert(0, '''<form
                  class="auto_edit_form" id="auto_edit_form" action="edit" %s method="post">'''%(' '.join(form_opts)))
 
-            if request.params.get('embedded', None):
-                return '\n'.join(form)
             return drink.template('main.html', obj=self, html='\n'.join(form), css=self.css, js=self.js,
-                 classes=self.classes, authenticated=request.identity)
+                    embed=embedded, classes=self.classes, authenticated=request.identity)
 
     def _upload(self, obj):
         self.editable_fields['content'].set(self, 'content', obj)
@@ -387,7 +388,8 @@ class Page(Model):
 
     def list(self):
         return template('list.html', obj=self, css=self.css, js=self.js,
-            classes=self.classes, authenticated=request.identity)
+                embed=bool(drink.request.params.get('embedded', '')),
+                classes=self.classes, authenticated=request.identity)
 
 class ListPage(Page):
     description = u"An ordered folder-like display"
@@ -534,7 +536,7 @@ class WebFile(Page):
                 html.append(unicode(f.read(), 'utf-8'))
                 html.append(u'</pre>')
 
-        return drink.template('main.html', obj=self, css=self.css, js=self.js, html=u'\n'.join(html),
+        return drink.template('main.html', obj=self, css=self.css, js=self.js, html=u'\n'.join(html), embed=int(drink.request.get('embedded', '')),
              classes=self.classes, authenticated=request.identity)
 
 exported = {'Folder index': ListPage, 'WebFile': WebFile}
