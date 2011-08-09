@@ -56,14 +56,6 @@ function add_item_hook(data) {
 }
 
 $.fn.extend({
-    edit_entry: function(data) {
-       frame = $('<iframe title="Edit object" src="'+document.location.href+'/'+data+'/edit?embedded=1">No iframe support :(</iframe>');
-        frame.dialog({modal:true, width:'90%'});
-        frame.css('width', '100%');
-        frame.css('padding', '0');
-        frame.css('margin', 'auto');
-        frame.css('height', '66%');
-    },
     add_entry: function(data) {
         var e = make_li(data)
         sortable.append(e);
@@ -75,32 +67,6 @@ $.fn.extend({
         e.fadeIn('slow');
         return e;
     },
-    remove_entry: function(item) {
-        $('<div id="remove-confirm" title="Do you really want to remove this item ?">Please, confirm removal.</div>').dialog({
-			modal: true,
-			buttons: {
-			    Accept: function() {
-			     	$( this ).dialog( "close" );
-		            $.ajax({
-                        url:'rm?name='+encodeURI(item),
-                    }).success(function() {
-                        var safe_name = item.replace( /"/g, '\\"');
-                        $('#edit_form select option[value="'+safe_name+'"]').remove();
-                        $('#rm_form select option[value="'+safe_name+'"]').remove();
-                        $('#rm_form select option[value="'+safe_name+'"]').remove();
-                        $('ul > li.entry:data(item='+item+')').slideUp('slow', function() {$(this).remove()});
-                        delete child_items[item];
-                    }).error(function(){
-                        $('<div title="Error occured">Sorry, something didn\'t work correctly</div>').dialog();
-                       });
-			    },
-				Cancel: function() {
-					$( this ).dialog( "close" );
-				}
-			}
-		});
-
-    }
 });
 
 function make_li(obj) {
@@ -143,8 +109,8 @@ function popup_actions(event) {
         $(this).data('edit_called', setTimeout(function() {
             var item_name = me.data('item');
             var edit_span = $('<span class="actions"></span>');
-            edit_span.append('<a title="Edit" onclick="sortable.edit_entry(\''+item_name+'\')"><img class="minicon" src="/static/actions/edit.png" /></a>');
-            edit_span.append('<a title="Delete" onclick="sortable.remove_entry(\''+item_name+'\')" ><img class="minicon" src="/static/actions/delete.png" /></a>');
+            edit_span.append('<a title="Edit" onclick="$.edit_entry(\''+item_name+'\')"><img class="minicon" src="/static/actions/edit.png" /></a>');
+            edit_span.append('<a title="Delete" onclick="$.remove_entry(\''+item_name+'\')" ><img class="minicon" src="/static/actions/delete.png" /></a>');
             edit_span.fadeIn('slow');
             me.append(edit_span);
 

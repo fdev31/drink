@@ -42,7 +42,7 @@ $(document).ready(function() {
         */
         // TODO: popup edit & remove functions
         eventMouseover: function(calEvent, domEvent) {
-	        var layer =	"<div class='events-layer' class='fc-transparent' style='position:absolute; width:100%; height:100%; top:-1px; text-align:right; z-index:100'><a><img class='minicon' src='/static/actions/delete.png' onClick='deleteEvent(\""+calEvent.id+"\");'></a>  <a><img class='minicon' src='/static/actions/edit.png' onClick='editEvent(\""+calEvent.id+"\");'></a></div>";
+	        var layer =	"<div class='events-layer' class='fc-transparent' style='position:absolute; width:100%; height:100%; top:-1px; text-align:right; z-index:100'><a><img class='minicon' src='/static/actions/delete.png' onClick='$.remove_entry(\""+calEvent.id+"\");'></a>  <a><img class='minicon' src='/static/actions/edit.png' onClick='$.edit_entry(\""+calEvent.id+"\");'></a></div>";
 //	        layer.fadeIn('slow');
 	        $(this).append(layer);
 	        return false;
