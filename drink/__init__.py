@@ -33,6 +33,17 @@ from bottle import route, static_file, request, response, redirect as rdr, abort
 # templating
 import functools
 template = functools.partial(bottle.template, req=request, template_adapter=bottle.Jinja2Template)
+from urllib import unquote
+
+def omni(txt):
+    if isinstance(txt, unicode):
+        return txt
+    else:
+        txt = unquote(txt)
+        try:
+            return txt.decode('utf-8')
+        except UnicodeError:
+            return txt.decode('latin1')
 
 # Load Basic objects
 from .objects import classes, get_object, init as init_objects
@@ -289,18 +300,8 @@ if DEBUG environment variable is set, it will start in debug mode.
         finder.indexer.optimize()
         db.pack()
     elif len(sys.argv) == 2 and sys.argv[1] == "rebuild":
-        from urllib import unquote
 
         from .zdb import Blob, DataBlob
-
-        def omni(txt):
-            txt =  unquote(txt).decode('utf-8')
-            if isinstance(txt, unicode):
-                return txt
-            try:
-                return txt.decode('utf-8')
-            except UnicodeError:
-                return txt.decode('latin1')
 
         objs = list(db.db.values())
         for o in objs:

@@ -536,7 +536,7 @@ class WebFile(Page):
                 html.append(unicode(f.read(), 'utf-8'))
                 html.append(u'</pre>')
 
-        return drink.template('main.html', obj=self, css=self.css, js=self.js, html=u'\n'.join(html), embed=int(drink.request.get('embedded', '')),
+        return drink.template('main.html', obj=self, css=self.css, js=self.js, html=u'\n'.join(html), embed=bool(drink.request.get('embedded', '')),
              classes=self.classes, authenticated=request.identity)
 
 exported = {'Folder index': ListPage, 'WebFile': WebFile}

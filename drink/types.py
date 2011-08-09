@@ -8,7 +8,7 @@ import drink
 import datetime
 import transaction
 from . import classes
-from drink import template
+from drink import template, omni
 from drink.zdb import DataBlob
 from time import mktime, strptime
 from persistent.dict import PersistentDict
@@ -248,10 +248,7 @@ class File(_Editable):
     def set(self, obj, name, val):
         if val == '':
             return
-        try:
-            fname = unicode(val.filename, 'utf-8')
-        except UnicodeError:
-            fname = val.finame.decode('latin1')
+        fname = omni(val.filename)
         setattr(obj, name+"_name", fname)
         new_o = DataBlob()
         setattr(obj, name, new_o)
