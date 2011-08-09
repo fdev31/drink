@@ -432,11 +432,13 @@ class ListPage(Page):
 
     def reset_items(self):
         orig_order = []
-        k = Page.keys(self)
+        k = set(Page.keys(self))
 
         for item in self.forced_order:
             if item not in orig_order and item in k:
                 orig_order.append(item)
+        unlisted = k.difference(orig_order)
+        orig_order.extend(unlisted)
         self.forced_order = orig_order
         return {'success': True}
 
