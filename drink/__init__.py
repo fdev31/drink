@@ -77,7 +77,7 @@ def unauthorized(message='Action NOT allowed'):
 # Declare "drink" wsgi loader
 class DrinkServer(bottle.ServerAdapter):
     """ Drink-flavored bottle runner.
-    Will try gevent, paste, bjoern >=1.1, rocket, fapws3 or wsgiref (in this order)
+    Will try gevent, paste, bjoern >=1.2, rocket, fapws3 or wsgiref (in this order)
     """
     adapters = [bottle.GeventServer, bottle.PasteServer,
         bottle.RocketServer, bottle.FapwsServer, bottle.WSGIRefServer]
@@ -85,13 +85,14 @@ class DrinkServer(bottle.ServerAdapter):
     def run(self, handler):
         adapters = list(self.adapters)
 
-#        try:
-#            import bjoern
-#        except ImportError:
-#            pass
-#        else:
-#            if bjoern.version >= (1, 1, 0):
-#                adapters.insert(1, bottle.BjoernServer)
+        try:
+            bjoern_req_version = (1, 2, 0)
+            import bjoern
+        except ImportError:
+            print "You can try installing bjoern >= %s"%('.'.join(bjoern_req_version))
+        else:
+            if bjoern.version >= bjoern_req_version:
+                adapters.insert(1, bottle.BjoernServer)
 
 
         for sa in adapters:
