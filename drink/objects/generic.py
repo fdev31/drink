@@ -88,11 +88,14 @@ class Page(Model):
         return self._get_actions()
 
     def _get_actions(self):
-        return [
-        dict(title="View/Reload", href='view', icon="view"),
-        dict(title="Edit", href="edit", icon="edit"),
-        dict(title="List content", href="list", icon="open"),
-        dict(title="Add object", onclick="add_new_item(this)", icon="new"),
+        # TODO: handle permissions
+        base = [
+            dict(title="View/Reload", href='view', icon="view"),
+            dict(title="Edit", href="edit", icon="edit"),
+            dict(title="List content", href="list", icon="open"),
+        ]
+        if 'a' in request.identity.access(self):
+            base.extend((dict(auth='a', title="Add object", onclick="add_new_item(this)", icon="new"),
 
         """<select id="new_obj_class" style="visibility: hidden" class="required" name="class" onchange="$('#new_obj_class').hide(); $('#name_choice').css('visibility', 'visible').show(); $('#new_obj_name').focus()">
         <option value="" label="Select one item type">Select one item type</option>
@@ -105,7 +108,8 @@ class Page(Model):
             <input id="new_obj_name" type="text" name="name" class="required identifier" minlength="2" />
         </span>
         """.format('\n'.join('<option value="{0}" label="{0}">{0}</option>'.format(x) for x in self.classes.iterkeys())),
-    ]
+    ))
+        return base
 
     #: fields that are only editable by the owner (appear in edit panel)
 
