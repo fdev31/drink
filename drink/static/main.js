@@ -10,7 +10,7 @@ function add_hook_add_item(hook) {
     add_item_hooks.push(hook);
 }
 function call_hook_add_item(data) {
-   for(i=0; i<add_item.hooks.length; i++) {
+   for(i=0; i<add_item_hooks.length; i++) {
         add_item_hooks[i](data);
    }
 }
@@ -29,6 +29,52 @@ function add_new_item(obj) {
     }
   }
 }
+
+function item_added(data, status) {
+    $('#new_obj_class').val('');
+    $('#new_obj_name').val('');
+    $('#add_object').data('edited', false);
+    call_hook_add_item(data);
+}
+
+function validate_new_obj(e) {
+    if (e.keyCode == 27) {
+        $('#name_choice').hide();
+        $('#new_obj_class').val('');
+        $('#new_obj_name').val('')
+        $('#add_object').data('edited', false);
+    } else if (e.keyCode == 13) {
+        var item = {
+            'class': $('#new_obj_class').val(),
+            'name': $('#new_obj_name').val()
+        };
+        $('#name_choice').hide();
+        $.post('add', item, item_added);
+    }
+}
+
+function refresh_action_list(data) {
+    var pa = $('#page_actions');
+    var html = [];
+    for (i=0;i<data.length;i++) {
+        elt = data[i];
+        if (typeof(elt) == "string") {
+            var text=elt;
+        } else {
+            if (elt.href) {
+              var text='<a title="'+elt.title+'" href="'+encodeURI(base_uri+elt.href)+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
+            } else {
+              var text='<a title="'+elt.title+'" onclick="'+elt.onclick+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
+            };
+        };
+        html.push(text);
+    }
+    $('#page_actions').html(html.join(''));
+
+    // add some hook for the new_obj_name validation
+    $('#new_obj_name').keyup(validate_new_obj);
+
+};
 
 function get_matching_elts(path_elt, callback) {
     if (path_elt.match('/')) {
@@ -52,11 +98,12 @@ function get_matching_elts(path_elt, callback) {
 
 
 $(document).ready(function(){
-        // add some features to jQuery
+    base_uri = document.location.href.replace(/[^/]*$/, '');
+    // add some features to jQuery
 
     $.extend({
         edit_entry: function(data) {
-           frame = $('<iframe title="Edit object" src="'+document.location.href+'/'+data+'/edit?embedded=1">No iframe support :(</iframe>');
+           frame = $('<iframe title="Edit object" src="'+base_uri+'/'+data+'/edit?embedded=1">No iframe support :(</iframe>');
             frame.dialog({modal:true, width:'90%'});
             frame.css('width', '100%');
             frame.css('padding', '0');
@@ -96,7 +143,6 @@ $(document).ready(function(){
 
     $('#auto_edit_form').keypress( function(ev, elt) {
         if ( ev.ctrlKey && ev.charCode == 10 ) {
-            console.log(this);
             $(this).submit();
             return true;
         };
@@ -116,31 +162,6 @@ $(document).ready(function(){
             $(this).removeClass('selected', 1000);
         }
     });
-
-    var item_added = function(data, status) {
-        $('#new_obj_class').val('');
-        $('#new_obj_name').val('');
-        $('#add_object').data('edited', false);
-        call_hook_add_item(data);
-    }
-
-    var validate_new_obj = function(e) {
-        if (e.keyCode == 27) {
-            $('#name_choice').hide();
-            $('#new_obj_class').val('');
-            $('#new_obj_name').val('')
-            $('#add_object').data('edited', false);
-        } else if (e.keyCode == 13) {
-            var item = {
-                'class': $('#new_obj_class').val(),
-                'name': $('#new_obj_name').val()
-            };
-            $('#name_choice').hide();
-            $.post('add', item, item_added);
-        }
-    }
-
-    $('#new_obj_name').keyup(validate_new_obj);
 
     $('#rm_form').droppable({
         drop: function(event, ui) {
@@ -176,5 +197,6 @@ $(document).ready(function(){
     $('.auto_date').datepicker({dateFormat: "dd/mm/yy"});
     // focus first entry
     $("input:text:visible:first").focus();
-
+    // update actions list
+    $.ajax({url:'actions'}).success(refresh_action_list)//.error(function() {  $('<div title="Error occured">Sorry, something didn\'t work correctly</div>').dialog();});
 });

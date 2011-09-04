@@ -61,6 +61,12 @@ class ObjectBrowser(drink.Page):
 
     classes = {}
 
+    @property
+    def actions(self):
+        a = self._get_actions()
+        a.insert(3, dict(title="Rebuild", href="rebuild", icon="download"))
+        return a
+
     hidden_class = True # TODO: add non-hidden finder that is not whoosh related but more
                         # like the old "Dumb" indexer, with local (but recursive) lookup
                         # OR : "find" method on any page, with optional recursive attr

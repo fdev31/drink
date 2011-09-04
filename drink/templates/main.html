@@ -37,15 +37,7 @@
 
     {% if not embed %}
 
-        {% if not authenticated and obj.id == '.' and obj.rootpath == '/' %}
-        <form name="login_form" id="login_form" class="autovalidate" action="/login" method="post">
-            <label for="ilogin">Authenticate as:</label>
-            <input type="text" class="required" name="login_name" id="ilogin" />
-            <label for="ipasswd">Password:</label>
-            <input type="password" class="required" name="login_password" id="ipassword" />
-            <input class="submit" type="submit" value="Log in!"/>
-        </form>
-        {% elif not no_admin and authenticated and obj.id != '.' %}
+        {% if not no_admin and authenticated and obj.id != '.' %}
         <fieldset class="toggler" id="commands">
             <legend onclick="$('#commands .togglable').slideToggle('slow');">{{authenticated.id}}</legend>
             <div class="togglable" >

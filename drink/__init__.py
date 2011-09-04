@@ -34,6 +34,8 @@ from bottle import route, static_file, request, response, redirect as rdr, abort
 import functools
 template = functools.partial(bottle.template, req=request, template_adapter=bottle.Jinja2Template)
 from urllib import unquote
+# json
+dumps = bottle.JSONPlugin().json_dumps
 
 def omni(txt):
     if isinstance(txt, unicode):
@@ -65,7 +67,7 @@ def unauthorized(message='Action NOT allowed'):
     if request.identity:
         raise abort(401, message)
     else:
-        rdr('/')
+        rdr('/login')
 
 #import cgi
 #def escape(text):
@@ -165,10 +167,7 @@ class Authenticator(object):
 
 @route('/')
 def main_index():
-    request.identity = Authenticator()
-    o = classes[config.get('server', 'index')](db.db, rootpath='/')
-    o.disable_ajax = True
-    return o.view()
+    rdr('/pages/')
 
 @route('/static/:filename#.*#')
 def server_static(filename):
@@ -176,9 +175,24 @@ def server_static(filename):
 
 @route("/login", method=['GET', 'POST'])
 def log_in():
-    response.set_cookie('password', request.forms.get('login_password', ''), 'drink')
-    response.set_cookie('login', request.forms.get('login_name', ''), 'drink')
-    rdr('/')
+    if request.forms.get('login_name', ''):
+        response.set_cookie('password', request.forms.get('login_password', ''), 'drink')
+        response.set_cookie('login', request.forms.get('login_name', ''), 'drink')
+        rdr('/')
+    else:
+        html='''
+        <form name="login_form" id="login_form" class="autovalidate" action="/login" method="post">
+            <label for="ilogin">Authenticate as:</label>
+            <input type="text" class="required" name="login_name" id="ilogin" />
+            <label for="ipasswd">Password:</label>
+            <input type="password" class="required" name="login_password" id="ipassword" />
+            <input class="submit" type="submit" value="Log in!"/>
+        </form>
+
+        '''
+        return template('main.html', html=html, obj=db.db, css='', js='',
+            embed='', classes={}, authenticated=request.identity)
+
 
 @route("/logout", method=['GET', 'POST'])
 def log_out():
@@ -199,6 +213,9 @@ def glob_index(objpath="/"):
     elif isinstance(o, basestring):
         response.content_type = "text/plain"
         return o
+    elif isinstance(o, (tuple, list, dict)):
+        response.content_type = "application/json"
+        return dumps(o)
     else:
         return getattr(o, o.default_action)()
 
@@ -368,7 +385,6 @@ if DEBUG environment variable is set, it will start in debug mode.
             print x.strip()
 
     elif len(sys.argv) == 3 and sys.argv[1] == "export":
-        import json
         import datetime
         from drink.zdb import DataBlob
         from pprint import pprint
@@ -400,7 +416,7 @@ if DEBUG environment variable is set, it will start in debug mode.
             if 'data' in data:
                 del data['data']
             file( os.path.join(nbase, '!content_%s'%obj.__class__.__name__), 'w').write(
-                json.dumps(data)
+                dumps(data)
             )
             # recurse
             if len(obj):
