@@ -1,43 +1,12 @@
 {% extends "main.html" %}
-{% block head %}
-        <title>Drink !</title>
-        <script type="text/javascript" src="/static/fileuploader.js"></script>
-        <script type="text/javascript" src="/static/listing.js"></script>
-{% endblock %}
-
 
 {% block body %}
 
 {% if obj.id != '.' %}
  <h1>{{ obj.title }}</h1>
 {% endif %}
-<ul id="main_list" class="sortable">
-{% if obj.disable_ajax %}
-{% for name in obj.iterkeys() %}
-    {% if 'r' in authenticated.access(obj[name]) %}
-    <li class="entry"><img alt="icon" class="icon" src="{% if obj[name].mime.startswith('http') %}{{obj[name].mime}}{% else %}/static/mime/{{ obj[name].mime }}.png{% endif %}"/><a title="{{obj[name].description}}" href="{{obj.path|e}}{{name|e}}/">{{ obj[name].title }}</a>
-    {% if authenticated and obj[name].__len__() %} ({{ obj[name].__len__() }} item{% if obj[name].__len__() > 1 %}s{% endif %})
-    {% endif %}
-    </li>
-    {% endif %}
-{% else %}
-    No content here...
-    {%if not authenticated %}
-        Log in to add a new object !
-    {% else %}
-        you may want to add some object...
-    {% endif %}
-{% endfor %}
-{% endif %}
-</ul>
 
-{% if not obj.disable_ajax %}
-<div id="file-uploader">
-    <noscript>
-        <p>Please enable JavaScript to use file uploader.</p>
-        <!-- or put a simple form for upload here -->
-    </noscript>
-</div>
-{% endif %}
+<ul id="main_list" class="sortable">
+</ul>
 
 {% endblock %}

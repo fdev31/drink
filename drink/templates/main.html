@@ -19,7 +19,9 @@
         <script type="text/javascript" src="/static/jquery-ui-1.8.custom.min.js"></script>
         <script type="text/javascript" src="/static/jquery.validate.min.js"></script>
         <script type="text/javascript" src="/static/jquery.dataSelector.js"></script>
+        <script type="text/javascript" src="/static/fileuploader.js"></script>
         <script type="text/javascript" src="/static/main.js"></script>
+        <script type="text/javascript" src="/static/listing.js"></script>
         {% if js %}
             {% for url in js %}
             <script type="text/javascript" src="{{url}}"></script>
@@ -63,7 +65,7 @@
                 {% if 'w' in authenticated.access(obj) %}
                     <a title="Edit current element" href="{{obj.path|e}}edit"><img  class="icon" src="/static/actions/edit.png" alt="edit icon" /></a>
                     <a title="List content" href="{{obj.path|e}}list"><img  class="icon" src="/static/actions/open.png" alt="list icon" /></a>
-                    {% if classes and 'a' in authenticated.access(obj) %}
+                    {% if 'WebFile' in classes and 'a' in authenticated.access(obj) %}
                     <a id="add_object" title="Add object" onclick="add_new_item(this)"><img  alt="new icon" class="icon" src="/static/actions/new.png" /></a>
                     <select id="new_obj_class" style="visibility: hidden" class="required" name="class" onchange="$('#new_obj_class').hide(); $('#name_choice').css('visibility', 'visible').show(); $('#new_obj_name').focus()">
                         <option value="" label="Select one item type">Select one item type</option>
@@ -136,7 +138,6 @@
         {% endif %}
 
     {% endif %}
-
     {% block body %}
         {% if html %}
             {{ html|safe }}
@@ -144,5 +145,14 @@
             Please, add some body block or html content...
         {% endif %}
     {% endblock %}
+
+    {% if 'WebFile' in classes %}
+        <div id="file-uploader">
+            <noscript>
+                <p>Please enable JavaScript to use file uploader.</p>
+                <!-- or put a simple form for upload here -->
+            </noscript>
+        </div>
+    {% endif %}
     </body>
 </html>

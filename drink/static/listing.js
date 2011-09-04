@@ -22,6 +22,9 @@ function startcode(data, status, req) {
             }
         },
     });
+
+    add_hook_add_item(sortable.add_entry);
+
    // list-item creation fonction
 
    for(n=0; n<data.items.length; n++) {
@@ -34,7 +37,7 @@ function startcode(data, status, req) {
         var uploader = new qq.FileUploader({
             element: $('#file-uploader')[0],
             action: 'upload',
-            debug: true,
+            //debug: true,
             showMessage: function(message){ $('<div title="Drop zone">'+message+'</div>'); },
             onComplete: function(id, fileName, data){
                 if ( data.id ) {
@@ -51,9 +54,6 @@ function startcode(data, status, req) {
 
 } // End of startup code
 
-function add_item_hook(data) {
-    sortable.add_entry(data);
-}
 
 $.fn.extend({
     add_entry: function(data) {

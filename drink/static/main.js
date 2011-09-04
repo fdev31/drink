@@ -1,8 +1,19 @@
+// globals
+
+add_item_hooks = [];
 
 jQuery.validator.addMethod("identifier", function(value, element) {
     return this.optional(element) || !/^[._$%/][$%/]*/i.test(value);
 }, 'No "$", "%" or "/" and don\' start with a dot or an underscore, please :)');
 
+function add_hook_add_item(hook) {
+    add_item_hooks.push(hook);
+}
+function call_hook_add_item(data) {
+   for(i=0; i<add_item.hooks.length; i++) {
+        add_item_hooks[i](data);
+   }
+}
 function add_new_item(obj) {
     if( ! $(obj).data('edited')) {
       $(this).data('edited', true);
@@ -110,9 +121,7 @@ $(document).ready(function(){
         $('#new_obj_class').val('');
         $('#new_obj_name').val('');
         $('#add_object').data('edited', false);
-        if ( !! add_item_hook ) {
-            add_item_hook(data);
-        }
+        call_hook_add_item(data);
     }
 
     var validate_new_obj = function(e) {
