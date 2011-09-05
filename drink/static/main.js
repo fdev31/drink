@@ -14,43 +14,31 @@ function call_hook_add_item(data) {
         add_item_hooks[i](data);
    }
 }
+
 function add_new_item(obj) {
-    if( ! $(obj).data('edited')) {
-      $(this).data('edited', true);
-      var all_opts = $('#new_obj_class').find('option');
-      if ( all_opts.length == 2 ) {
-        $('#new_obj_class').css('visibility', 'visible').show();
-        $('#new_obj_class').val($(all_opts[1]).val());
-        $('#new_obj_class').hide();
-        $('#name_choice').css('visibility', 'visible').show();
-        $('#new_obj_name').focus();
-      } else {
-        $('#new_obj_class').css('visibility', 'visible').show();
+    var new_obj = $('#new_obj_form').clone();
+    new_obj.css('visibility', 'visible').show();
+    var check_fn = function(e) {
+        if (e.keyCode == 27) {
+            new_obj.dialog("close");
+        } else if (e.keyCode == 13) {
+            validate_fn();
+        }
     }
-  }
-}
-
-function item_added(data, status) {
-    $('#new_obj_class').val('');
-    $('#new_obj_name').val('');
-    $('#add_object').data('edited', false);
-    call_hook_add_item(data);
-}
-
-function validate_new_obj(e) {
-    if (e.keyCode == 27) {
-        $('#name_choice').hide();
-        $('#new_obj_class').val('');
-        $('#new_obj_name').val('')
-        $('#add_object').data('edited', false);
-    } else if (e.keyCode == 13) {
+    var validate_fn = function() {
+        new_obj.dialog("close");
         var item = {
-            'class': $('#new_obj_class').val(),
-            'name': $('#new_obj_name').val()
+            'class': new_obj.find('.obj_class').val(),
+            'name': new_obj.find('#new_obj_name').val(),
         };
-        $('#name_choice').hide();
-        $.post('add', item, item_added);
+        $.post('add', item, call_hook_add_item);
     }
+    new_obj.find('#new_obj_name').keyup(check_fn);
+    new_obj.dialog({
+        modal: true,
+        buttons: [ {text: 'OK', click: validate_fn} ],
+    });
+
 }
 
 function refresh_action_list(data) {
@@ -70,10 +58,6 @@ function refresh_action_list(data) {
         html.push(text);
     }
     $('#page_actions').html(html.join(''));
-
-    // add some hook for the new_obj_name validation
-    $('#new_obj_name').keyup(validate_new_obj);
-
 };
 
 function get_matching_elts(path_elt, callback) {

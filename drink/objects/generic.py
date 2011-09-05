@@ -97,16 +97,19 @@ class Page(Model):
         if 'a' in request.identity.access(self):
             base.extend((dict(auth='a', title="Add object", onclick="add_new_item(this)", icon="new"),
 
-        """<select id="new_obj_class" style="visibility: hidden" class="required" name="class" onchange="$('#new_obj_class').hide(); $('#name_choice').css('visibility', 'visible').show(); $('#new_obj_name').focus()">
-        <option value="" label="Select one item type">Select one item type</option>
-        <optgroup label="Item types">
-        {0}
-        </optgroup>
-        </select>
-        <span id="name_choice" style="visibility: hidden">
-            <label for="new_obj_name">Name</label>
-            <input id="new_obj_name" type="text" name="name" class="required identifier" minlength="2" />
-        </span>
+        """
+        <div id="new_obj_form"  style="visibility: hidden" title="New item informations">
+            <select class="obj_class" class="required" name="class">
+            <option value="" label="Select one item type">Select one item type</option>
+            <optgroup label="Item types">
+            {0}
+            </optgroup>
+            </select>
+            <div class="obj_name">
+                <label for="new_obj_name">Name</label>
+                <input id="new_obj_name" type="text" name="name" class="required identifier" minlength="2" />
+            </div>
+        </div>
         """.format('\n'.join('<option value="{0}" label="{0}">{0}</option>'.format(x) for x in self.classes.iterkeys())),
     ))
         return base

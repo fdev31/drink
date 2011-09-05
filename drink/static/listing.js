@@ -148,7 +148,7 @@ function exit_edit_func() {
 	$(this).parent().dblclick(enter_edit_func);
 }
 
-function enter_edit_func(){
+function enter_edit_func() {
     var elt = child_items[$(this).data('item')];
     if(!elt._perm.match(/w/)) { return; }
     if ( $(this).has('input').length != 0 ) { return; }

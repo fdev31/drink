@@ -65,6 +65,7 @@
         {% endif %}
 
     {% endif %}
+
     {% block body %}
         {% if html %}
             {{ html|safe }}
@@ -73,13 +74,14 @@
         {% endif %}
     {% endblock %}
 
-    {% if 'WebFile' in classes %}
-        <div id="file-uploader">
-            <noscript>
-                <p>Please enable JavaScript to use file uploader.</p>
-                <!-- or put a simple form for upload here -->
-            </noscript>
-        </div>
+    {% if 'WebFile' in classes and not embed %}
+    <div id="file-uploader">
+        <noscript>
+            <p>Please enable JavaScript to use file uploader.</p>
+            <!-- or put a simple form for upload here -->
+        </noscript>
+    </div>
     {% endif %}
+
     </body>
 </html>
