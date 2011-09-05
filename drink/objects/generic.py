@@ -98,7 +98,7 @@ class Page(Model):
             base.extend((dict(auth='a', title="Add object", onclick="add_new_item(this)", icon="new"),
 
         """
-        <div id="new_obj_form"  style="visibility: hidden" title="New item informations">
+        <div id="new_obj_form"  style="visibility: hidden; height:0; width:0;" title="New item informations">
             <select class="obj_class" class="required" name="class">
             <option value="" label="Select one item type">Select one item type</option>
             <optgroup label="Item types">
