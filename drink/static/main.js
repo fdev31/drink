@@ -42,9 +42,8 @@ function init_sortable(data, status, req) {
 
     if ('' != sortable.html()) {
         sortable.html('');
-    } else {
-        add_hook_add_item(sortable.add_entry);
     }
+    add_hook_add_item(sortable.add_entry);
 
    // list-item creation fonction
 
