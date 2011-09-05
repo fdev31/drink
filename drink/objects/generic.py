@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 import os
-from urllib import quote
+from urllib import quote, unquote
 from datetime import datetime
 from mimetypes import guess_type
 import transaction
@@ -409,6 +409,8 @@ class Page(Model):
 
         if None == cls:
             cls = request.params.get('class')
+        if not cls:
+            drink.unauthorized("%r incorrect request!"%name)
 
         o = self._add(name, cls, auth.user.default_read_groups, auth.user.default_write_groups)
         if o is None:
@@ -434,7 +436,7 @@ class ListPage(Page):
     @property
     def actions(self):
         a = self._get_actions()
-        a.insert(3, dict(title="Reset items", href="reset_items", icon="download"))
+        a.insert(3, dict(title="Reset items", onclick="$.ajax({url:base_uri+'/reset_items'}).success($.start_refresh_item_list)", icon="download"))
         return a
 
     def __init__(self, name, rootpath=None):
@@ -452,7 +454,7 @@ class ListPage(Page):
         return list(self.forced_order)
 
     def move(self):
-        self.forced_order = request.params.get('set').decode('utf-8').split('/')
+        self.forced_order = unquote(request.params.get('set')).decode('utf-8').split('/')
 
     def itervalues(self):
         for k in self.iterkeys():

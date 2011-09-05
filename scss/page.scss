@@ -384,6 +384,11 @@ input[type="text"], input[type="password"]  {
     @include border-radius($radius);
     @include editable;
 }
+.ui-dialog {
+    input {
+        background: $background;
+    }
+}
 label {
     > img {
         margin-bottom: -10px;
