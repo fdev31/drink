@@ -248,15 +248,19 @@ class File(_Editable):
     def set(self, obj, name, val):
         if val == '':
             return
-        fname = omni(val.filename)
-        setattr(obj, name+"_name", fname)
-        new_o = DataBlob()
+        elif isinstance(val, DataBlob):
+            new_o = val
+        else:
+            fname = omni(val.filename)
+            setattr(obj, name+"_name", fname)
+            new_o = DataBlob()
+            o_fd = new_o.open('w')
+            chunk_sz = 2**20 # 1MB
+            while True:
+                dat = val.file.read(chunk_sz)
+                if not dat:
+                    break
+                o_fd.write(dat)
+            o_fd.close()
+
         setattr(obj, name, new_o)
-        o_fd = new_o.open('w')
-        chunk_sz = 2**20 # 1MB
-        while True:
-            dat = val.file.read(chunk_sz)
-            if not dat:
-                break
-            o_fd.write(dat)
-        o_fd.close()
