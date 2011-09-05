@@ -352,6 +352,7 @@ if DEBUG environment variable is set, it will start in debug mode.
                 objs.extend(o.values())
 
             f_set = set(('path', 'description', 'id', 'title', 'mime'))
+
             for name, caster in o.editable_fields.iteritems():
                 v = caster.get(o, name)
                 if isinstance(v, Blob):

@@ -201,6 +201,12 @@ function add_new_item(obj) {
 
 }
 
+function htmlDecode(input){
+  var e = document.createElement('div');
+  e.innerHTML = input;
+  return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue;
+}
+
 function refresh_action_list(data) {
     var pa = $('#page_actions');
     var html = [];
@@ -212,7 +218,7 @@ function refresh_action_list(data) {
             if (elt.href) {
               var text='<a title="'+elt.title+'" href="'+base_uri+elt.href+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
             } else {
-              var text='<a title="'+elt.title+'" onclick="'+elt.onclick+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
+              var text='<a title="'+elt.title+'" onclick="'+htmlDecode(elt.onclick)+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
             };
         };
         html.push(text);

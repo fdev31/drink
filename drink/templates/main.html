@@ -23,7 +23,11 @@
         <script type="text/javascript" src="/static/main.js"></script>
         {% if js %}
             {% for url in js %}
-            <script type="text/javascript" src="{{url}}"></script>
+                {% if '\n' in url %}
+                <script type="text/javascript"">{{url}}</script>
+                {% else %}
+                <script type="text/javascript" src="{{url}}"></script>
+                {% endif %}
             {% endfor %}
         {% endif %}
 

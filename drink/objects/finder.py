@@ -61,10 +61,17 @@ class ObjectBrowser(drink.Page):
 
     classes = {}
 
+    js = drink.Page.js + [
+    '''
+    function browser_rebuild() {
+        $('<div title="Rebuilding search engine database""><iframe src="'+base_uri+'rebuild"></iframe></div>').dialog({modal:true});
+    }
+    ''']
+
     @property
     def actions(self):
         a = self._get_actions()
-        a.insert(3, dict(title="Rebuild", href="rebuild", icon="download"))
+        a.insert(3, dict(title="Rebuild", onclick='browser_rebuild()', icon="download"))
         return a
 
     hidden_class = True # TODO: add non-hidden finder that is not whoosh related but more
@@ -194,6 +201,7 @@ class ObjectBrowser(drink.Page):
 
         # render
         return drink.template('main.html', obj=self, html='\n'.join(html),
+                    js=self.js,
                     embed=bool(drink.request.params.get("embedded", "")),
                     authenticated=drink.request.identity, classes=self.classes)
 
@@ -217,7 +225,9 @@ class ObjectBrowser(drink.Page):
 
             form.extend('<li><a href="%(path)s">%(title)s</a></li>'%i for i in items)
 
-        return drink.template('main.html', obj=self, html='\n'.join(form), authenticated=auth, classes=self.classes, embed=bool(drink.request.params.get("embedded", "")))
+        return drink.template('main.html', obj=self, html='\n'.join(form),
+         js=self.js,
+         authenticated=auth, classes=self.classes, embed=bool(drink.request.params.get("embedded", "")))
 
 init()
 

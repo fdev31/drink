@@ -436,7 +436,7 @@ class ListPage(Page):
     @property
     def actions(self):
         a = self._get_actions()
-        a.insert(3, dict(title="Reset items", onclick="$.ajax({url:base_uri+'/reset_items'}).success($.start_refresh_item_list)", icon="download"))
+        a.insert(3, dict(title="Reset items", onclick="$.ajax({url:base_uri+'reset_items'}).success($.start_refresh_item_list)", icon="download"))
         return a
 
     def __init__(self, name, rootpath=None):
