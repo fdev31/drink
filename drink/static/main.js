@@ -239,7 +239,7 @@ function refresh_action_list(data) {
         if (typeof(elt) == "string") {
             var text=elt;
         } else {
-            if (page_struct._perm.match(elt.perm)) {
+            if (page_struct._perm.match('w') || page_struct._perm.match(elt.perm)) {
                 if (elt.href) {
                   var text='<a title="'+elt.title+'" href="'+base_uri+elt.href+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
                 } else {

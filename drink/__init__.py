@@ -225,8 +225,11 @@ def glob_index(objpath="/"):
         response.content_type = "application/json"
         return dumps(o)
     else:
-        return getattr(o, o.default_action)()
-
+        try:
+            return getattr(o, o.default_action)()
+        except AttributeError:
+            o = o[o.default_action]
+            return getattr(o, o.default_action)()
 def init():
     from drink.objects.finder import reset
     reset()
