@@ -7,6 +7,10 @@ from drink.objects.generic import get_struct_from_obj, Model, get_type
 class PyFile(object):
     description = u'File from disk'
 
+    actions = []
+
+    _properties = ('edit', 'list', 'view', 'add', 'struct', 'actions')
+
     _v_mime = None
 
     _no_scan = True
@@ -64,7 +68,7 @@ class PyFile(object):
         return getattr(self.o, name)
 
     def __getitem__(self, name):
-        if name in ('edit', 'list', 'view', 'struct'):
+        if name in self._properties:
             raise KeyError()
         return PyFile(self.o, self.path, self.realpath+'/'+name, name, self.o.fd)
 
@@ -140,7 +144,7 @@ class Filesystem(drink.ListPage, PyFile):
         return Model.__getattribute__(self, name)
 
     def __getitem__(self, name):
-        if name in ('edit', 'list', 'view', 'add', 'struct'):
+        if name in self._properties:
             raise KeyError()
         return PyFile(self, self.path, name, name, self.fd)
 

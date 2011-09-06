@@ -223,6 +223,12 @@ function add_new_item(obj) {
 function refresh_action_list(data) {
     if ( ! data )  return;
 
+    if (data.length == 0) {
+        $('fieldset.toggler').fadeOut();
+    } else {
+        $('fieldset.toggler').fadeIn();
+    }
+
     item_types = data.types;
     data = data.actions;
     var pa = $('#page_actions');
