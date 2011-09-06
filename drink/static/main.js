@@ -1,6 +1,8 @@
 // globals
 
 add_item_hooks = [];
+item_types = [];
+page_struct = {_perm : 'r'};
 sortable = null;
 child_items = {};
 url_regex = /^(\/|http).+/;
@@ -19,7 +21,10 @@ function call_hook_add_item(data) {
    }
 }
 
-function init_sortable(data, status, req) {
+function refresh_item_list(data, status, req) {
+    if (!data._perm) return;
+
+    page_struct = data;
 
    // handle sortables
     sortable.sortable({
@@ -51,27 +56,28 @@ function init_sortable(data, status, req) {
         sortable.add_entry(data.items[n]);
    }
 
-    // Integration of http://valums.com/ajax-upload/
-    try {
-        qq.UploadDropZone.prototype._isValidFileDrag = function(e){ return true; }
-        var uploader = new qq.FileUploader({
-            element: $('#file-uploader')[0],
-            action: 'upload',
-            //debug: true,
-            showMessage: function(message){ $('<div title="Drop zone">'+message+'</div>'); },
-            onComplete: function(id, fileName, data){
-                if ( data.id ) {
-                    sortable.add_entry(data);
-                }
-                $('ul.qq-upload-list > li.qq-upload-success').fadeOut('slow', function() {
-                    $(this).remove()
-                    });
-            },
-        });
-    } catch (ReferenceError) {
-        //console.log('Uploader code not available');
+    if ( page_struct._perm.match(/a/) ) {
+        // Integration of http://valums.com/ajax-upload/
+        try {
+            qq.UploadDropZone.prototype._isValidFileDrag = function(e){ return true; }
+            var uploader = new qq.FileUploader({
+                element: $('#file-uploader')[0],
+                action: 'upload',
+                //debug: true,
+                showMessage: function(message){ $('<div title="Drop zone">'+message+'</div>'); },
+                onComplete: function(id, fileName, data){
+                    if ( data.id ) {
+                        sortable.add_entry(data);
+                    }
+                    $('ul.qq-upload-list > li.qq-upload-success').fadeOut('slow', function() {
+                        $(this).remove()
+                        });
+                },
+            });
+        } catch (ReferenceError) {
+            //console.log('Uploader code not available');
+        }
     }
-
 } // End of sortable startup code
 
 function make_li(obj) {
@@ -176,8 +182,19 @@ function enter_edit_func() {
 }
 
 function add_new_item(obj) {
-    var new_obj = $('#new_obj_form').clone();
-    new_obj.css('visibility', 'visible').show();
+     if ( item_types.length <= 1 ) {
+        w = $('<div title="Ooops!">Nothing can be added here, sorry</div>').dialog({closeOnEscape:true});
+        setTimeout(function(){w.fadeOut(function(){w.dialog('close')})}, 2000);
+        return;
+     };
+    var template = '<div id="new_obj_form"  title="New item informations"><select class="obj_class" class="required" name="class"><option value="" label="Select one item type">Select one item type</option>';
+    var tpl_ftr = '</select><div class="obj_name"><label for="new_obj_name">Name</label><input id="new_obj_name" type="text" name="name" class="required identifier" minlength="2" /></div></div>';
+    for (t=0; t<item_types.length; t++) {
+        template += '<option value="{0}" label="{0}">{0}</option>'.replace(/\{0\}/g, item_types[t]);
+    }
+
+    var new_obj = $(template+tpl_ftr);
+
     var check_fn = function(e) {
         if (e.keyCode == 27) {
             new_obj.dialog("close");
@@ -193,7 +210,9 @@ function add_new_item(obj) {
         };
         $.post('add', item, call_hook_add_item);
     }
+
     new_obj.find('#new_obj_name').keyup(check_fn);
+
     new_obj.dialog({
         modal: true,
         buttons: [ {text: 'OK', click: validate_fn} ],
@@ -201,27 +220,30 @@ function add_new_item(obj) {
 
 }
 
-function htmlDecode(input){
-  var e = document.createElement('div');
-  e.innerHTML = input;
-  return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue;
-}
-
 function refresh_action_list(data) {
+    if ( ! data )  return;
+
+    item_types = data.types;
+    data = data.actions;
     var pa = $('#page_actions');
     var html = [];
-    for (i=0;i<data.length;i++) {
+
+    for (i=0 ; i<data.length ; i++) {
         elt = data[i];
         if (typeof(elt) == "string") {
             var text=elt;
         } else {
-            if (elt.href) {
-              var text='<a title="'+elt.title+'" href="'+base_uri+elt.href+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
+            if (page_struct._perm.match(elt.perm)) {
+                if (elt.href) {
+                  var text='<a title="'+elt.title+'" href="'+base_uri+elt.href+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
+                } else {
+                  var text='<a title="'+elt.title+'" onclick="'+elt.onclick+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
+                };
             } else {
-              var text='<a title="'+elt.title+'" onclick="'+htmlDecode(elt.onclick)+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
-            };
+                var text=null;
+            }
         };
-        html.push(text);
+        if ( text ) { html.push(text); };
     }
     $('#page_actions').html(html.join(''));
 };
@@ -246,6 +268,8 @@ function get_matching_elts(path_elt, callback) {
     $.get(url).success(function(data) { callback(data.items) } );
 }
 
+/////// INIT/STARTUP STUFF
+
 $(document).ready(function(){
     // some globals
     sortable = $("#main_list");
@@ -267,12 +291,9 @@ $(document).ready(function(){
 
     $.extend({
 
-        start_refresh_action_list: function() {
-           $.ajax({url:'actions'}).success(refresh_action_list).error(function() { $('<div title="Error occured">List of actions failed to load</div>').dialog();});
-        },
-
-        start_refresh_item_list: function() {
-            $.ajax({url: "struct"}).success(init_sortable).error(function() {  $('<div title="Error occured">Listing can\'t be loaded :(</div>').dialog();}) ;
+        reload_all: function() {
+            $.ajax({url: 'struct'}).success(refresh_item_list).error(function() {  $('<div title="Error occured">Listing can\'t be loaded :(</div>').dialog();}) ;
+            $.ajax({url: 'actions'}).success(refresh_action_list).error(function() { $('<div title="Error occured">List of actions failed to load</div>').dialog();});
         },
 
         edit_entry: function(data) {
@@ -381,7 +402,7 @@ $(document).ready(function(){
     $("input:text:visible:first").focus();
 
     // update actions list
-    $.start_refresh_action_list();
-    $.start_refresh_item_list();
+
+    $.reload_all();
 
 });
