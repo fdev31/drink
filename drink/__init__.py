@@ -173,6 +173,14 @@ def main_index():
 def server_static(filename):
     return static_file(filename, root=os.path.join(BASE_DIR, 'static'))
 
+@route("/struct", method=['GET', 'POST'])
+def login_struct():
+    return {}
+
+@route("/actions", method=['GET', 'POST'])
+def login_actions():
+    return []
+
 @route("/login", method=['GET', 'POST'])
 def log_in():
     if request.forms.get('login_name', ''):

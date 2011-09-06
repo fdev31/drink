@@ -64,15 +64,11 @@ class ObjectBrowser(drink.Page):
     js = drink.Page.js + [
     '''
     function browser_rebuild() {
-        $('<div title="Rebuilding search engine database""><iframe src="'+base_uri+'rebuild"></iframe></div>').dialog({modal:true});
+        $('<div title="Rebuilding search engine database""><iframe src="'+base_uri+'rebuild"></iframe></div>').dialog({modal:true, width: 'auto'});
     }
     ''']
 
-    @property
-    def actions(self):
-        a = self._get_actions()
-        a.insert(3, dict(title="Rebuild", onclick='browser_rebuild()', icon="download"))
-        return a
+    _actions = drink.Page._actions + [dict(title="Rebuild", onclick='browser_rebuild()', icon="download", perm="w")]
 
     hidden_class = True # TODO: add non-hidden finder that is not whoosh related but more
                         # like the old "Dumb" indexer, with local (but recursive) lookup

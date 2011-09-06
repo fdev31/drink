@@ -81,39 +81,6 @@ class Page(Model):
         'description': drink.types.Text('Description'),
     }
 
-    #: actions
-
-    @property
-    def actions(self):
-        return self._get_actions()
-
-    def _get_actions(self):
-        # TODO: handle permissions
-        base = [
-            dict(title="View/Reload", href='view', icon="view"),
-            dict(title="Edit", href="edit", icon="edit"),
-            dict(title="List content", href="list", icon="open"),
-        ]
-        if 'a' in request.identity.access(self):
-            base.extend((dict(auth='a', title="Add object", onclick="add_new_item(this)", icon="new"),
-
-        """
-        <div id="new_obj_form"  style="visibility: hidden; height:0; width:0;" title="New item informations">
-            <select class="obj_class" class="required" name="class">
-            <option value="" label="Select one item type">Select one item type</option>
-            <optgroup label="Item types">
-            {0}
-            </optgroup>
-            </select>
-            <div class="obj_name">
-                <label for="new_obj_name">Name</label>
-                <input id="new_obj_name" type="text" name="name" class="required identifier" minlength="2" />
-            </div>
-        </div>
-        """.format('\n'.join('<option value="{0}" label="{0}">{0}</option>'.format(x) for x in self.classes.iterkeys())),
-    ))
-        return base
-
     #: fields that are only editable by the owner (appear in edit panel)
 
     owner_fields = {
@@ -130,6 +97,19 @@ class Page(Model):
         'disable_ajax' :
             drink.types.BoolOption('Disable Js')
     }
+
+    #: actions
+
+    @property
+    def actions(self):
+        return {'actions' : self._actions, 'types': self.classes.keys()}
+
+    _actions = [
+        dict(title="View/Reload", href='view', icon="view", perm='r'),
+        dict(title="Edit", href="edit", icon="edit", perm='w'),
+        dict(title="List content", href="list", icon="open", perm='r'),
+        dict(title="Add object", onclick="add_new_item(this)", icon="new", perm='a'),
+    ]
 
     #: fields that are only editable by the admin (appear in edit panel)
 
@@ -433,11 +413,7 @@ class ListPage(Page):
 
     forced_order = None
 
-    @property
-    def actions(self):
-        a = self._get_actions()
-        a.insert(3, dict(title="Reset items", onclick="$.ajax({url:base_uri+'reset_items'}).success($.start_refresh_item_list)", icon="download"))
-        return a
+    _actions = Page._actions + [dict(perm='w', title="Reset items", onclick="$.ajax({url:base_uri+'reset_items'}).success($.reload_all())", icon="download")]
 
     def __init__(self, name, rootpath=None):
         self.forced_order = []
