@@ -326,7 +326,7 @@ class Page(Model):
         return data
 
     def rm(self):
-        name = request.GET.get('name').decode('utf-8')
+        name = drink.omni(request.GET.get('name'))
         if not ('a' in request.identity.access(self) and 'w' in request.identity.access(self[name])):
             return drink.unauthorized("Not authorized")
         try:

@@ -115,6 +115,7 @@ function popup_actions(event) {
         }
 
         var elt = child_items[me.data('item')];
+        if (!elt) return;
         if(!elt._perm.match(/w/)) { return; }
 
         $(this).data('edit_called', setTimeout(function() {
