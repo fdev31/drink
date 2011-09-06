@@ -69,6 +69,7 @@
 
     {% endif %}
 
+    <div id="main_body">
     {% block body %}
         {% if html %}
             {{ html|safe }}
@@ -76,6 +77,7 @@
             Please, add some body block or html content...
         {% endif %}
     {% endblock %}
+    </div>
 
     {% if 'WebFile' in classes and not embed %}
     <div id="file-uploader">

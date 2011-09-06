@@ -39,7 +39,22 @@ class MarkdownPage(drink.Page):
     description = u"A markdown rendered page"
 
     js = drink.Page.js + ['/static/markitup/jquery.markitup.js',
-        '/static/markitup/sets/markdown/set.js']
+        '/static/markitup/sets/markdown/set.js',
+        '''
+function reload_page() {
+    /*
+       document.location.reload();
+    */
+
+    if (! document.location.pathname.match(/.*(list|edit)$/) ) {
+        $.post('content').success(function(data) {
+            $.post('process', {data: data}).success(function(data){ jQuery('#main_body').html(data) });
+        });
+    };
+};
+add_hook_add_item(reload_page);
+        '''
+        ]
 
     css = drink.Page.css + ['/static/markitup/sets/markdown/style.css',
      '/static/markitup/skins/markitup/style.css']
@@ -96,6 +111,12 @@ class MarkdownPage(drink.Page):
     def indexable(self):
         return u"%s %s"%(self.description, self.content)
 
+    def _add(self, *args, **kw):
+        new_obj = drink.Page._add(self, *args, **kw)
+        self.content += ("\n* link to [%s](%s/)"%(
+            new_obj.title, new_obj.id))
+        return new_obj
+
     def process(self, data=None):
         if not hasattr(self, '_v_wikifier_cache'):
             self._v_wikifier_cache = Markdown(
@@ -124,6 +145,7 @@ class MarkdownPage(drink.Page):
         return drink.template('main.html', obj=self, embed=bool(drink.request.params.get("embedded", "")),
              html=html, authenticated=drink.request.identity,
              # do not include js code, or css code, it's only for editing
+             js=self.js,
              classes=self.classes,
              )
 
