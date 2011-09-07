@@ -108,7 +108,7 @@ class Page(Model):
         dict(title="View/Reload", onclick="document.location.href = base_uri", icon="view", perm='r'),
         dict(title="Edit", href="edit", icon="edit", perm='w'),
         dict(title="List content", href="list", icon="open", perm='r'),
-        dict(title="Add object", onclick="add_new_item(this)", icon="new", perm='a'),
+        dict(title="Add object", onclick="$.new_entry()", key='INS', icon="new", perm='a'),
     ]
 
     #: fields that are only editable by the admin (appear in edit panel)
@@ -160,7 +160,7 @@ class Page(Model):
             self.id = u'.'
         else:
             if not name or name[0] in r'/.$%_':
-                drink.unauthorized('Wrong identifier: %r'%name)
+                return drink.unauthorized('Wrong identifier: %r'%name)
             # minor sanity check
             self.id = name.replace(u' ', u'-').replace(u'\t', u'_').replace(u'/', u'.').replace(u'?', u'')
 
@@ -385,16 +385,16 @@ class Page(Model):
         name = name or request.params.get('name').decode('utf-8')
 
         if name in self:
-            drink.unauthorized("%r is already defined!"%name)
+            return drink.unauthorized("%r is already defined!"%name)
 
         if None == cls:
             cls = request.params.get('class')
         if not cls:
-            drink.unauthorized("%r incorrect request!"%name)
+            return drink.unauthorized("%r incorrect request!"%name)
 
         o = self._add(name, cls, auth.user.default_read_groups, auth.user.default_write_groups)
         if o is None:
-            drink.unauthorized("You can't create %r objects!"%name)
+            return drink.unauthorized("You can't create %r objects!"%name)
 
         if request.is_ajax:
             return o.struct()

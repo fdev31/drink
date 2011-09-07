@@ -24,14 +24,14 @@ def get_object(current, objpath, no_raise=False):
     last_idx = len(path_list) - 1
     for i, elt in enumerate(path_list):
         if elt[0] in '._':
-            drink.unauthorized('Not authorized (forbidden character)')
+            return drink.unauthorized('Not authorized (forbidden character)')
         if i == last_idx:
             # getting
             try:
                 current = current[elt]
                 if 'r' not in drink.request.identity.access(current):
                     if not no_raise:
-                        drink.unauthorized('Not authorized')
+                        return drink.unauthorized('Not authorized')
                     return
             except (KeyError, AttributeError, TypeError):
                 try:
@@ -46,12 +46,12 @@ def get_object(current, objpath, no_raise=False):
             try:
                 if elt.startswith('_'):
                     if not no_raise:
-                        drink.unauthorized('Not authorized')
+                        return drink.unauthorized('Not authorized')
                     return
                 current = current[elt]
                 if 't' not in drink.request.identity.access(current):
                     if not no_raise:
-                        drink.unauthorized('Not authorized')
+                        return drink.unauthorized('Not authorized')
                     return
             except (KeyError, AttributeError):
                 if no_raise:

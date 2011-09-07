@@ -65,7 +65,10 @@ import transaction
 
 def unauthorized(message='Action NOT allowed'):
     if request.identity:
-        raise abort(401, message)
+        if request.is_ajax:
+            return {'error': True, 'message': message}
+        else:
+            raise abort(401, message)
     else:
         rdr('/login')
 

@@ -1,6 +1,14 @@
 // globals
 
-add_item_hooks = [];
+Keys = {
+    UP: 38,
+    DOWN: 40,
+    LEFT: 37,
+    RIGHT: 39,
+    INS: 45,
+    DEL: 46,
+};
+
 item_types = [];
 page_struct = {_perm : 'r'};
 sortable = null;
@@ -8,20 +16,129 @@ child_items = {};
 url_regex = /^(\/|http).+/;
 base_uri = document.location.href.replace(/[^/]*$/, '');
 
+
 $.validator.addMethod("identifier", function(value, element) {
     return this.optional(element) || !/^[._$%/][$%/]*/i.test(value);
 }, 'No "$", "%" or "/" and don\' start with a dot or an underscore, please :)');
 
-function add_hook_add_item(hook) {
-    add_item_hooks.push(hook);
+// KEYPRESS THINGS
+
+keyup_hooks = [];
+
+function add_hook_keyup(o) { keyup_hooks.push(o) }
+
+function call_hook_keyup(e) {
+   for(i=0; i<keyup_hooks.length; i++) {
+        keyup_hooks[i](e);
+   }
 }
+
+function add_shortcut(key, code) {
+    var kcode = Keys[key];
+    if (kcode) {
+        add_hook_keyup( function(e) { if (e.which == kcode) eval(code) } );
+    } else {
+        alert("Unknown keycode: "+key);
+    }
+}
+
+
+// ADD ITEM THINGS
+
+add_item_hooks = [];
+
+function add_hook_add_item(o) { add_item_hooks.push(o) }
+
 function call_hook_add_item(data) {
+    console.log('hook called');
    for(i=0; i<add_item_hooks.length; i++) {
+        console.log(add_item_hooks[i]);
         add_item_hooks[i](data);
    }
 }
 
+// Popup actions for items
+
+function popup_actions(event) {
+    if (event.type == "mouseenter") {
+        var me = $(this);
+        if ( me.data('edit_called') ) {
+            return;
+        }
+
+        var elt = child_items[me.data('item')];
+        if (!elt) return;
+        if(!elt._perm.match(/w/)) { return; }
+
+        $(this).data('edit_called', setTimeout(function() {
+            var item_name = me.data('item');
+            var edit_span = $('<span class="actions"></span>');
+            edit_span.append('<a title="Edit" onclick="$.edit_entry(\''+item_name+'\')"><img class="minicon" src="/static/actions/edit.png" /></a>');
+            edit_span.append('<a title="Delete" onclick="$.remove_entry(\''+item_name+'\')" ><img class="minicon" src="/static/actions/delete.png" /></a>');
+            edit_span.fadeIn('slow');
+            me.append(edit_span);
+
+            }, 500));
+    } else if (event.type == "mouseleave") {
+        clearTimeout($(this).data('edit_called'));
+        $(this).data('edit_called', false);
+        $(this).find('.actions').fadeOut('slow', function() {$(this).remove()});
+    }
+}
+
+// handle inline title edition
+function blur_on_validate(e) {
+    if (e.keyCode == 27) {
+         $(this).data('canceled', true);
+         $(this).trigger('blur');
+    } else if (e.keyCode == 13) {
+         $(this).trigger('blur');
+    }
+
+}
+
+function exit_edit_func() {
+    var txt = null;
+	uid = $(this).parent().data('item');
+	if (uid == undefined ) { return; }
+
+    if ( $(this).data('canceled') != true && $(this).val() != $(this).data('orig_text') ) {
+        txt = $(this).val().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+	    $.post(''+encodeURI(uid)+'/edit', {title: txt} );
+    } else {
+        txt = $(this).data('orig_text');
+    }
+
+	$(this).replaceWith($('<a class="item_name" href="./'+encodeURI(uid)+'/">'+txt+'</a>'));
+	$(this).parent().dblclick(enter_edit_func);
+}
+
+function enter_edit_func() {
+    var elt = child_items[$(this).data('item')];
+    if(!elt._perm.match(/w/)) { return; }
+    if ( $(this).has('input').length != 0 ) { return; }
+
+    var orig = $(this).find('a.item_name').first();
+	// set an input field up, with focus
+    var inp = $("<input class=\"inline_edit\" value='"+orig.text()+"' />");
+    inp.data('orig_text', orig.text());
+
+    // replace second children
+    orig.replaceWith(inp);
+	inp = $(this).find("input");
+    inp.select();
+
+    // on entry input blur
+    inp.blur(exit_edit_func)
+
+    // trigger blur on ENTER keyup
+    inp.keyup(blur_on_validate);
+}
+
+// ITEM LIST LOADING THINGS
+
 function refresh_item_list(data, status, req) {
+    $.ajax({url: 'actions'}).success(refresh_action_list).error(function() { $('<div title="Error occured">List of actions failed to load</div>').dialog();});
     if (!data._perm) return;
 
     page_struct = data;
@@ -80,146 +197,7 @@ function refresh_item_list(data, status, req) {
     }
 } // End of sortable startup code
 
-function make_li(obj) {
-    var mime = "";
-    if ( obj.mime ) {
-        if ( obj.mime.match( url_regex )) {
-            mime = obj.mime;
-        } else {
-            mime = "/static/mime/"+obj.mime+".png";
-        }
-    } else {
-        mime = "/static/mime/page.png";
-    }
-
-    var e = $('<li class="entry"><img width="32px" src="'+mime+'" /><a class="item_name" href="'+obj.path+obj.id+'/" title="'+obj.description+'">'+(obj.title || obj.id)+'</a></li>');
-    e.data('item', obj.id);
-    e.disableSelection();
-	e.dblclick(enter_edit_func);
-	e.hover(popup_actions);
-	if ( !! obj._nb_items ) {
-        if ( obj._nb_items == 1 ) {
-            e.append($('&nbsp;<span class="infos">(1 item)</span>'));
-        } else {
-            e.append($('&nbsp;<span class="infos">('+obj._nb_items+' items)</span>'));
-	    }
-	}
-    return e;
-}
-
-function popup_actions(event) {
-    if (event.type == "mouseenter") {
-        var me = $(this);
-        if ( me.data('edit_called') ) {
-            return;
-        }
-
-        var elt = child_items[me.data('item')];
-        if (!elt) return;
-        if(!elt._perm.match(/w/)) { return; }
-
-        $(this).data('edit_called', setTimeout(function() {
-            var item_name = me.data('item');
-            var edit_span = $('<span class="actions"></span>');
-            edit_span.append('<a title="Edit" onclick="$.edit_entry(\''+item_name+'\')"><img class="minicon" src="/static/actions/edit.png" /></a>');
-            edit_span.append('<a title="Delete" onclick="$.remove_entry(\''+item_name+'\')" ><img class="minicon" src="/static/actions/delete.png" /></a>');
-            edit_span.fadeIn('slow');
-            me.append(edit_span);
-
-            }, 500));
-    } else if (event.type == "mouseleave") {
-        clearTimeout($(this).data('edit_called'));
-        $(this).data('edit_called', false);
-        $(this).find('.actions').fadeOut('slow', function() {$(this).remove()});
-    }
-}
-
-// handle inline title edition
-function blur_on_validate(e) {
-    if (e.keyCode == 27) {
-         $(this).data('canceled', true);
-         $(this).trigger('blur');
-    } else if (e.keyCode == 13) {
-         $(this).trigger('blur');
-    }
-
-}
-function exit_edit_func() {
-    var txt = null;
-	uid = $(this).parent().data('item');
-	if (uid == undefined ) { return; }
-
-    if ( $(this).data('canceled') != true && $(this).val() != $(this).data('orig_text') ) {
-        txt = $(this).val().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-	    $.post(''+encodeURI(uid)+'/edit', {title: txt} );
-    } else {
-        txt = $(this).data('orig_text');
-    }
-
-	$(this).replaceWith($('<a class="item_name" href="./'+encodeURI(uid)+'/">'+txt+'</a>'));
-	$(this).parent().dblclick(enter_edit_func);
-}
-
-function enter_edit_func() {
-    var elt = child_items[$(this).data('item')];
-    if(!elt._perm.match(/w/)) { return; }
-    if ( $(this).has('input').length != 0 ) { return; }
-
-    var orig = $(this).find('a.item_name').first();
-	// set an input field up, with focus
-    var inp = $("<input class=\"inline_edit\" value='"+orig.text()+"' />");
-    inp.data('orig_text', orig.text());
-
-    // replace second children
-    orig.replaceWith(inp);
-	inp = $(this).find("input");
-    inp.select();
-
-    // on entry input blur
-    inp.blur(exit_edit_func)
-
-    // trigger blur on ENTER keyup
-    inp.keyup(blur_on_validate);
-}
-
-function add_new_item(obj) {
-     if ( item_types.length <= 1 ) {
-        w = $('<div title="Ooops!">Nothing can be added here, sorry</div>').dialog({closeOnEscape:true});
-        setTimeout(function(){w.fadeOut(function(){w.dialog('close')})}, 2000);
-        return;
-     };
-    var template = '<div id="new_obj_form"  title="New item informations"><select class="obj_class" class="required" name="class"><option value="" label="Select one item type">Select one item type</option>';
-    var tpl_ftr = '</select><div class="obj_name"><label for="new_obj_name">Name</label><input id="new_obj_name" type="text" name="name" class="required identifier" minlength="2" /></div></div>';
-    for (t=0; t<item_types.length; t++) {
-        template += '<option value="{0}" label="{0}">{0}</option>'.replace(/\{0\}/g, item_types[t]);
-    }
-
-    var new_obj = $(template+tpl_ftr);
-
-    var check_fn = function(e) {
-        if (e.keyCode == 27) {
-            new_obj.dialog("close");
-        } else if (e.keyCode == 13) {
-            validate_fn();
-        }
-    }
-    var validate_fn = function() {
-        new_obj.dialog("close");
-        var item = {
-            'class': new_obj.find('.obj_class').val(),
-            'name': new_obj.find('#new_obj_name').val(),
-        };
-        $.post('add', item, call_hook_add_item);
-    }
-
-    new_obj.find('#new_obj_name').keyup(check_fn);
-
-    new_obj.dialog({
-        modal: true,
-        buttons: [ {text: 'OK', click: validate_fn} ],
-    });
-
-}
+// ACTIONS Loading things
 
 function refresh_action_list(data) {
     if ( ! data )  return;
@@ -245,6 +223,8 @@ function refresh_action_list(data) {
                   var text='<a title="'+elt.title+'" href="'+base_uri+elt.href+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
                 } else {
                   var text='<a title="'+elt.title+'" onclick="'+elt.onclick+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
+                  if (elt.key)
+                    add_shortcut(elt.key, elt.onclick);
                 };
             } else {
                 var text=null;
@@ -254,6 +234,8 @@ function refresh_action_list(data) {
     }
     $('#page_actions').html(html.join(''));
 };
+
+// Helper function to complete valid object path's
 
 function get_matching_elts(path_elt, callback) {
     if (path_elt.match('/')) {
@@ -282,9 +264,38 @@ $(document).ready(function(){
     sortable = $("#main_list");
     // add some features to jQuery
     // sortable
-    $.fn.extend({
+    $.extend(sortable, {
+
         add_entry: function(data) {
-            var e = make_li(data)
+
+            // builds li element around an item object
+
+            var mime = "";
+            if ( data.mime ) {
+                if ( data.mime.match( url_regex )) {
+                    mime = data.mime;
+                } else {
+                    mime = "/static/mime/"+data.mime+".png";
+                }
+            } else {
+                mime = "/static/mime/page.png";
+            }
+
+            var e = $('<li class="entry"><img width="32px" src="'+mime+'" /><a class="item_name" href="'+data.path+data.id+'/" title="'+data.description+'">'+(data.title || data.id)+'</a></li>');
+            e.data('item', data.id);
+            e.disableSelection();
+	        e.dblclick(enter_edit_func);
+	        e.hover(popup_actions);
+	        if ( !! data._nb_items ) {
+                if ( data._nb_items == 1 ) {
+                    e.append($('&nbsp;<span class="infos">(1 item)</span>'));
+                } else {
+                    e.append($('&nbsp;<span class="infos">('+data._nb_items+' items)</span>'));
+	            }
+	        }
+
+	        // Html is element is prepared, now inject it
+
             sortable.append(e);
             $('#edit_form select').append(
                 '<option value="'+data.id+'" label="'+data.id+'">'+data.id+'</option>'
@@ -300,9 +311,44 @@ $(document).ready(function(){
 
         reload_all: function() {
             $.ajax({url: 'struct'}).success(refresh_item_list).error(function() {  $('<div title="Error occured">Listing can\'t be loaded :(</div>').dialog();}) ;
-            $.ajax({url: 'actions'}).success(refresh_action_list).error(function() { $('<div title="Error occured">List of actions failed to load</div>').dialog();});
         },
+        new_entry: function() {
+             if ( item_types.length <= 1 ) {
+                w = $('<div title="Ooops!">Nothing can be added here, sorry</div>').dialog({closeOnEscape:true});
+                setTimeout(function(){w.fadeOut(function(){w.dialog('close')})}, 2000);
+                return;
+             };
+            var template = '<div id="new_obj_form"  title="New item informations"><select class="obj_class" class="required" name="class"><option value="" label="Select one item type">Select one item type</option>';
+            var tpl_ftr = '</select><div class="obj_name"><label for="new_obj_name">Name</label><input id="new_obj_name" type="text" name="name" class="required identifier" minlength="2" /></div></div>';
+            for (t=0; t<item_types.length; t++) {
+                template += '<option value="{0}" label="{0}">{0}</option>'.replace(/\{0\}/g, item_types[t]);
+            }
 
+            var new_obj = $(template+tpl_ftr);
+
+            var check_fn = function(e) {
+                if (e.keyCode == 27) {
+                    new_obj.dialog("close");
+                } else if (e.keyCode == 13) {
+                    validate_fn();
+                }
+            }
+            var validate_fn = function() {
+                new_obj.dialog("close");
+                var item = {
+                    'class': new_obj.find('.obj_class').val(),
+                    'name': new_obj.find('#new_obj_name').val(),
+                };
+                $.post('add', item, call_hook_add_item);
+            }
+
+            new_obj.find('#new_obj_name').keyup(check_fn);
+
+            new_obj.dialog({
+                modal: true,
+                buttons: [ {text: 'OK', click: validate_fn} ],
+            });
+        },
         edit_entry: function(data) {
            frame = $('<iframe title="Edit object" src="'+base_uri+'/'+data+'/edit?embedded=1">No iframe support :(</iframe>');
             frame.dialog({modal:true, width:'90%'});
@@ -335,7 +381,6 @@ $(document).ready(function(){
                     }
                 }
             });
-
         }
     });
     // debug mode
@@ -408,8 +453,12 @@ $(document).ready(function(){
     // focus first entry
     $("input:text:visible:first").focus();
 
-    // update actions list
+    // Hook all keypresses in window
+    jQuery(window).keyup( call_hook_keyup );
 
+
+
+    // load main content
     $.reload_all();
 
 });
