@@ -1,18 +1,26 @@
 // globals
 
 Keys = {
+    BACK: 8,
+    ENTER: 13,
     UP: 38,
-    DOWN: 40,
     LEFT: 37,
     RIGHT: 39,
+    DOWN: 40,
     INS: 45,
     DEL: 46,
+    B: 66,
+    E: 69,
+    L: 76,
+    V: 86,
 };
 
+debug = true;
 item_types = [];
 page_struct = {_perm : 'r'};
 sortable = null;
 child_items = {};
+current_index = -1;
 url_regex = /^(\/|http).+/;
 base_uri = document.location.href.replace(/[^/]*$/, '');
 
@@ -23,20 +31,34 @@ $.validator.addMethod("identifier", function(value, element) {
 
 // KEYPRESS THINGS
 
-keyup_hooks = [];
-
-function add_hook_keyup(o) { keyup_hooks.push(o) }
+keyup_hooks = new Object();
 
 function call_hook_keyup(e) {
-   for(i=0; i<keyup_hooks.length; i++) {
-        keyup_hooks[i](e);
+    if (e.target.tagName != 'INPUT') {
+       var code = keyup_hooks[e.which];
+       if (code) {
+            try {
+                code(e);
+            } catch (Error) {
+                if(debug) console.log('handler failed');
+            };
+            if (debug) console.log('handled '+e.which);
+            e.preventDefault();
+            e.stopPropagation();
+            document.activeElement.blur();
+            return false;
+       } else {
+            if (debug) console.log('nothing to handle for '+e.which);
+            return true;
+       }
    }
 }
 
 function add_shortcut(key, code) {
     var kcode = Keys[key];
     if (kcode) {
-        add_hook_keyup( function(e) { if (e.which == kcode) eval(code) } );
+        if (keyup_hooks[kcode]) alert('Duplicate handler for "'+key+'" key!');
+        keyup_hooks[kcode] = code;
     } else {
         alert("Unknown keycode: "+key);
     }
@@ -139,6 +161,7 @@ function enter_edit_func() {
 
 function refresh_item_list(data, status, req) {
     $.ajax({url: 'actions'}).success(refresh_action_list).error(function() { $('<div title="Error occured">List of actions failed to load</div>').dialog();});
+
     if (!data._perm) return;
 
     page_struct = data;
@@ -165,8 +188,47 @@ function refresh_item_list(data, status, req) {
     if ('' != sortable.html()) {
         sortable.html('');
     }
+
+    // init hooks
     add_hook_add_item(sortable.add_entry);
 
+    // init keys
+    add_shortcut('UP', function() {
+        if (current_index > 0) {
+            $($('ul > li.entry > img')[current_index]).removeClass('selected');
+            current_index -= 1;
+            $($('ul > li.entry > img')[current_index]).addClass('selected');
+            $($('ul > li.entry > img')[current_index]).trigger('click');
+        }
+    })
+    add_shortcut('DOWN', function() {
+
+        if (current_index < $('ul > li.entry > img').length - 1) {
+            $($('ul > li.entry > img')[current_index]).removeClass('selected');
+            current_index += 1;
+            $($('ul > li.entry > img')[current_index]).addClass('selected')
+            $($('ul > li.entry > img')[current_index]).focus();
+            $($('ul > li.entry > img')[current_index]).trigger('click');
+        }
+    });
+    add_shortcut('ENTER', function() {
+        if (current_index > -1) {
+            window.location = $($('ul > li.entry > a')[current_index]).attr('href');
+        }
+    });
+    add_shortcut('BACK', function() {
+        window.location = base_uri+'../';
+    });
+    add_shortcut('E', function() {
+        window.location = base_uri+'edit';
+    });
+    add_shortcut('L', function() {
+        window.location = base_uri+'list';
+    });
+
+    add_shortcut('V', function() {
+        window.location = base_uri+'view';
+    });
    // list-item creation fonction
 
    for(n=0; n<data.items.length; n++) {
@@ -200,7 +262,8 @@ function refresh_item_list(data, status, req) {
 // ACTIONS Loading things
 
 function refresh_action_list(data) {
-    if ( ! data )  return;
+
+    if ( !data || !data.actions && !data.types  )  return;
 
     if (data.length == 0) {
         $('fieldset.toggler').fadeOut();
@@ -454,9 +517,7 @@ $(document).ready(function(){
     $("input:text:visible:first").focus();
 
     // Hook all keypresses in window
-    jQuery(window).keyup( call_hook_keyup );
-
-
+    $('body').bind('keydown', null, call_hook_keyup );
 
     // load main content
     $.reload_all();
