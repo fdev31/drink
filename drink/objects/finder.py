@@ -131,10 +131,10 @@ class ObjectBrowser(drink.Page):
         items = []
         result = []
         auth = drink.request.identity
-        sentence_frag = highlight.SentenceFragmenter()
+        #sentence_frag = highlight.SentenceFragmenter()
         whole_frag = highlight.WholeFragmenter()
         root = drink.db.db
-
+        res.fragmenter=whole_frag
         for item in res:
             obj = drink.get_object(root, quote(item['path'].encode('utf-8')), no_raise=True)
             if obj == None:
@@ -144,9 +144,9 @@ class ObjectBrowser(drink.Page):
             if 'r' in auth.access(obj):
                 match = {'path': item['path'], 'item': item['path']}
                 items.append(obj)
-                title =  item.highlights('title', fragmenter=whole_frag) or item['title']
+                title =  item.highlights('title') or item['title']
                 match['hi_title'] = title
-                match['hi'] =  item.highlights('content', fragmenter=sentence_frag)
+                match['hi'] =  item.highlights('content')
                 result.append(match)
         return (res.pagecount, result)
 
