@@ -9,10 +9,10 @@ Keys = {
     DOWN: 40,
     INS: 45,
     DEL: 46,
-    B: 66,
-    E: 69,
-    L: 76,
-    V: 86,
+};
+
+for (i=65; i<=90; i++) {
+    Keys[String.fromCharCode(i)] = i;
 };
 
 debug = true;
@@ -34,18 +34,26 @@ $.validator.addMethod("identifier", function(value, element) {
 keyup_hooks = new Object();
 
 function call_hook_keyup(e) {
-    if (e.target.tagName != 'INPUT') {
+    var tag = e.target.tagName;
+    if (tag != 'INPUT' && tag != 'TEXTAREA') {
        var code = keyup_hooks[e.which];
+       if (!code) {
+           code = keyup_hooks[String.fromCharCode(e.which)];
+       };
        if (code) {
             try {
-                code(e);
-            } catch (Error) {
-                if(debug) console.log('handler failed');
+                if (typeof(code) == 'string') {
+                    eval(code);
+                } else {
+                    code(e);
+                }
+            } catch (x) {
+                if(debug) console.log(x);
             };
             if (debug) console.log('handled '+e.which);
-            e.preventDefault();
-            e.stopPropagation();
-            document.activeElement.blur();
+//            e.preventDefault();
+//            e.stopPropagation();
+//            document.activeElement.blur();
             return false;
        } else {
             if (debug) console.log('nothing to handle for '+e.which);
@@ -72,9 +80,7 @@ add_item_hooks = [];
 function add_hook_add_item(o) { add_item_hooks.push(o) }
 
 function call_hook_add_item(data) {
-    console.log('hook called');
    for(i=0; i<add_item_hooks.length; i++) {
-        console.log(add_item_hooks[i]);
         add_item_hooks[i](data);
    }
 }
@@ -193,22 +199,31 @@ function refresh_item_list(data, status, req) {
     add_hook_add_item(sortable.add_entry);
 
     // init keys
+    add_shortcut('S', function() {
+        // focus first entry
+        $("input:text:visible:first").focus().center();
+    })
     add_shortcut('UP', function() {
         if (current_index > 0) {
-            $($('ul > li.entry > img')[current_index]).removeClass('selected');
+            $($('ul > li.entry')[current_index].children[0]).removeClass('highlighted');
             current_index -= 1;
-            $($('ul > li.entry > img')[current_index]).addClass('selected');
-            $($('ul > li.entry > img')[current_index]).trigger('click');
+            var n = $($('ul > li.entry')[current_index].children[0]);
+            n.addClass('highlighted');
+            n.trigger('click');
+            n.center();
         }
     })
     add_shortcut('DOWN', function() {
-
-        if (current_index < $('ul > li.entry > img').length - 1) {
-            $($('ul > li.entry > img')[current_index]).removeClass('selected');
+        if (current_index < $('ul > li.entry').length - 1) {
+            if (current_index >= 0) {
+                $($('ul > li.entry')[current_index].children[0]).removeClass('highlighted');
+            }
             current_index += 1;
-            $($('ul > li.entry > img')[current_index]).addClass('selected')
-            $($('ul > li.entry > img')[current_index]).focus();
-            $($('ul > li.entry > img')[current_index]).trigger('click');
+            var n = $($('ul > li.entry')[current_index].children[0]);
+            n.addClass('highlighted')
+            n.focus();
+            n.trigger('click');
+            n.center();
         }
     });
     add_shortcut('ENTER', function() {
@@ -225,7 +240,6 @@ function refresh_item_list(data, status, req) {
     add_shortcut('L', function() {
         window.location = base_uri+'list';
     });
-
     add_shortcut('V', function() {
         window.location = base_uri+'view';
     });
@@ -369,6 +383,12 @@ $(document).ready(function(){
             return e;
         },
     });
+    $.fn.extend({
+        center: function() {
+            $(window).scrollTop($(this).offset().top - ($(window).height()/2)) ;
+        },
+        }
+    );
 
     $.extend({
 
@@ -513,8 +533,6 @@ $(document).ready(function(){
     // automatic settings for some special classes
     $('.editable span').addClass('toggler');
     $('.auto_date').datepicker({dateFormat: "dd/mm/yy"});
-    // focus first entry
-    $("input:text:visible:first").focus();
 
     // Hook all keypresses in window
     $('body').bind('keydown', null, call_hook_keyup );

@@ -11,6 +11,7 @@ $shadow_right: 1px;
 $shadow_color: rgba(#444, 0.6);
 $radius: 8px;
 $hi_color: #be8;
+$hi2_color: #fa5;
 $contour: #dde;
 $main_color: #093E56;
 $background: #A0A0A0;
@@ -44,7 +45,7 @@ $background: #A0A0A0;
 
 @mixin general_hover {
     &:hover {
-        border-bottom: solid 3px #fa5;
+        border-bottom: solid 3px $hi2_color;
         color: black;
     }
 }
@@ -70,6 +71,10 @@ $background: #A0A0A0;
 
 iframe {
     width: 100%;
+}
+
+.highlighted {
+    border-left: solid 5px $hi2_color;
 }
 
 li.entry {
