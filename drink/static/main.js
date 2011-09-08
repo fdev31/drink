@@ -1,4 +1,5 @@
 // globals
+debug = false;
 
 Keys = {
     BACK: 8,
@@ -15,7 +16,6 @@ for (i=65; i<=90; i++) {
     Keys[String.fromCharCode(i)] = i;
 };
 
-debug = true;
 item_types = [];
 page_struct = {_perm : 'r'};
 sortable = null;
@@ -35,7 +35,7 @@ keyup_hooks = new Object();
 
 function call_hook_keyup(e) {
     var tag = e.target.tagName;
-    if (tag != 'INPUT' && tag != 'TEXTAREA') {
+    if (tag != 'INPUT' && tag != 'TEXTAREA' && tag != 'SELECT') {
        var code = keyup_hooks[e.which];
        if (!code) {
            code = keyup_hooks[String.fromCharCode(e.which)];
@@ -196,7 +196,7 @@ function refresh_item_list(data, status, req) {
     }
 
     // init hooks
-    add_hook_add_item(sortable.add_entry);
+    add_hook_add_item(function(data) { sortable.add_entry(data).center() });
 
     // init keys
     add_shortcut('S', function() {
