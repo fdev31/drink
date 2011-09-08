@@ -35,7 +35,7 @@ keyup_hooks = new Object();
 
 function call_hook_keyup(e) {
     var tag = e.target.tagName;
-    if (tag != 'INPUT' && tag != 'TEXTAREA' && tag != 'SELECT') {
+    if (!e.ctrlKey && !e.altKey && !e.shiftKey && tag != 'INPUT' && tag != 'TEXTAREA' && tag != 'SELECT') {
        var code = keyup_hooks[e.which];
        if (!code) {
            code = keyup_hooks[String.fromCharCode(e.which)];
