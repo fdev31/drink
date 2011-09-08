@@ -4,6 +4,7 @@ debug = true;
 Keys = {
     BACK: 8,
     ENTER: 13,
+    ESC: 27,
     UP: 38,
     LEFT: 37,
     RIGHT: 39,
