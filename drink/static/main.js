@@ -1,5 +1,5 @@
 // globals
-debug = false;
+debug = true;
 
 Keys = {
     BACK: 8,
@@ -17,17 +17,62 @@ for (i=65; i<=90; i++) {
 };
 
 item_types = [];
-page_struct = {_perm : 'r'};
-sortable = null;
-child_items = {};
-current_index = -1;
+page_struct = {
+    _perm : 'r',
+    description: '',
+    id: '?',
+    items: [],
+    mime: "none",
+    path:"/",
+    title:"unk"};
+
 url_regex = /^(\/|http).+/;
 base_uri = document.location.href.replace(/[^/]*$/, '');
 
+ui = new Object({
+        load_action_list: function(data) {
 
-$.validator.addMethod("identifier", function(value, element) {
-    return this.optional(element) || !/^[._$%/][$%/]*/i.test(value);
-}, 'No "$", "%" or "/" and don\' start with a dot or an underscore, please :)');
+            if ( !data || !data.actions && !data.types  )  return;
+
+            if (data.length == 0) {
+                $('fieldset.toggler').fadeOut();
+            } else {
+                $('fieldset.toggler').fadeIn();
+            }
+
+            item_types = data.types;
+            data = data.actions;
+            var pa = $('#page_actions');
+            var html = [];
+
+            for (i=0 ; i<data.length ; i++) {
+                elt = data[i];
+                if (typeof(elt) == "string") {
+                    var text=elt;
+                } else {
+                    if (page_struct._perm.match('w') || page_struct._perm.match(elt.perm)) {
+                        if (elt.href) {
+                          var text='<a class="action '+(elt.style || '')+'"  title="'+elt.title+'" href="'+base_uri+elt.href+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
+                        } else {
+                          var text='<a class="action '+(elt.style || '')+'" title="'+elt.title+'" onclick="'+elt.onclick+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
+                          if (elt.key)
+                            add_shortcut(elt.key, elt.onclick);
+                        };
+                    } else {
+                        var text=null;
+                    }
+                };
+                if ( text ) { html.push(text); };
+            }
+            $('#page_actions').html(html.join(''));
+        },
+        reload: function() {
+            $.ajax({url: 'struct'}).success(ui.main_list.reload).error(function() {$('<div title="Error occured">Listing can\'t be loaded :(</div>').dialog()});
+        },
+    current_index: -1,
+    child_items: [],
+    }
+);
 
 // KEYPRESS THINGS
 
@@ -72,6 +117,17 @@ function add_shortcut(key, code) {
     }
 }
 
+// REMOVE ITEM THINGS
+
+remove_item_hooks = [];
+
+function add_hook_remove_item(o) { remove_item_hooks.push(o) }
+
+function call_hook_remove_item(o) {
+   for(i=0; i<remove__hooks.length; i++) {
+        remove_item_hooks[i](data);
+   }
+}
 
 // ADD ITEM THINGS
 
@@ -94,15 +150,15 @@ function popup_actions(event) {
             return;
         }
 
-        var elt = child_items[me.data('item')];
+        var elt = ui.child_items[me.data('item')];
         if (!elt) return;
         if(!elt._perm.match(/w/)) { return; }
 
         $(this).data('edit_called', setTimeout(function() {
             var item_name = me.data('item');
             var edit_span = $('<span class="actions"></span>');
-            edit_span.append('<a title="Edit" onclick="$.edit_entry(\''+item_name+'\')"><img class="minicon" src="/static/actions/edit.png" /></a>');
-            edit_span.append('<a title="Delete" onclick="$.remove_entry(\''+item_name+'\')" ><img class="minicon" src="/static/actions/delete.png" /></a>');
+            edit_span.append('<a title="Edit" onclick="ui.main_list.edit_entry(\''+item_name+'\')"><img class="minicon" src="/static/actions/edit.png" /></a>');
+            edit_span.append('<a title="Delete" onclick="ui.main_list.remove_entry(\''+item_name+'\')" ><img class="minicon" src="/static/actions/delete.png" /></a>');
             edit_span.fadeIn('slow');
             me.append(edit_span);
 
@@ -142,7 +198,7 @@ function exit_edit_func() {
 }
 
 function enter_edit_func() {
-    var elt = child_items[$(this).data('item')];
+    var elt = ui.child_items[$(this).data('item')];
     if(!elt._perm.match(/w/)) { return; }
     if ( $(this).has('input').length != 0 ) { return; }
 
@@ -163,154 +219,6 @@ function enter_edit_func() {
     inp.keyup(blur_on_validate);
 }
 
-// ITEM LIST LOADING THINGS
-
-function refresh_item_list(data, status, req) {
-    $.ajax({url: 'actions'}).success(refresh_action_list).error(function() { $('<div title="Error occured">List of actions failed to load</div>').dialog();});
-
-    if (!data._perm) return;
-
-    page_struct = data;
-
-   // handle sortables
-    sortable.sortable({
-        cursor: 'move',
-        distance: 5,
-        accept: '.entry',
-        tolerence: 'pointer',
-        helper: 'original',
-        revert: true,
-        stop: function(event, ui) {
-            if ( event.ctrlKey ) {
-                var pat = $('#main_list li').map( function() { return $(this).data('item') } ).get().join('/');
-                $.post('move', {'set': pat});
-                return true;
-            } else {
-                return false;
-            }
-        },
-    });
-
-    if ('' != sortable.html()) {
-        sortable.html('');
-    }
-
-    // init hooks
-    add_hook_add_item(function(data) { sortable.add_entry(data).center() });
-
-    // init keys
-    add_shortcut('S', function() {
-        // focus first entry
-        $("input:text:visible:first").focus().center();
-    })
-    add_shortcut('UP', function() {
-        if (current_index > 0) {
-            $($('ul > li.entry')[current_index].children[0]).removeClass('highlighted');
-            current_index -= 1;
-            var n = $($('ul > li.entry')[current_index].children[0]);
-            n.addClass('highlighted');
-            n.trigger('click');
-            n.center();
-        }
-    })
-    add_shortcut('DOWN', function() {
-        if (current_index < $('ul > li.entry').length - 1) {
-            if (current_index >= 0) {
-                $($('ul > li.entry')[current_index].children[0]).removeClass('highlighted');
-            }
-            current_index += 1;
-            var n = $($('ul > li.entry')[current_index].children[0]);
-            n.addClass('highlighted')
-            n.focus();
-            n.trigger('click');
-            n.center();
-        }
-    });
-    add_shortcut('ENTER', function() {
-        if (current_index > -1) {
-            window.location = $($('ul > li.entry > a')[current_index]).attr('href');
-        }
-    });
-    add_shortcut('BACK', function() {
-        window.location = base_uri+'../';
-    });
-    add_shortcut('E', function() {
-        window.location = base_uri+'edit';
-    });
-    add_shortcut('L', function() {
-        window.location = base_uri+'list';
-    });
-    add_shortcut('V', function() {
-        window.location = base_uri+'view';
-    });
-   // list-item creation fonction
-
-   for(n=0; n<data.items.length; n++) {
-        sortable.add_entry(data.items[n]);
-   }
-
-    if ( page_struct._perm.match(/a/) ) {
-        // Integration of http://valums.com/ajax-upload/
-        try {
-            qq.UploadDropZone.prototype._isValidFileDrag = function(e){ return true; }
-            var uploader = new qq.FileUploader({
-                element: $('#file-uploader')[0],
-                action: 'upload',
-                //debug: true,
-                showMessage: function(message){ $('<div title="Drop zone">'+message+'</div>'); },
-                onComplete: function(id, fileName, data){
-                    if ( data.id ) {
-                        sortable.add_entry(data);
-                    }
-                    $('ul.qq-upload-list > li.qq-upload-success').fadeOut('slow', function() {
-                        $(this).remove()
-                        });
-                },
-            });
-        } catch (ReferenceError) {
-            //console.log('Uploader code not available');
-        }
-    }
-} // End of sortable startup code
-
-// ACTIONS Loading things
-
-function refresh_action_list(data) {
-
-    if ( !data || !data.actions && !data.types  )  return;
-
-    if (data.length == 0) {
-        $('fieldset.toggler').fadeOut();
-    } else {
-        $('fieldset.toggler').fadeIn();
-    }
-
-    item_types = data.types;
-    data = data.actions;
-    var pa = $('#page_actions');
-    var html = [];
-
-    for (i=0 ; i<data.length ; i++) {
-        elt = data[i];
-        if (typeof(elt) == "string") {
-            var text=elt;
-        } else {
-            if (page_struct._perm.match('w') || page_struct._perm.match(elt.perm)) {
-                if (elt.href) {
-                  var text='<a title="'+elt.title+'" href="'+base_uri+elt.href+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
-                } else {
-                  var text='<a title="'+elt.title+'" onclick="'+elt.onclick+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
-                  if (elt.key)
-                    add_shortcut(elt.key, elt.onclick);
-                };
-            } else {
-                var text=null;
-            }
-        };
-        if ( text ) { html.push(text); };
-    }
-    $('#page_actions').html(html.join(''));
-};
 
 // Helper function to complete valid object path's
 
@@ -337,65 +245,93 @@ function get_matching_elts(path_elt, callback) {
 /////// INIT/STARTUP STUFF
 
 $(document).ready(function(){
+
     // some globals
-    sortable = $("#main_list");
+    ui.main_list = $("#main_list");
+
     // add some features to jQuery
-    // sortable
-    $.extend(sortable, {
+    // validator (forms)
+    $.validator.addMethod("identifier", function(value, element) {
+        return this.optional(element) || !/^[._$%/][$%/]*/i.test(value);
+    }, 'No "$", "%" or "/" and don\' start with a dot or an underscore, please :)');
 
-        add_entry: function(data) {
-
-            // builds li element around an item object
-
-            var mime = "";
-            if ( data.mime ) {
-                if ( data.mime.match( url_regex )) {
-                    mime = data.mime;
-                } else {
-                    mime = "/static/mime/"+data.mime+".png";
-                }
+   // handle sortables
+    ui.main_list.sortable({
+        cursor: 'move',
+        distance: 5,
+        accept: '.entry',
+        tolerence: 'pointer',
+        helper: 'original',
+        revert: true,
+        stop: function(event, ui) {
+            if ( event.ctrlKey ) {
+                var pat = $('#main_list li').map( function() { return $(this).data('item') } ).get().join('/');
+                $.post('move', {'set': pat});
+                return true;
             } else {
-                mime = "/static/mime/page.png";
+                return false;
             }
-
-            var e = $('<li class="entry"><img width="32px" src="'+mime+'" /><a class="item_name" href="'+data.path+data.id+'/" title="'+data.description+'">'+(data.title || data.id)+'</a></li>');
-            e.data('item', data.id);
-            e.disableSelection();
-	        e.dblclick(enter_edit_func);
-	        e.hover(popup_actions);
-	        if ( !! data._nb_items ) {
-                if ( data._nb_items == 1 ) {
-                    e.append($('&nbsp;<span class="infos">(1 item)</span>'));
-                } else {
-                    e.append($('&nbsp;<span class="infos">('+data._nb_items+' items)</span>'));
-	            }
-	        }
-
-	        // Html is element is prepared, now inject it
-
-            sortable.append(e);
-            $('#edit_form select').append(
-                '<option value="'+data.id+'" label="'+data.id+'">'+data.id+'</option>'
-            );
-            child_items[data.id] = data;
-            e.hide();
-            e.fadeIn('slow');
-            return e;
         },
     });
-    $.fn.extend({
-        center: function() {
-            $(window).scrollTop($(this).offset().top - ($(window).height()/2)) ;
-        },
-        }
-    );
 
-    $.extend({
+    $.extend(ui, {
 
-        reload_all: function() {
-            $.ajax({url: 'struct'}).success(refresh_item_list).error(function() {  $('<div title="Error occured">Listing can\'t be loaded :(</div>').dialog();}) ;
-        },
-        new_entry: function() {
+    });
+
+    // sortable
+    $.extend(ui.main_list, {
+        // ACTIONS Loading things
+
+        // ITEM LIST LOADING THINGS
+        reload: function(data, status, req) {
+            // TODO: return actions in struct
+            $.ajax({url: 'actions'}).success(ui.load_action_list).error(function() { $('<div title="Error occured">List of actions failed to load</div>').dialog();});
+
+            if(debug) console.log(data);
+            if (!data._perm) return;
+
+            page_struct = data;
+
+            if ('' != ui.main_list.html()) {
+                ui.main_list.html('');
+            }
+
+            // init hooks
+            add_hook_add_item(function(data) { ui.main_list.add_entry(data).center() });
+
+           // list-item creation fonction
+
+           for(n=0; n<data.items.length; n++) {
+                ui.main_list.add_entry(data.items[n]);
+           }
+
+            if ( page_struct._perm.match(/a/) ) {
+                // Integration of http://valums.com/ajax-upload/
+                try {
+                    qq.UploadDropZone.prototype._isValidFileDrag = function(e){ return true; }
+                    var uploader = new qq.FileUploader({
+                        element: $('#file-uploader')[0],
+                        action: 'upload',
+                        //debug: true,
+                        showMessage: function(message){ $('<div title="Drop zone">'+message+'</div>'); },
+                        onComplete: function(id, fileName, data){
+                            if ( data.id ) {
+                                ui.main_list.add_entry(data);
+                            }
+                            $('ul.qq-upload-list > li.qq-upload-success').fadeOut('slow', function() {
+                                $(this).remove()
+                                });
+                        },
+                    });
+                } catch (ReferenceError) {
+                    //console.log('Uploader code not available');
+                }
+            };
+        }, // End of sortable startup code
+
+
+        // ADD an entry
+        new_entry_dialog: function() {
              if ( item_types.length <= 1 ) {
                 w = $('<div title="Ooops!">Nothing can be added here, sorry</div>').dialog({closeOnEscape:true});
                 setTimeout(function(){w.fadeOut(function(){w.dialog('close')})}, 2000);
@@ -432,6 +368,7 @@ $(document).ready(function(){
                 buttons: [ {text: 'OK', click: validate_fn} ],
             });
         },
+        // EDIT
         edit_entry: function(data) {
            frame = $('<iframe title="Edit object" src="'+base_uri+'/'+data+'/edit?embedded=1">No iframe support :(</iframe>');
             frame.dialog({modal:true, width:'90%'});
@@ -440,6 +377,7 @@ $(document).ready(function(){
             frame.css('margin', 'auto');
             frame.css('height', '66%');
         },
+        // REMOVE
         remove_entry: function(item) {
             $('<div id="remove-confirm" title="Do you really want to remove this item ?">Please, confirm removal.</div>').dialog({
                 modal: true,
@@ -450,11 +388,13 @@ $(document).ready(function(){
                             url:'rm?name='+encodeURI(item),
                         }).success(function() {
                             var safe_name = item.replace( /"/g, '\\"');
+/*
                             $('#edit_form select option[value="'+safe_name+'"]').remove();
                             $('#rm_form select option[value="'+safe_name+'"]').remove();
                             $('#rm_form select option[value="'+safe_name+'"]').remove();
+  */
                             $('ul > li.entry:data(item='+item+')').slideUp('slow', function() {$(this).remove()});
-                            delete child_items[item];
+                            delete ui.child_items[item];
                         }).error(function(){
                             $('<div title="Error occured">Sorry, something didn\'t work correctly</div>').dialog();
                            });
@@ -464,10 +404,57 @@ $(document).ready(function(){
                     }
                 }
             });
-        }
+        },
+        // ADD
+        add_entry: function(data) {
+            // builds li element around an item object
+            var mime = "";
+            if ( data.mime ) {
+                if ( data.mime.match( url_regex )) {
+                    mime = data.mime;
+                } else {
+                    mime = "/static/mime/"+data.mime+".png";
+                }
+            } else {
+                mime = "/static/mime/page.png";
+            }
+
+            var e = $('<li class="entry"><img width="32px" src="'+mime+'" /><a class="item_name" href="'+data.path+data.id+'/" title="'+data.description+'">'+(data.title || data.id)+'</a></li>');
+            e.data('item', data.id);
+            e.disableSelection();
+	        e.dblclick(enter_edit_func);
+	        e.hover(popup_actions);
+	        if ( !! data._nb_items ) {
+                if ( data._nb_items == 1 ) {
+                    e.append($('&nbsp;<span class="infos">(1 item)</span>'));
+                } else {
+                    e.append($('&nbsp;<span class="infos">('+data._nb_items+' items)</span>'));
+	            }
+	        }
+
+	        // Html is element is prepared, now inject it
+
+            ui.main_list.append(e);
+            $('#edit_form select').append(
+                '<option value="'+data.id+'" label="'+data.id+'">'+data.id+'</option>'
+            );
+            ui.child_items[data.id] = data;
+            e.hide();
+            e.fadeIn('slow');
+            return e;
+        },
     });
+    // add global methods
+    $.fn.extend({
+        center: function() {
+            $('html,body').animate({
+                scrollTop : $(this).offset().top - ($(window).height()/2),
+                }, 100); }
+        }
+    );
+
     // debug mode
-    //$.validator.setDefaults({debug: true});
+    $.validator.setDefaults({debug: debug});
 
     // setup some behaviors
 
@@ -493,12 +480,31 @@ $(document).ready(function(){
         }
     });
 
+    // drop edit form's droppable, FIXME: is this code executed ?
+    $('.edit_form').droppable({
+        drop: function(event, ui) {
+            console.log('This code is executed #343 drop');
+            $(this).removeClass("selected");
+    		$($(this)[0][0]).val(ui.draggable.data('item').replace(/&/g, '%26').replace(/\?/g, '%3f'));
+            $(this).attr("action", ui.draggable.data('item')+"/edit");
+			$(this).submit();
+        },
+        over: function(event, ui) {
+            console.log('This code is executed #343 over');
+            $(this).addClass('selected');
+        },
+		out: function(event, ui) {
+            console.log('This code is executed #343 out');
+		    $(this).removeClass("selected");
+		}
+    });
+
     // the old rm_form was droppable, FIXME: replace with a trash icon or something
-    $('#rm_form').droppable({
+    $('.rm_form').droppable({
         drop: function(event, ui) {
             var item = ui.draggable.data('item');
             $(this).removeClass("selected");
-			sortable.remove_entry(ui.draggable.remove());
+			ui.main_list.remove_entry(ui.draggable.remove());
 			ui.draggable.remove();
         },
         over: function(event, ui) {
@@ -509,35 +515,62 @@ $(document).ready(function(){
 		}
     });
 
-    // drop edit form's droppable, FIXME: is this code executed ?
-    $('#edit_form').droppable({
-        drop: function(event, ui) {
-            //console.log('This code is executed #343 drop');
-            $(this).removeClass("selected");
-    		$($(this)[0][0]).val(ui.draggable.data('item').replace(/&/g, '%26').replace(/\?/g, '%3f'));
-            $(this).attr("action", ui.draggable.data('item')+"/edit");
-			$(this).submit();
-        },
-        over: function(event, ui) {
-
-            //console.log('This code is executed #343 over');
-            $(this).addClass('selected');
-        },
-		out: function(event, ui) {
-
-            //console.log('This code is executed #343 out');
-		    $(this).removeClass("selected");
-		}
-    });
-
     // automatic settings for some special classes
     $('.editable span').addClass('toggler');
+
     $('.auto_date').datepicker({dateFormat: "dd/mm/yy"});
 
     // Hook all keypresses in window
     $('body').bind('keydown', null, call_hook_keyup );
 
     // load main content
-    $.reload_all();
+    ui.reload();
 
+    // init keys
+    // Some shortcuts
+    add_shortcut('DOWN', function() {
+        if (ui.current_index < $('ul > li.entry').length - 1) {
+            if (ui.current_index >= 0) {
+                $($('ul > li.entry')[ui.current_index].children[0]).removeClass('highlighted');
+            }
+            ui.current_index += 1;
+            var n = $($('ul > li.entry')[ui.current_index].children[0]);
+            n.addClass('highlighted');
+            n.focus();
+            n.trigger('click');
+            n.center();
+        }
+    });
+    add_shortcut('UP', function() {
+        if (ui.current_index > 0) {
+            $($('ul > li.entry')[ui.current_index].children[0]).removeClass('highlighted');
+            ui.current_index -= 1;
+            var n = $($('ul > li.entry')[ui.current_index].children[0]);
+            n.addClass('highlighted');
+            n.trigger('click');
+            n.center();
+        }
+    });
+    add_shortcut('ENTER', function() {
+        if (ui.current_index > -1) {
+            window.location = $($('ul > li.entry > a')[ui.current_index]).attr('href');
+        }
+    });
+    add_shortcut('BACK', function() {
+        window.location = base_uri+'../';
+    });
+    add_shortcut('S', function() {
+        // focus first entry
+        $("input:text:visible:first").focus().center();
+    });
+    add_shortcut('E', function() {
+        window.location = base_uri+'edit';
+    });
+    add_shortcut('L', function() {
+        window.location = base_uri+'list';
+    });
+    add_shortcut('V', function() {
+        window.location = base_uri+'view';
+    });
+// end of statup code
 });

@@ -23,10 +23,10 @@
         <script type="text/javascript" src="/static/main.js"></script>
         {% if js %}
             {% for url in js %}
-                {% if '\n' in url %}
-                <script type="text/javascript"">{{url}}</script>
-                {% else %}
+                {% if url.startswith('http://') %}
                 <script type="text/javascript" src="{{url}}"></script>
+                {% else %}
+                <script type="text/javascript"">{{url}}</script>
                 {% endif %}
             {% endfor %}
         {% endif %}

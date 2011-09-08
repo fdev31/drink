@@ -111,6 +111,10 @@ add_hook_add_item(reload_page);
     def indexable(self):
         return u"%s %s"%(self.description, self.content)
 
+    @property
+    def html(self):
+        return self.process(self.content)
+
     def _add(self, *args, **kw):
         new_obj = drink.Page._add(self, *args, **kw)
         self.content += ("\n* link to [%s](%s/)"%(
@@ -130,7 +134,7 @@ add_hook_add_item(reload_page);
                 }
             )
 
-        data = data or drink.request.params.get('data')
+        data = data or drink.request.params.get('data') or self.content
         if not isinstance(data, unicode):
             try:
                 data = data.decode('utf-8')
@@ -138,16 +142,7 @@ add_hook_add_item(reload_page);
                 data = data.decode('latin1')
         return self._template % self._v_wikifier_cache.convert(data)
 
-    def view(self):
-
-        html = self.process(self.content)
-
-        return drink.template('main.html', obj=self, embed=bool(drink.request.params.get("embedded", "")),
-             html=html, authenticated=drink.request.identity,
-             # do not include js code, or css code, it's only for editing
-             js=self.js,
-             classes=self.classes,
-             )
+    html = property(process)
 
     def _upload(self, obj):
         self.content = obj.file.read()

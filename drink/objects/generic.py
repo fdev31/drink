@@ -106,9 +106,10 @@ class Page(Model):
 
     _actions = [
         dict(title="View/Reload", onclick="document.location.href = base_uri", icon="view", perm='r'),
-        dict(title="Edit", href="edit", icon="edit", perm='w'),
+        dict(title="Edit", style="edit_form", href="edit", icon="edit", perm='w'),
         dict(title="List content", href="list", icon="open", perm='r'),
-        dict(title="Add object", onclick="$.new_entry()", key='INS', icon="new", perm='a'),
+        dict(title="Add object", style="add_form", onclick="ui.main_list.new_entry_dialog()", key='INS', icon="new", perm='a'),
+        #dict(title="Remove object", onclick="ui.main_list.remove_entry()", icon="delete", perm='w'),
     ]
 
     #: fields that are only editable by the admin (appear in edit panel)
@@ -413,7 +414,7 @@ class ListPage(Page):
 
     forced_order = None
 
-    _actions = Page._actions + [dict(perm='w', title="Reset items", onclick="$.ajax({url:base_uri+'reset_items'}).success($.reload_all())", icon="download")]
+    _actions = Page._actions + [dict(perm='w', title="Reset items", onclick="$.ajax({url:base_uri+'reset_items'}).success(ui.reload)", icon="download")]
 
     def __init__(self, name, rootpath=None):
         self.forced_order = []
