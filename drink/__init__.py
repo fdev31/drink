@@ -368,9 +368,28 @@ if DEBUG environment variable is set, it will start in debug mode.
 
             f_set = set(('path', 'description', 'id', 'title', 'mime'))
 
+            broken_content = getattr(o, 'content_name', '').endswith('.blob') and 'blobs' in getattr(o, 'content_name', '')
+
             for name, caster in o.editable_fields.iteritems():
                 v = caster.get(o, name)
-                if isinstance(v, Blob):
+                if isinstance(v, DataBlob) and broken_content:
+                    cur_data = v.open().read()
+                    if not cur_data:
+                        print "FIXING BROKEN BLOB"
+                        inp = open(o.content_name, 'rb')
+                        out = v.open('w')
+                        sz = 2**20
+                        while True:
+                            data = inp.read(sz)
+                            if not data:
+                                break
+                            out.write(data)
+                        inp.close()
+                        out.close()
+                        os.unlink(o.content_name)
+                        o.set_field(name, v)
+                        o.content_name = o.title
+                elif isinstance(v, Blob):
                     blob = DataBlob(v)
                     setattr(o, name, blob)
                 else:
