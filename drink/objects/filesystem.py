@@ -9,6 +9,8 @@ class PyFile(object):
 
     actions = []
 
+    o = None
+
     _properties = ('edit', 'list', 'view', 'add', 'struct', 'actions')
 
     _v_mime = None
