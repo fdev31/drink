@@ -94,7 +94,7 @@ function call_hook_keyup(e) {
                     code(e);
                 }
             } catch (x) {
-                if(debug) console.log(x);
+                if(debug) {console.log(code) ; console.log(x); };
             };
             if (debug) console.log('handled '+e.which);
 //            e.preventDefault();

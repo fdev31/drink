@@ -175,6 +175,7 @@ def main_index():
 
 @route('/static/:filename#.*#')
 def server_static(filename):
+    # TODO: add authentication filter here ?
     return static_file(filename, root=os.path.join(BASE_DIR, 'static'))
 
 @route("/struct", method=['GET', 'POST'])
@@ -187,6 +188,9 @@ def login_actions():
 
 @route("/login", method=['GET', 'POST'])
 def log_in():
+
+    request.identity = Authenticator()
+
     if request.forms.get('login_name', ''):
         response.set_cookie('password', request.forms.get('login_password', ''), 'drink')
         response.set_cookie('login', request.forms.get('login_name', ''), 'drink')
