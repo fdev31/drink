@@ -404,6 +404,7 @@ if DEBUG environment variable is set, it will start in debug mode.
                     except (UnicodeError, TypeError), e:
                         import pdb; pdb.set_trace()
             for field in f_set:
+                print field
                 try:
                     _d = getattr(o, field)
                     if isinstance(_d, basestring):
