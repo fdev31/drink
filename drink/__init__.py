@@ -188,7 +188,6 @@ def login_actions():
 
 @route("/login", method=['GET', 'POST'])
 def log_in():
-
     request.identity = Authenticator()
 
     if request.forms.get('login_name', ''):
@@ -206,7 +205,7 @@ def log_in():
         </form>
 
         '''
-        return template('main.html', html=html, obj=db.db, css='', js='',
+        return template('main.html', html=html, obj=db.db, css=[], js=[],
             embed='', classes={}, authenticated=request.identity)
 
 
