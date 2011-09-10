@@ -33,7 +33,10 @@ base_uri = document.location.href.replace(/[^/]*$/, '');
 ui = new Object({
         load_action_list: function(data) {
 
-            if ( !data || !data.actions && !data.types  )  return;
+            if ( !data || !data.actions && !data.types  )  {
+                $('fieldset.toggler').fadeOut();
+                return;
+            }
 
             if (data.length == 0) {
                 $('fieldset.toggler').fadeOut();
@@ -94,7 +97,7 @@ function call_hook_keyup(e) {
                     code(e);
                 }
             } catch (x) {
-                if(debug) console.log(x);
+                if(debug) {console.log(code) ; console.log(x); };
             };
             if (debug) console.log('handled '+e.which);
 //            e.preventDefault();
@@ -251,10 +254,6 @@ $(document).ready(function(){
     ui.main_list = $("#main_list");
 
     // add some features to jQuery
-    // validator (forms)
-    $.validator.addMethod("identifier", function(value, element) {
-        return this.optional(element) || !/^[._$%/][$%/]*/i.test(value);
-    }, 'No "$", "%" or "/" and don\' start with a dot or an underscore, please :)');
 
    // handle sortables
     ui.main_list.sortable({
@@ -275,9 +274,6 @@ $(document).ready(function(){
         },
     });
 
-    $.extend(ui, {
-
-    });
 
     // sortable
     $.extend(ui.main_list, {
@@ -454,12 +450,6 @@ $(document).ready(function(){
         }
     );
 
-    // debug mode
-    $.validator.setDefaults({debug: debug});
-
-    // setup some behaviors
-
-    $(".autovalidate").each(function(index, ob) { $(ob).validate() } );
 
     // sumbit forms on Ctrl+Enter press
     $('#auto_edit_form').keypress( function(ev, elt) {
@@ -518,6 +508,16 @@ $(document).ready(function(){
 
     // automatic settings for some special classes
     $('.editable span').addClass('toggler');
+
+    // validator (forms)
+
+    $.validator.addMethod("identifier", function(value, element) {
+        return this.optional(element) || !/^[._$%/][$%/]*/i.test(value);
+    }, 'No "$", "%" or "/" and don\' start with a dot or an underscore, please :)');
+
+    // setup some behaviors
+
+    $(".autovalidate").each(function(index, ob) { $(ob).validate() } );
 
     $('.auto_date').datepicker({dateFormat: "dd/mm/yy"});
 
