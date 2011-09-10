@@ -234,10 +234,10 @@ function get_matching_elts(path_elt, callback) {
                 url = _elts[n];
             }
         }
-        url = url + "match?pattern=" + pattern;
+        url = document.location.origin + '/' + url + "/match?pattern=" + pattern;
     } else {
         pattern  = path_elt;
-        url = document.location.pathname + "match?pattern=" + pattern;
+        url = base_uri + "match?pattern=" + pattern;
     };
     // AJAX URL
     $.get(url).success(function(data) { callback(data.items) } );
