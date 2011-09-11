@@ -431,7 +431,11 @@ class ListPage(Page):
         return list(self.forced_order)
 
     def move(self):
-        self.forced_order = unquote(request.params.get('set')).decode('utf-8').split('/')
+        if request.is_ajax:
+            self.forced_order = unquote(request.params.get('set')).decode('utf-8').split('/')
+        else:
+            html = '<input class="completable" complete_type="objpath"></input>'
+            return drink.template('main.html', obj=self, css=self.css, js=self.js, html=html, embed=bool(drink.request.get('embedded', '')), classes=[])
 
     def itervalues(self):
         for k in self.iterkeys():

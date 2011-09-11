@@ -230,20 +230,23 @@ function get_matching_elts(path_elt, callback) {
     if (path_elt.match('/')) {
         var _elts = path_elt.split('/');
         _elts.filter(function(e) { if (!!e) return true; });
+        url = [document.location.origin];
         for (n=0;n<_elts.length;n++) {
             if (n == _elts.length-1) {
                 pattern = _elts[n];
             } else {
-                url = _elts[n];
+                url.push(_elts[n]);
             }
         }
-        url = document.location.origin + '/' + url + "/match?pattern=" + pattern;
+        url.push("/match?pattern=" + pattern);
+        url = url.join('/');
     } else {
         pattern  = path_elt;
         url = base_uri + "match?pattern=" + pattern;
     };
+    var cur_path = path_elt;
     // AJAX URL
-    $.get(url).success(function(data) { callback(data.items) } );
+    $.get(url).success(function(data) { callback(data.items, cur_path) } );
 }
 
 /////// INIT/STARTUP STUFF
@@ -457,6 +460,30 @@ $(document).ready(function(){
             $(this).submit();
             return true;
         };
+    });
+    $('input.completable[complete_type=objpath]').keyup(function(e) {
+        if (e.which < 64) return;
+        var o = $(this);
+        console.log(o);
+        get_matching_elts(o.val(), function(items, path) {
+                    $(o).parent().find('.completed').remove();
+                    if (items.length > 1) {
+                        var list = items.join(', ');
+                        $('<span class="completed">' + list + '</span>').insertAfter(o);
+                    } else {
+                        if (items.length == 1 ) {
+                            var best_match = items[0];
+                            var components = path.split(/\//);
+                            if ( components && components[components.length-1] != '' ) {
+                                components.pop();
+                            };
+                            components.push(best_match);
+                            components.push('');
+                            o.val(components.join('/'));
+                        }
+                    };
+            }
+        );
     });
 
     // change style of checkboxes titles in editable spans form
