@@ -34,14 +34,14 @@ ui = new Object({
         load_action_list: function(data) {
 
             if ( !data || !data.actions && !data.types  )  {
-                $('fieldset.toggler').fadeOut();
+                $('fieldset.toggler').slideUp();
                 return;
             }
 
             if (data.length == 0) {
-                $('fieldset.toggler').fadeOut();
+                $('fieldset.toggler').slideUp();
             } else {
-                $('fieldset.toggler').fadeIn();
+                $('fieldset.toggler').slideDown('slow');
             }
 
             item_types = data.types;
@@ -252,6 +252,7 @@ function get_matching_elts(path_elt, callback) {
 /////// INIT/STARTUP STUFF
 
 $(document).ready(function(){
+    $('fieldset.toggler').slideUp(0);
 
     // some globals
     ui.main_list = $("#main_list");
@@ -332,18 +333,19 @@ $(document).ready(function(){
 
         // ADD an entry
         new_entry_dialog: function() {
-             if ( item_types.length <= 1 ) {
+             if ( item_types.length < 1 ) {
                 w = $('<div title="Ooops!">Nothing can be added here, sorry</div>').dialog({closeOnEscape:true});
                 setTimeout(function(){w.fadeOut(function(){w.dialog('close')})}, 2000);
                 return;
              };
             var template = '<div id="new_obj_form"  title="New item informations"><select class="obj_class" class="required" name="class"><option value="" label="Select one item type">Select one item type</option>';
-            var tpl_ftr = '</select><div class="obj_name"><label for="new_obj_name">Name</label><input id="new_obj_name" type="text" name="name" class="required identifier" minlength="2" /></div></div>';
+            var tpl_ftr = '</select><div class="obj_name"><label for="new_obj_name">Name</label><input id="new_obj_name" type="text" name="name" class="obj_name required identifier" minlength="2" /></div></div>';
             for (t=0; t<item_types.length; t++) {
                 template += '<option value="{0}" label="{0}">{0}</option>'.replace(/\{0\}/g, item_types[t]);
             }
 
             var new_obj = $(template+tpl_ftr);
+
 
             var check_fn = function(e) {
                 if (e.keyCode == 27) {
@@ -356,17 +358,22 @@ $(document).ready(function(){
                 new_obj.dialog("close");
                 var item = {
                     'class': new_obj.find('.obj_class').val(),
-                    'name': new_obj.find('#new_obj_name').val(),
+                    'name': new_obj.find('input.obj_name').val(),
                 };
                 $.post('add', item, call_hook_add_item);
             }
 
-            new_obj.find('#new_obj_name').keyup(check_fn);
+            new_obj.find('input.obj_name').keyup(check_fn);
 
             new_obj.dialog({
                 modal: true,
                 buttons: [ {text: 'OK', click: validate_fn} ],
             });
+
+            if (item_types.length == 1) {
+                new_obj.find(".obj_class").val(item_types[0]).attr('disabled', true);
+                new_obj.find('input.obj_name').trigger('click').focus();
+            }
         },
         // EDIT
         edit_entry: function(data) {

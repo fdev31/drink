@@ -32,7 +32,10 @@ if i >= 0:
 from bottle import route, static_file, request, response, redirect as rdr, abort
 # templating
 import functools
-template = functools.partial(bottle.template, req=request, template_adapter=bottle.Jinja2Template)
+template = functools.partial(bottle.template, template_adapter=bottle.Jinja2Template,
+    isstring=lambda x: isinstance(x, basestring),
+    req=request,
+)
 from urllib import unquote
 # json
 dumps = bottle.JSONPlugin().json_dumps

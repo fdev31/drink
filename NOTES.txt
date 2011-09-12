@@ -1,3 +1,4 @@
+- move function with completion
 - Rewrite & rename:
     PyRat[atouille] - Cooking The Web
         pyrat-init , pyrat-manage

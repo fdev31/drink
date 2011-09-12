@@ -72,7 +72,13 @@
     <div id="main_body">
     {% block body %}
         {% if html %}
-            {{ html|safe }}
+            {% if isstring(html) %}
+                {{ html|safe }}
+            {% else %}
+                {% for chunk in html %}
+                    {{ chunk|safe }}
+                {% endfor %}
+            {% endif %}
         {% else %}
             Please, add some body block or html content...
         {% endif %}
