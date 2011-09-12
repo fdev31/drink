@@ -6,10 +6,10 @@ from mimetypes import guess_type
 import transaction
 import drink
 from drink import request
-from drink import template
 from drink.types import dt2str
 from drink.zdb import Model
 from . import classes
+import bottle
 
 # TODO: Create a "BigListPage" (aka BigFolder) inheriting OOBtree & Page
 
@@ -175,6 +175,21 @@ class Page(Model):
         except AttributeError:
             self.owner = request.identity.user
 
+    def render(self, page='main.html', obj=None, css=None, js=None, html=None, embed=None, classes=None, **kw):
+        return bottle.template(page,
+                template_adapter=bottle.Jinja2Template,
+                obj=obj or self,
+                css=css or self.css,
+                js=js or self.js,
+                html=html or self.html,
+                embed=bool(drink.request.params.get('embedded', False)) if embed is None else embed,
+                classes=self.classes if classes is None else classes,
+                isstring=lambda x: isinstance(x, basestring),
+                req=request,
+                authenticated=request.identity,
+                **kw
+            )
+
     def __hash__(self):
         return hash(self.id)
 
@@ -195,9 +210,7 @@ class Page(Model):
 
     def view(self):
         drink.response.content_type = "text/html; charset=utf-8"
-        return drink.template('main.html', obj=self,
-            css=self.css, js=self.js, html=self.html, embed=bool(drink.request.params.get('embedded', False)),
-            classes=self.classes, authenticated=request.identity)
+        return self.render()
 
     def struct(self, childs=True, full=None):
         return get_struct_from_obj(self, childs, full)
@@ -294,8 +307,7 @@ class Page(Model):
                 form.insert(0, '''<form
                  class="auto_edit_form" id="auto_edit_form" action="edit" %s method="post">'''%(' '.join(form_opts)))
 
-            return drink.template('main.html', obj=self, html='\n'.join(form), css=self.css, js=self.js,
-                    embed=embedded, classes=self.classes, authenticated=request.identity)
+            return self.render(html='\n'.join(form))
 
     def _upload(self, obj):
         self.editable_fields['content'].set(self, 'content', obj)
@@ -403,9 +415,7 @@ class Page(Model):
             return drink.rdr(o.quoted_path+'edit')
 
     def list(self):
-        return template('list.html', obj=self, css=self.css, js=self.js,
-                embed=bool(drink.request.params.get('embedded', '')),
-                classes=self.classes, authenticated=request.identity)
+        return self.render('list.html')
 
 class ListPage(Page):
     description = u"An ordered folder-like display"
@@ -435,7 +445,7 @@ class ListPage(Page):
             self.forced_order = unquote(request.params.get('set')).decode('utf-8').split('/')
         else:
             html = '<input class="completable" complete_type="objpath"></input>'
-            return drink.template('main.html', obj=self, css=self.css, js=self.js, html=html, embed=bool(drink.request.get('embedded', '')), classes=[])
+            return self.render(html=html)
 
     def itervalues(self):
         for k in self.iterkeys():
@@ -558,7 +568,6 @@ class WebFile(Page):
                 html.append(unicode(f.read(), 'utf-8'))
                 html.append(u'</pre>')
 
-        return drink.template('main.html', obj=self, css=self.css, js=self.js, html=u'\n'.join(html), embed=bool(drink.request.get('embedded', '')),
-             classes=self.classes, authenticated=request.identity)
+        return self.render(html=u'\n'.join(html))
 
 exported = {'Folder index': ListPage, 'WebFile': WebFile}

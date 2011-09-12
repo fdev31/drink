@@ -31,11 +31,6 @@ if i >= 0:
 # http
 from bottle import route, static_file, request, response, redirect as rdr, abort
 # templating
-import functools
-template = functools.partial(bottle.template, template_adapter=bottle.Jinja2Template,
-    isstring=lambda x: isinstance(x, basestring),
-    req=request,
-)
 from urllib import unquote
 # json
 dumps = bottle.JSONPlugin().json_dumps
@@ -208,8 +203,8 @@ def log_in():
         </form>
 
         '''
-        return template('main.html', html=html, obj=db.db, css=[], js=[],
-            embed='', classes={}, authenticated=request.identity)
+        return bottle.jinja2_template('main.html', html=html, obj=db.db, css=[], js=[],
+            embed='', classes={}, req=request, authenticated=request.identity)
 
 
 @route("/logout", method=['GET', 'POST'])

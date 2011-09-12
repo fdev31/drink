@@ -8,7 +8,7 @@ import drink
 import datetime
 import transaction
 from . import classes
-from drink import template, omni
+from drink import omni
 from drink.zdb import DataBlob
 from time import mktime, strptime
 from persistent.dict import PersistentDict
