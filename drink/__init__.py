@@ -204,6 +204,7 @@ def log_in():
 
         '''
         return bottle.jinja2_template('main.html', html=html, obj=db.db, css=[], js=[],
+            isstring=lambda x: isinstance(x, basestring),
             embed='', classes={}, req=request, authenticated=request.identity)
 
 
