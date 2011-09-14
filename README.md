@@ -100,10 +100,9 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 -   no auto tests yet
 -   not very powerful yet
 
-## Release changes
+## Current release changes
 
 -   Text type can have different subtypes now (ex: password)
--   As always: Fixes & Bugs
 -   Gcalendar support for Calendar (+ extended Task object)
 -   Jquery updated
 -   Simple "duration" type
@@ -111,51 +110,49 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 -   Introduction of a simple generic actions framework
 -   D&Drop form is more integrated
 -   Templates dropped support for static HTML, more and more content will come with js/jQuery + JSON
+-   As always: Fixes & Bugs
 
 ## Roadmap
 
 ### 0.1 (wip)
 
-- Clean actions up
+- add size of file objects in WebFile view
 - add more types to default form edition
    - object_path => integrate it to markdown editor
 - generalize edit & _edit behavior, with a special return value
-- add size of file objects in WebFile view
+- standardize json answers {'success': true} or {'error': true, 'message': 'permission denied'} or {'redirect': url, \*\*kw}
+- review 401 handling, ask for login/passwd in case of new session (to be finished)
+- change cookie on password change => Create session cookie !
 - handle per-owner "recycle bin", "changes log" & groups
 - clean javascript to provide a library, allowing mobile detection & adaptation
 - buildbot & virtualenv
-- change cookie on password change
 - only accept object move if it succeded on server
 - allow custom extensions
-- Per-user group-list, showing in permissions panels
+- Per-user group-list, showing in permissions panels (Authenticator will constitute a cache of sets with 'path': permission)
 - allow rss via http://www.freewisdom.org/projects/python-markdown/RSS
 - HomePage object: Login-splash+UserDashboard write user homepages (with login & passwd & name & surname change) / splash-like if not logged-in
 - think about comments ( as property of some Model ?) - commentlist ?
-- allow objects to add custom actions in admin bar
 - edit form: only send "dirty" values when possible
 - add some recursive permissions setter
 - "background processes" for each user / sessions
 - theme support (config entry + template & static path)
 - ensure proper checks are correct at server side
 - Form object?
-- find the cleanest way to make all incoming URLs ends with /
 - pack should call http://packages.python.org/Whoosh/api/index.html?highlight=optimize#whoosh.index.Index.optimize on whoosh
 - add calltips everywhere
 - default content for every user
-- review 401 handling, ask for login/passwd in case of new session (to be finished)
 - Think about opening WebFiles in mail client as attached file...
 - add markdown support to tasks comment
 - improve link support (javascript popup) in markdown so it's easy to link tasks to any object
 
 Fixes:
 
-- only returns requested range in TODO List
+- only returns requested range in TODO List / generic solution to request range of child
 - Rename Tasks/TODO List to calendar
 - remove Ctrl+Enter conflict on Markitup
 - /users as user => 401 (should list instead)
 - search => 401 by default (should be allowed)
-- mask file upload widget if File not available here
-- investigate fileupload D&D bugs
+- investigated fileupload D&D bugs:
   - files >4GB are making crazy js loops
   - files ~>500MB may hang the request & cause timeout
 
