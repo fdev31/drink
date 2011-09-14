@@ -105,6 +105,7 @@ class Page(Model):
         return {'actions' : self._actions, 'types': self.classes.keys()}
 
     _actions = [
+        dict(title="Back", href="../", perm="r", icon="undo"),
         dict(title="View/Reload", onclick="document.location.href = base_uri", icon="view", perm='r'),
         dict(title="Edit", style="edit_form", href="edit", icon="edit", perm='w'),
         dict(title="List content", href="list", icon="open", perm='r'),

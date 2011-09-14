@@ -58,17 +58,8 @@
             </div> <!-- page actions -->
             </div> <!-- end of toggleable -->
         </fieldset>
-        {% if obj.id != '.' %}
-            {% if req.url.endswith('/') %}
-            <a title="Back to parent element" href="../"><img class="icon" src="/static/actions/undo.png" /></a>
-            {% else %}
-            <a title="Back to element" href="{{obj.path|e}}"><img class="icon" src="/static/actions/undo.png" /></a>
-            {% endif %}
         {% endif %}
-        {% endif %}
-
     {% endif %}
-
     <div id="main_body">
     {% block body %}
         {% if html %}
