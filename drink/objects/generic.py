@@ -413,7 +413,7 @@ class Page(Model):
             return drink.rdr(o.quoted_path+'edit')
 
     def list(self):
-        return self.render('list.html')
+        return self.render('main.html', html=u'<h1>%s</h1>\n<ul id="main_list" class="sortable" />'%self.title)
 
 class ListPage(Page):
     description = u"An ordered folder-like display"
