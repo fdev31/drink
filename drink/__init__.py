@@ -58,15 +58,14 @@ from . import types
 from .objects.generic import Page, ListPage, Model, Settings
 
 # Finally load all the objects
-
 init_objects()
 del init_objects
 
 # Setup db
-
 from .zdb import Database
 db = Database(bottle.app(), DB_CONFIG)
 import transaction
+
 
 def unauthorized(message='Action NOT allowed'):
     # TODO: handler srcuri + redirect
@@ -295,7 +294,7 @@ def init():
 
         settings = Settings('settings', '/')
         settings.server_backend = config.get('server', 'backend')
-        settings.server_port = config.get('server', 'port')
+        settings.server_port = int(config.get('server', 'port'))
         settings.server_address = config.get('server', 'address')
         settings.debug_framework = config.get('server', 'debug')
         settings.active_objects = set(config.items('objects'))
