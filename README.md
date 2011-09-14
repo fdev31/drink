@@ -118,7 +118,6 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 
 ### 0.1 (wip)
 
-- add size of file objects in WebFile view
 - add more types to default form edition
    - object_path => integrate it to markdown editor
 - generalize edit & _edit behavior, with a special return value
