@@ -35,6 +35,13 @@ from urllib import unquote
 # json
 dumps = bottle.JSONPlugin().json_dumps
 
+def bytes2human(num):
+    for u in ('k', 'M', 'G'):
+        num /= 1000.0
+        if num < 951:
+            break
+    return u'%.1f %s'%(num, u)
+
 def omni(txt):
     if isinstance(txt, unicode):
         return txt

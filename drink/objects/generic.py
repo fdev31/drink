@@ -552,21 +552,26 @@ class WebFile(Page):
             self.mimetype = get_type(self.content_name)
         return r
 
-    def view(self):
+    @property
+    def html(self):
         drink.response.content_type = "text/html; charset=utf-8"
-        html = [u'<div class="download"><a href="raw">Download file (original name: %r)</a></div>'%self.content_name]
-
         if self.content:
             mime = self.mimetype
+            sz = os.stat(self.content.filename).st_size
+
+            yield u'<div class="download">Download file (%sB) <a href="raw"><img src="/static/actions/download.png" title="Click here to download"/></a></div>'%drink.bytes2human(sz)
+            yield u'<h1 title="%s">%s</h1>'%(self.description, self.content_name)
+            yield u'<br/>'
             if mime.startswith('image/'):
-                html.append('<img src="raw" />')
+                yield u'<img src="raw" style="width: 80%; margin-left: 10%; margin-right: 10%;"/>'
             elif mime in ('application/xml', ) or mime.startswith('text/'):
                 f = self.content.open('r')
-                html.append(u'<pre>')
-                html.append(unicode(f.read(), 'utf-8'))
-                html.append(u'</pre>')
+                yield u'<pre>'
+                yield unicode(f.read(), 'utf-8')
+                yield u'</pre>'
+        else:
+            yield u'<h1>No content :(</h1>'
 
-        return self.render(html=u'\n'.join(html))
 
 class Settings(Page):
     description = 'Drink settings panel'
