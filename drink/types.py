@@ -36,7 +36,8 @@ class _Editable(object):
     def get(self, obj, name):
         return getattr(obj, name)
 
-    set = setattr
+    def set(self, obj, name, val):
+        setattr(obj, name, drink.omni(val))
 
 
 class Choice(_Editable):

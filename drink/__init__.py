@@ -364,7 +364,8 @@ if DEBUG environment variable is set, it will start in debug mode.
             settings.server_backend = config.get('server', 'backend')
             db.db['settings'] = settings
 
-        objs = list(db.db.values())
+        objs = list(db.db['pages'].values())
+        objs.extend(db.db['users'].itervalues())
         for o in objs:
             try:
                 print "+%r"% o.id
