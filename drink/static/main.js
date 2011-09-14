@@ -48,7 +48,11 @@ ui = new Object({
                 if (typeof(elt) == "string") {
                     var text=elt;
                 } else {
-                    if (page_struct._perm.match('w') || page_struct._perm.match(elt.perm)) {
+                    if (
+                        (!elt.condition || eval(elt.condition))
+                        &&
+                        (page_struct._perm.match('w') || page_struct._perm.match(elt.perm))
+                        ) {
                         if (elt.href) {
                           var text='<a class="action '+(elt.style || '')+'"  title="'+elt.title+'" href="'+base_uri+elt.href+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
                         } else {
@@ -69,7 +73,6 @@ ui = new Object({
             } else {
                 $('fieldset.toggler').slideDown('slow');
             }
-
         },
         reload: function() {
             $.ajax({url: 'struct'}).success(ui.main_list.reload).error(function() {$('<div title="Error occured">Listing can\'t be loaded :(</div>').dialog()});
@@ -256,7 +259,7 @@ $(document).ready(function(){
     $('fieldset.toggler').slideUp(0);
 
     // some globals
-    ui.main_list = $("#main_list");
+    ui.main_list = $("#main_list"); // TODO: manage .sortable class
 
     // add some features to jQuery
 
@@ -346,7 +349,6 @@ $(document).ready(function(){
             }
 
             var new_obj = $(template+tpl_ftr);
-
 
             var check_fn = function(e) {
                 if (e.keyCode == 27) {
