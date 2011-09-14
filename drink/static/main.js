@@ -38,12 +38,6 @@ ui = new Object({
                 return;
             }
 
-            if (data.length == 0) {
-                $('fieldset.toggler').slideUp();
-            } else {
-                $('fieldset.toggler').slideDown('slow');
-            }
-
             item_types = data.types;
             data = data.actions;
             var pa = $('#page_actions');
@@ -69,6 +63,13 @@ ui = new Object({
                 if ( text ) { html.push(text); };
             }
             $('#page_actions').html(html.join(''));
+
+            if (data.length == 0) {
+                $('fieldset.toggler').slideUp();
+            } else {
+                $('fieldset.toggler').slideDown('slow');
+            }
+
         },
         reload: function() {
             $.ajax({url: 'struct'}).success(ui.main_list.reload).error(function() {$('<div title="Error occured">Listing can\'t be loaded :(</div>').dialog()});
