@@ -103,12 +103,14 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 ## Release changes
 
 -   Text type can have different subtypes now (ex: password)
--   Basic support of gmail calendars in calendar object
 -   As always: Fixes & Bugs
 -   Gcalendar support for Calendar (+ extended Task object)
--   Jquery updated (1.6.1)
+-   Jquery updated
 -   Simple "duration" type
-
+-   Javascript refactor
+-   Introduction of a simple generic actions framework
+-   D&Drop form is more integrated
+-   Templates dropped support for static HTML, more and more content will come with js/jQuery + JSON
 
 ## Roadmap
 

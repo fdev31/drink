@@ -46,12 +46,13 @@ for line in open('setup.py'):
 
 # Update README.rst file with README.md content
 # setting drink version at the same time
-step('pandoc -f markdown -t rst --sanitize-html -S --strict README.md -o README.rst')
+step('markdown README.md -e utf-8 | sed "s/DRINK_VERSION/%s/g" | ./html2rst.py > README.rst'%new_tag)
 readme = open('README.rst').read()
-open('README.rst', 'w').write(readme.replace('DRINK_VERSION', new_tag))
 
 if 'DEBUG' in os.environ:
     raise SystemExit()
+else:
+    raw_input('LAST CHANCE TO QUIT, PRESS ENTER TO CONTINUE'.center())
 
 ## update setup.py according to new tag & commit this version
 open('setup.py', 'w').writelines(lines)
