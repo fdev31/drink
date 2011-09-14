@@ -1,4 +1,8 @@
-include https://github.com/crustymonkey/py-sonic object
+- for css not starting with '/' or 'http://' just compile it:
+     scss.Scss().compile(css)
+   and allow it inclusion in template
+
+include a https://github.com/crustymonkey/py-sonic object
 - do a manage_dom() function that processes javascript events on special classes
   - call it from anywhere we create objects
   - make most of the javascript stuff generic, automated via special classes

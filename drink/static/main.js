@@ -1,5 +1,5 @@
 // globals
-debug = true;
+debug = false;
 
 Keys = {
     BACK: 8,
@@ -471,7 +471,6 @@ $(document).ready(function(){
     $('input.completable[complete_type=objpath]').keyup(function(e) {
         if (e.which < 64) return;
         var o = $(this);
-        console.log(o);
         get_matching_elts(o.val(), function(items, path) {
                     $(o).parent().find('.completed').remove();
                     if (items.length > 1) {
@@ -508,18 +507,18 @@ $(document).ready(function(){
     // drop edit form's droppable, FIXME: is this code executed ?
     $('.edit_form').droppable({
         drop: function(event, ui) {
-            console.log('This code is executed #343 drop');
+            if(debug) console.log('This code is executed #343 drop');
             $(this).removeClass("selected");
     		$($(this)[0][0]).val(ui.draggable.data('item').replace(/&/g, '%26').replace(/\?/g, '%3f'));
             $(this).attr("action", ui.draggable.data('item')+"/edit");
 			$(this).submit();
         },
         over: function(event, ui) {
-            console.log('This code is executed #343 over');
+            if(debug) console.log('This code is executed #343 over');
             $(this).addClass('selected');
         },
 		out: function(event, ui) {
-            console.log('This code is executed #343 out');
+            if(debug) console.log('This code is executed #343 out');
 		    $(this).removeClass("selected");
 		}
     });

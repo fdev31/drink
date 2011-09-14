@@ -47,9 +47,9 @@ Just fetch the source archive and unpack it:
 
 ::
 
-     wget
-     http://pypi.python.org/packages/source/d/drink/drink-0.0.10.tar.bz2
-     tar jxvf drink-0.0.10.tar.bz2
+     wget http://pypi.python.org/packages/source/d/drink/drink-
+     DRINK_VERSION.tar.bz2
+     tar jxvf drink-DRINK_VERSION.tar.bz2
 
 Running
 ~~~~~~~
@@ -58,7 +58,7 @@ Just go into the unpacked drink directory and execute the "manage" script:
 
 ::
 
-     cd drink-0.0.10
+     cd drink-DRINK_VERSION
      ./manage
 
 
