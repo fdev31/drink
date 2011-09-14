@@ -11,6 +11,8 @@ from drink.zdb import Model
 from . import classes
 import bottle
 
+__all__ = ['Page', 'ListPage', 'WebFile', 'Settings']
+
 # TODO: Create a "BigListPage" (aka BigFolder) inheriting OOBtree & Page
 
 class _Mock(object): pass
@@ -94,8 +96,6 @@ class Page(Model):
             drink.types.Text("Every user's permissions (wrta)", group="x_permissions"),
         'write_groups':
             drink.types.GroupCheckBoxes("Write-enabled groups", group="x_permissions"),
-        'disable_ajax' :
-            drink.types.BoolOption('Disable Js')
     }
 
     #: actions
@@ -121,8 +121,6 @@ class Page(Model):
 
     #: mime-type of the object, used for icon
     mime = 'page'
-    #: object may read this to disable some ajax
-    disable_ajax = False
     #: list of css files required by this object
     css = []
     #: html content, used by default in :meth:`view`
@@ -569,5 +567,36 @@ class WebFile(Page):
                 html.append(u'</pre>')
 
         return self.render(html=u'\n'.join(html))
+
+class Settings(Page):
+    description = 'Drink settings panel'
+    default_action = 'edit'
+    classes = {}
+    server_backend = 'auto'
+    server_port = 5000
+    server_address = '0.0.0.0'
+    debug_framework = 'auto'
+    active_objects = set('generic users tasks markdown finder filesystem sonic'.split())
+
+    owner_fields = {}
+
+    editable_fields = {
+        'server_backend': drink.types.Choice('WSGI server', group='server', options={
+            'Paste': 'paste',
+            'Bjoern': 'bjoern',
+            'Gevent': 'gevent',
+            'Debug mode': 'debug',
+            'Automatic': 'drink',
+            }),
+        'server_port': drink.types.Int('HTTP port', group='server_addr2'),
+        'server_address': drink.types.Text('Server address', group='server_addr1'),
+        'debug_framework': drink.types.Choice('Debug framework', group='debug', options={
+            'Weberror middleware': 'weberror',
+            'werkzeug.debug': 'werkzeug',
+            'repoze.debug': 'repoze',
+            'Automatic': 'auto',
+            }),
+        'active_objects': drink.types.CheckboxSet('Enabled modules', group='plugins', options=active_objects),
+    }
 
 exported = {'Folder index': ListPage, 'WebFile': WebFile}

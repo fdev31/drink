@@ -48,7 +48,7 @@ def omni(txt):
 # Load Basic objects
 from .objects import classes, get_object, init as init_objects
 from . import types
-from .objects.generic import Page, ListPage, Model
+from .objects.generic import Page, ListPage, Model, Settings
 
 # Finally load all the objects
 
@@ -286,17 +286,27 @@ def init():
         users.write_groups = set()
         users.min_rights = 't'
 
-        for pagename, name in config.items('layout'):
-            elt = classes[ name ](pagename, '/')
-            root[pagename] = elt
+        settings = Settings('settings', '/')
+        settings.server_backend = config.get('server', 'backend')
+        settings.server_port = config.get('server', 'port')
+        settings.server_address = config.get('server', 'address')
+        settings.debug_framework = config.get('server', 'debug')
+        settings.active_objects = set(config.items('objects'))
 
-        if 'pages' in root:
-            mdown = classes['Web page (markdown)']('help', '/pages/')
-            help = os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, "HELP.md"))
-            mdown.content = open(help).read()
-            mdown.owner = admin
-            mdown.min_rights = 'r'
-            root['pages']['help'] = mdown
+        root['settings'] = settings
+
+        root['pages'] = Page('pages', '/')
+
+        # deploy layout
+        for pagename, name in config.items('layout'):
+            root[pagename] = classes[ name ](pagename, '/')
+
+        mdown = classes['Web page (markdown)']('help', '/pages/')
+        help = os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, "HELP.md"))
+        mdown.content = open(help).read()
+        mdown.owner = admin
+        mdown.min_rights = 'r'
+        root['pages']['help'] = mdown
 
 
 def startup():
@@ -337,6 +347,15 @@ if DEBUG environment variable is set, it will start in debug mode.
     elif len(sys.argv) == 2 and sys.argv[1] == "rebuild":
 
         from .zdb import Blob, DataBlob
+
+        if not 'settings' in db.db:
+            # TODO: request.identity.user = admin
+            admin = db.db['users']['admin']
+            request.identity = Authenticator()
+            request.identity.user = admin
+            settings = Settings('settings', '/')
+            settings.server_backend = config.get('server', 'backend')
+            db.db['settings'] = settings
 
         objs = list(db.db.values())
         for o in objs:
