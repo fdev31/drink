@@ -103,6 +103,8 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 ## Current release changes
 
 -   Text type can have different subtypes now (ex: password)
+-   New type: Choice
+-   Settings can be changed within drink
 -   Gcalendar support for Calendar (+ extended Task object)
 -   Jquery updated
 -   Simple "duration" type
