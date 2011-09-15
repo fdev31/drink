@@ -571,30 +571,33 @@ $(document).ready(function(){
     // Some shortcuts
     add_shortcut('DOWN', function() {
         if (ui.current_index < $('ul > li.entry').length - 1) {
-            if (ui.current_index >= 0) {
-                $($('ul > li.entry')[ui.current_index].children[0]).removeClass('highlighted');
-            }
-            ui.current_index += 1;
-            var n = $($('ul > li.entry')[ui.current_index].children[0]);
+            var n = $($('ul > li.entry')[++ui.current_index].children[0]);
             n.addClass('highlighted');
             n.focus();
             n.trigger('click');
             n.center();
+            if (ui.current_index > 0) {
+                $($('ul > li.entry')[ui.current_index-1].children[0]).removeClass('highlighted');
+            }
         }
     });
     add_shortcut('UP', function() {
         if (ui.current_index > 0) {
-            $($('ul > li.entry')[ui.current_index].children[0]).removeClass('highlighted');
-            ui.current_index -= 1;
-            var n = $($('ul > li.entry')[ui.current_index].children[0]);
+            var n = $($('ul > li.entry')[--ui.current_index].children[0]);
             n.addClass('highlighted');
             n.trigger('click');
             n.center();
+            $($('ul > li.entry')[ui.current_index+1].children[0]).removeClass('highlighted');
         }
     });
     add_shortcut('ENTER', function() {
         if (ui.current_index > -1) {
             window.location = $($('ul > li.entry > a')[ui.current_index]).attr('href');
+        }
+    });
+    add_shortcut('DEL', function() {
+        if (ui.current_index > -1) {
+            ui.main_list.remove_entry( $($('ul > .entry')[ui.current_index]).data('item') );
         }
     });
     add_shortcut('BACK', function() {
