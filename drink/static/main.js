@@ -71,7 +71,7 @@ ui = new Object({
             if (data.length == 0) {
                 $('fieldset.toggler').slideUp();
             } else {
-                $('fieldset.toggler').slideDown('slow');
+                $('fieldset.toggler').delay(500).slideDown('slow');
             }
         },
         reload: function() {
