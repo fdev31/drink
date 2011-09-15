@@ -54,7 +54,11 @@ ui = new Object({
                         (page_struct._perm.match('w') || page_struct._perm.match(elt.perm))
                         ) {
                         if (elt.href) {
-                          var text='<a class="action '+(elt.style || '')+'"  title="'+elt.title+'" href="'+base_uri+elt.href+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
+                            if(!!elt.href.match(/\/$/)) {
+                                var text='<a class="action '+(elt.style || '')+'"  title="'+elt.title+'" href="'+elt.href+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
+                            } else {
+                                var text='<a class="action '+(elt.style || '')+'"  title="'+elt.title+'" href="'+base_uri+elt.href+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
+                            }
                         } else {
                           var text='<a class="action '+(elt.style || '')+'" title="'+elt.title+'" onclick="'+elt.onclick+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
                           if (elt.key)

@@ -105,6 +105,7 @@ class Page(Model):
         return {'actions' : self._actions, 'types': self.classes.keys()}
 
     _actions = [
+        dict(title="Help", href="/pages/help/", perm="r", icon="help"),
         dict(title="Back", onclick="if(!!document.location.pathname.match(/\/$/)) {document.location.href='../'} else{document.location.href='./'}", perm="r", icon="undo"),
         dict(title="View/Reload", onclick="document.location.href = base_uri", icon="view", perm='r'),
         dict(title="Edit", style="edit_form", href="edit", icon="edit", perm='w'),
