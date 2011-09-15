@@ -610,6 +610,10 @@ $(document).ready(function(){
     add_shortcut('E', function() {
         window.location = base_uri+'edit';
     });
+    add_shortcut('ESC', function() {
+        $($('ul > li.entry')[ui.current_index].children[0]).removeClass('highlighted');
+        ui.current_index = -1;
+    });
     add_shortcut('L', function() {
         window.location = base_uri+'list';
     });
@@ -617,7 +621,7 @@ $(document).ready(function(){
         window.location = base_uri+'view';
     });
     add_shortcut('H', function() {
-        $('<div title="Keyboard shortcuts"><ul><li>[E]dit</li><li>[S]earch</li><li>[L]ist</li><li>[V]iew</li><li>BACKSPACE: one level up</li><li>[DEL]ete</li><li>ENTER</li></ul></div>').dialog();
+        $('<div title="Keyboard shortcuts"><ul><li>[E]dit</li><li>[S]earch</li><li>[L]ist</li><li>[V]iew</li><li>BACKSPACE: one level up</li><li>UP/DOWN: change selection</li><li>[DEL]ete</li><li>[ENTER]</li><li>ESCAPE: close dialogs</li></ul></div>').dialog({width: '40ex'});
     });
 // end of statup code
 });
