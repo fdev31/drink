@@ -616,5 +616,8 @@ $(document).ready(function(){
     add_shortcut('V', function() {
         window.location = base_uri+'view';
     });
+    add_shortcut('H', function() {
+        $('<div title="Keyboard shortcuts"><ul><li>[E]dit</li><li>[S]earch</li><li>[L]ist</li><li>[V]iew</li><li>BACKSPACE: one level up</li><li>[DEL]ete</li><li>ENTER</li></ul></div>').dialog();
+    });
 // end of statup code
 });
