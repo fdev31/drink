@@ -32,3 +32,12 @@ setup(
     packages=find_packages(),
     install_requires = ['setuptools', 'jinja2', 'markdown', 'ZODB3', 'whoosh>=2.2', 'fs>=0.3', 'bottle>=0.9.6'],
 )
+# mkvirtualenv foo --no-site-packages
+# source foo/bin/activate
+# foo/bin/pip install  bottle jinja2 markdown ZODB3 whoosh fs || (echo "Basic dependencies installation failed!" ; exit 1)
+# foo/bin/pip install setproctitle
+# foo/bin/pip install repoze.debug
+# foo/bin/pip install weberror
+# foo/bin/pip install gevent
+# foo/bin/pip install Paste
+# foo/bin/pip install bjoern
