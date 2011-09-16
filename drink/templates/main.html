@@ -42,7 +42,7 @@
 
         {% if not no_admin and authenticated and obj.id != '.' %}
         <fieldset class="toggler" id="commands">
-            <legend onclick="$('#commands .togglable').slideToggle('slow');">{{authenticated.id}}</legend>
+            <legend onclick="$('#commands .togglable').slideToggle('slow');">{{authenticated.id}} <a onclick="$('#commands').fadeOut('slow')">[x]</a></legend>
             <div class="togglable" >
             <div id="user_actions" >
             <a title="Account settings" href="/users/{{authenticated.id|e}}/edit"><img class="icon" src="/static/actions/personal.png" alt="your account icon" /></a>

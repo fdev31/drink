@@ -54,7 +54,11 @@ ui = new Object({
                         (page_struct._perm.match('w') || page_struct._perm.match(elt.perm))
                         ) {
                         if (elt.href) {
-                          var text='<a class="action '+(elt.style || '')+'"  title="'+elt.title+'" href="'+base_uri+elt.href+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
+                            if(!!elt.href.match(/\/$/)) {
+                                var text='<a class="action '+(elt.style || '')+'"  title="'+elt.title+'" href="'+elt.href+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
+                            } else {
+                                var text='<a class="action '+(elt.style || '')+'"  title="'+elt.title+'" href="'+base_uri+elt.href+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
+                            }
                         } else {
                           var text='<a class="action '+(elt.style || '')+'" title="'+elt.title+'" onclick="'+elt.onclick+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
                           if (elt.key)
@@ -567,30 +571,33 @@ $(document).ready(function(){
     // Some shortcuts
     add_shortcut('DOWN', function() {
         if (ui.current_index < $('ul > li.entry').length - 1) {
-            if (ui.current_index >= 0) {
-                $($('ul > li.entry')[ui.current_index].children[0]).removeClass('highlighted');
-            }
-            ui.current_index += 1;
-            var n = $($('ul > li.entry')[ui.current_index].children[0]);
+            var n = $($('ul > li.entry')[++ui.current_index].children[0]);
             n.addClass('highlighted');
             n.focus();
             n.trigger('click');
             n.center();
+            if (ui.current_index > 0) {
+                $($('ul > li.entry')[ui.current_index-1].children[0]).removeClass('highlighted');
+            }
         }
     });
     add_shortcut('UP', function() {
         if (ui.current_index > 0) {
-            $($('ul > li.entry')[ui.current_index].children[0]).removeClass('highlighted');
-            ui.current_index -= 1;
-            var n = $($('ul > li.entry')[ui.current_index].children[0]);
+            var n = $($('ul > li.entry')[--ui.current_index].children[0]);
             n.addClass('highlighted');
             n.trigger('click');
             n.center();
+            $($('ul > li.entry')[ui.current_index+1].children[0]).removeClass('highlighted');
         }
     });
     add_shortcut('ENTER', function() {
         if (ui.current_index > -1) {
             window.location = $($('ul > li.entry > a')[ui.current_index]).attr('href');
+        }
+    });
+    add_shortcut('DEL', function() {
+        if (ui.current_index > -1) {
+            ui.main_list.remove_entry( $($('ul > .entry')[ui.current_index]).data('item') );
         }
     });
     add_shortcut('BACK', function() {
@@ -603,11 +610,18 @@ $(document).ready(function(){
     add_shortcut('E', function() {
         window.location = base_uri+'edit';
     });
+    add_shortcut('ESC', function() {
+        $($('ul > li.entry')[ui.current_index].children[0]).removeClass('highlighted');
+        ui.current_index = -1;
+    });
     add_shortcut('L', function() {
         window.location = base_uri+'list';
     });
     add_shortcut('V', function() {
         window.location = base_uri+'view';
+    });
+    add_shortcut('H', function() {
+        $('<div title="Keyboard shortcuts"><ul><li>[E]dit</li><li>[S]earch</li><li>[L]ist</li><li>[V]iew</li><li>BACKSPACE: one level up</li><li>UP/DOWN: change selection</li><li>[DEL]ete</li><li>[ENTER]</li><li>ESCAPE: close dialogs</li></ul></div>').dialog({width: '40ex'});
     });
 // end of statup code
 });
