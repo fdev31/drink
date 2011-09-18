@@ -560,17 +560,19 @@ class WebFile(Page):
         if self.content:
             mime = self.mimetype
             sz = os.stat(self.content.filename).st_size
-
-            yield u'<div class="download">Download file (%sB) <a href="raw"><img src="/static/actions/download.png" title="Click here to download"/></a></div>'%drink.bytes2human(sz)
-            yield u'<h1 title="%s">%s</h1>'%(self.description, self.content_name)
-            yield u'<br/>'
-            if mime.startswith('image/'):
-                yield u'<img src="raw" style="width: 80%; margin-left: 10%; margin-right: 10%;"/>'
-            elif mime in ('application/xml', ) or mime.startswith('text/'):
-                f = self.content.open('r')
-                yield u'<pre>'
-                yield unicode(f.read(), 'utf-8')
-                yield u'</pre>'
+            if not sz:
+                yield u'<h1>No content :(</h1>')
+            else:
+                yield u'<div class="download">Download file (%sB) <a href="raw"><img src="/static/actions/download.png" title="Click here to download"/></a></div>'%drink.bytes2human(sz)
+                yield u'<h1 title="%s">%s</h1>'%(self.description, self.content_name)
+                yield u'<br/>'
+                if mime.startswith('image/'):
+                    yield u'<img src="raw" style="width: 80%; margin-left: 10%; margin-right: 10%;"/>'
+                elif mime in ('application/xml', ) or mime.startswith('text/'):
+                    f = self.content.open('r')
+                    yield u'<pre>'
+                    yield unicode(f.read(), 'utf-8')
+                    yield u'</pre>'
         else:
             yield u'<h1>No content :(</h1>'
 
