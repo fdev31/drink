@@ -150,5 +150,5 @@ add_hook_add_item(reload_page);
 _title = 'Web page (markdown)'
 
 exported = {_title: MarkdownPage}
-drink.Page.upload_map['md'] = _title
 
+drink.add_upload_handler('md txt'.split(), _title)

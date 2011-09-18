@@ -52,6 +52,12 @@ from .objects import classes, get_object, init as init_objects
 from . import types
 from .objects.generic import Page, ListPage, Model
 
+def add_upload_handler(ext, obj_name):
+    if isinstance(ext, basestring):
+        ext = [ext]
+    for e in ext:
+        Page.upload_map[e] = obj_name
+
 # Finally load all the objects
 
 init_objects()
