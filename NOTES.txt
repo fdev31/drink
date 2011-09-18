@@ -1,3 +1,11 @@
+- for css not starting with '/' or 'http://' just compile it:
+     scss.Scss().compile(css)
+   and allow it inclusion in template
+- do a manage_dom() function that processes javascript events on special classes
+  - call it from anywhere we create objects
+  - make most of the javascript stuff generic, automated via special classes
+  - make the "link" javascript code for markdown pages
+- move function with completion [ FIX accents support ]
 - Rewrite & rename:
     PyRat[atouille] - Cooking The Web
         pyrat-init , pyrat-manage

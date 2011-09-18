@@ -31,11 +31,16 @@ if i >= 0:
 # http
 from bottle import route, static_file, request, response, redirect as rdr, abort
 # templating
-import functools
-template = functools.partial(bottle.template, req=request, template_adapter=bottle.Jinja2Template)
 from urllib import unquote
 # json
 dumps = bottle.JSONPlugin().json_dumps
+
+def bytes2human(num):
+    for u in ('k', 'M', 'G'):
+        num /= 1000.0
+        if num < 951:
+            break
+    return u'%.1f %s'%(num, u)
 
 def omni(txt):
     if isinstance(txt, unicode):
@@ -50,7 +55,7 @@ def omni(txt):
 # Load Basic objects
 from .objects import classes, get_object, init as init_objects
 from . import types
-from .objects.generic import Page, ListPage, Model
+from .objects.generic import Page, ListPage, Model, Settings
 
 def add_upload_handler(ext, obj_name):
     if isinstance(ext, basestring):
@@ -59,15 +64,14 @@ def add_upload_handler(ext, obj_name):
         Page.upload_map[e] = obj_name
 
 # Finally load all the objects
-
 init_objects()
 del init_objects
 
 # Setup db
-
 from .zdb import Database
 db = Database(bottle.app(), DB_CONFIG)
 import transaction
+
 
 def unauthorized(message='Action NOT allowed'):
     # TODO: handler srcuri + redirect
@@ -211,8 +215,9 @@ def log_in():
         </form>
 
         '''
-        return template('main.html', html=html, obj=db.db, css=[], js=[],
-            embed='', classes={}, authenticated=request.identity)
+        return bottle.jinja2_template('main.html', html=html, obj=db.db, css=[], js=[],
+            isstring=lambda x: isinstance(x, basestring),
+            embed='', classes={}, req=request, authenticated=request.identity)
 
 
 @route("/logout", method=['GET', 'POST'])
@@ -293,17 +298,27 @@ def init():
         users.write_groups = set()
         users.min_rights = 't'
 
-        for pagename, name in config.items('layout'):
-            elt = classes[ name ](pagename, '/')
-            root[pagename] = elt
+        settings = Settings('settings', '/')
+        settings.server_backend = config.get('server', 'backend')
+        settings.server_port = int(config.get('server', 'port'))
+        settings.server_address = config.get('server', 'address')
+        settings.debug_framework = config.get('server', 'debug')
+        settings.active_objects = set(config.items('objects'))
 
-        if 'pages' in root:
-            mdown = classes['Web page (markdown)']('help', '/pages/')
-            help = os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, "HELP.md"))
-            mdown.content = open(help).read()
-            mdown.owner = admin
-            mdown.min_rights = 'r'
-            root['pages']['help'] = mdown
+        root['settings'] = settings
+
+        root['pages'] = Page('pages', '/')
+
+        # deploy layout
+        for pagename, name in config.items('layout'):
+            root[pagename] = classes[ name ](pagename, '/')
+
+        mdown = classes['Web page (markdown)']('help', '/pages/')
+        help = os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, "HELP.md"))
+        mdown.content = open(help).read()
+        mdown.owner = admin
+        mdown.min_rights = 'r'
+        root['pages']['help'] = mdown
 
 
 def startup():
@@ -345,7 +360,17 @@ if DEBUG environment variable is set, it will start in debug mode.
 
         from .zdb import Blob, DataBlob
 
-        objs = list(db.db.values())
+        if not 'settings' in db.db:
+            # TODO: request.identity.user = admin
+            admin = db.db['users']['admin']
+            request.identity = Authenticator()
+            request.identity.user = admin
+            settings = Settings('settings', '/')
+            settings.server_backend = config.get('server', 'backend')
+            db.db['settings'] = settings
+
+        objs = list(db.db['pages'].values())
+        objs.extend(db.db['users'].itervalues())
         for o in objs:
             try:
                 print "+%r"% o.id
@@ -410,7 +435,6 @@ if DEBUG environment variable is set, it will start in debug mode.
                     except (UnicodeError, TypeError), e:
                         import pdb; pdb.set_trace()
             for field in f_set:
-                print field
                 try:
                     _d = getattr(o, field)
                     if isinstance(_d, basestring):

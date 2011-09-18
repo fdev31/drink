@@ -8,11 +8,10 @@ import drink
 import datetime
 import transaction
 from . import classes
-from drink import template, omni
+from drink import omni
 from drink.zdb import DataBlob
 from time import mktime, strptime
 from persistent.dict import PersistentDict
-
 
 class _Editable(object):
 
@@ -37,23 +36,39 @@ class _Editable(object):
     def get(self, obj, name):
         return getattr(obj, name)
 
-    set = setattr
-
-class EasyPermissions(_Editable):
-    def html(self, name, value, _template=None):
-        return """
-        <div class="option" onclick="$('#edit_read_groups input').each( function() { $(this).attr('checked', false ) } ) ; $('#edit_write_groups input').each( function() { $(this).attr('checked', false ) } )">
-        Private document</div>
-        <div class="option" onclick="$('#edit_read_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/^users|admin$/) ) } ) ; $('#edit_write_groups input').each( function() { $(this).attr('checked', false ) } ) ">
-        Users can only consult</div>
-        <div class="option" onclick="$('#edit_read_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/^users|admin$/) ) } ) ; $('#edit_write_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/^users|admin$/) ) } ) ">
-        Users can change content</div>
-        <div class="option" onclick="$('#edit_read_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/^users|anonymous|admin$/) ) } ) ">
-        Everybody can see</div>
-        """
-
     def set(self, obj, name, val):
-        return
+        setattr(obj, name, drink.omni(val))
+
+
+class Choice(_Editable):
+
+    _template = None
+
+    def __init__(self, caption=None, options=None, group=None):
+        if options is None:
+            raise ValueError('Choice must get an options parameter which is either a dict or a list of tuples ((label, value),(label2, value2),...)! (you can also use a callable returning the attribute)')
+        if isinstance(options, dict): # unordered dict
+            self._options = options.items()
+        else: # ordered list of tuples
+            self._options = options
+        _Editable.__init__(self, caption, group)
+
+    def html(self, name, value, _template=None, no_label=False):
+        if callable(self._options):
+            o = self._options()
+        else:
+            o = self._options
+
+        options = '\n'.join('<option value="%s" %s>%s</option>'%(
+                v[1],
+                ' selected="selected" ' if v[1] == value else '',
+                v[0])
+            for v in o)
+
+        return _Editable.html(self, name, value,
+            _template=r'<select class="select" id="%(id)s" name="%(name)s">'+options+r'</select>',
+            no_label=no_label)
+
 
 class Text(_Editable):
 
@@ -98,12 +113,12 @@ def str2d(text):
     except AttributeError:
         return text
 
-class Date(Text):
+class Date(_Editable):
 
     _template = r'''<input class="auto_date" type="text" size="%(size)d" id="%(id)s" value="%(value)s" name="%(name)s" />'''
 
-    def __init__(self, caption=None, group=None, size=10):
-        Text.__init__(self, caption, group, size)
+    def __init__(self, caption=None, group=None):
+        _Editable.__init__(self, caption, group)
 
     def set(self, obj, name, val):
         setattr(obj, name, str2d(val))
@@ -112,7 +127,7 @@ class Date(Text):
         return dt2str(getattr(obj, name))
 
     def html(self, name, value, _template=None, no_label=False):
-        return Text.html(self, name, dt2str(value), _template, no_label)
+        return _Editable.html(self, name, dt2str(value), _template, no_label)
 
 
 class TextArea(_Editable):
@@ -174,27 +189,35 @@ class BoolOption(_Editable):
 
 class CheckboxSet(_Editable):
 
-    def __init__(self, caption=None, group=None, values=[]):
-        """ values: set of valid Ids
+    def __init__(self, caption=None, group=None, options=None):
+        """ values: set of valid Ids (or tuple (caption,value) or a dict of {caption: value}
                 OR a callable returning this object """
         _Editable.__init__(self, caption, group)
-        self.values = values
+        self.options = options
+
     @property
     def v(self):
-        return self.values() if callable(self.values) else self.values
+        if callable(self.options):
+            o = self.options()
+        else:
+            o = self.options
+
+        if isinstance(o, dict):
+            return o.items()
+        else:
+            return [(v,v) for v in o]
 
     def html(self, name, values):
-        all_ids = self.v
 
-        opts = [r'<input type="checkbox" name=%(name)s value="'+o+'" '+\
-            ('checked="checked" />' if o in values else '/>')+'<span class="label'+\
-            (' '+'selected' if o in values else '')+r'">'+o+'</span>'
-            for o in all_ids]
+        opts = [r'<input type="checkbox" name=%(name)s value="'+o[1]+'" '+\
+            ('checked="checked" />' if o[1] in values else '/>')+'<span class="label'+\
+            (' '+'selected' if o[1] in values else '')+r'">'+o[0]+'</span>'
+            for o in self.v]
         return _Editable.html(self, name, None, '\n'.join(opts))
 
     def set(self, obj, name, val):
         values = drink.request.forms.getall(name)
-        all_values = set(self.v)
+        all_values = set(o[1] for o in self.v)
         all_values.intersection_update(values)
         setattr(obj, name, all_values)
 
@@ -264,3 +287,19 @@ class File(_Editable):
             o_fd.close()
 
         setattr(obj, name, new_o)
+
+class EasyPermissions(_Editable):
+    def html(self, name, value, _template=None):
+        return """
+        <div class="option" onclick="$('#edit_read_groups input').each( function() { $(this).attr('checked', false ) } ) ; $('#edit_write_gro
+        Private document</div>
+        <div class="option" onclick="$('#edit_read_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/
+        Users can only consult</div>
+        <div class="option" onclick="$('#edit_read_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/
+        Users can change content</div>
+        <div class="option" onclick="$('#edit_read_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/
+        Everybody can see</div>
+        """
+
+    def set(self, obj, name, val):
+        return

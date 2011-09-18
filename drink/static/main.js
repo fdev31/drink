@@ -1,5 +1,5 @@
 // globals
-debug = true;
+debug = false;
 
 Keys = {
     BACK: 8,
@@ -34,14 +34,8 @@ ui = new Object({
         load_action_list: function(data) {
 
             if ( !data || !data.actions && !data.types  )  {
-                $('fieldset.toggler').fadeOut();
+                $('fieldset.toggler').slideUp();
                 return;
-            }
-
-            if (data.length == 0) {
-                $('fieldset.toggler').fadeOut();
-            } else {
-                $('fieldset.toggler').fadeIn();
             }
 
             item_types = data.types;
@@ -54,9 +48,17 @@ ui = new Object({
                 if (typeof(elt) == "string") {
                     var text=elt;
                 } else {
-                    if (page_struct._perm.match('w') || page_struct._perm.match(elt.perm)) {
+                    if (
+                        (!elt.condition || eval(elt.condition))
+                        &&
+                        (page_struct._perm.match('w') || page_struct._perm.match(elt.perm))
+                        ) {
                         if (elt.href) {
-                          var text='<a class="action '+(elt.style || '')+'"  title="'+elt.title+'" href="'+base_uri+elt.href+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
+                            if(!!elt.href.match(/\/$/)) {
+                                var text='<a class="action '+(elt.style || '')+'"  title="'+elt.title+'" href="'+elt.href+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
+                            } else {
+                                var text='<a class="action '+(elt.style || '')+'"  title="'+elt.title+'" href="'+base_uri+elt.href+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
+                            }
                         } else {
                           var text='<a class="action '+(elt.style || '')+'" title="'+elt.title+'" onclick="'+elt.onclick+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
                           if (elt.key)
@@ -69,6 +71,12 @@ ui = new Object({
                 if ( text ) { html.push(text); };
             }
             $('#page_actions').html(html.join(''));
+
+            if (data.length == 0) {
+                $('fieldset.toggler').slideUp();
+            } else {
+                $('fieldset.toggler').delay(500).slideDown('slow');
+            }
         },
         reload: function() {
             $.ajax({url: 'struct'}).success(ui.main_list.reload).error(function() {$('<div title="Error occured">Listing can\'t be loaded :(</div>').dialog()});
@@ -230,28 +238,32 @@ function get_matching_elts(path_elt, callback) {
     if (path_elt.match('/')) {
         var _elts = path_elt.split('/');
         _elts.filter(function(e) { if (!!e) return true; });
+        url = [document.location.origin];
         for (n=0;n<_elts.length;n++) {
             if (n == _elts.length-1) {
                 pattern = _elts[n];
             } else {
-                url = _elts[n];
+                url.push(_elts[n]);
             }
         }
-        url = url + "match?pattern=" + pattern;
+        url.push("/match?pattern=" + pattern);
+        url = url.join('/');
     } else {
         pattern  = path_elt;
-        url = document.location.pathname + "match?pattern=" + pattern;
+        url = base_uri + "match?pattern=" + pattern;
     };
+    var cur_path = path_elt;
     // AJAX URL
-    $.get(url).success(function(data) { callback(data.items) } );
+    $.get(url).success(function(data) { callback(data.items, cur_path) } );
 }
 
 /////// INIT/STARTUP STUFF
 
 $(document).ready(function(){
+    $('fieldset.toggler').slideUp(0);
 
     // some globals
-    ui.main_list = $("#main_list");
+    ui.main_list = $("#main_list"); // TODO: manage .sortable class
 
     // add some features to jQuery
 
@@ -329,13 +341,13 @@ $(document).ready(function(){
 
         // ADD an entry
         new_entry_dialog: function() {
-             if ( item_types.length <= 1 ) {
+             if ( item_types.length < 1 ) {
                 w = $('<div title="Ooops!">Nothing can be added here, sorry</div>').dialog({closeOnEscape:true});
                 setTimeout(function(){w.fadeOut(function(){w.dialog('close')})}, 2000);
                 return;
              };
             var template = '<div id="new_obj_form"  title="New item informations"><select class="obj_class" class="required" name="class"><option value="" label="Select one item type">Select one item type</option>';
-            var tpl_ftr = '</select><div class="obj_name"><label for="new_obj_name">Name</label><input id="new_obj_name" type="text" name="name" class="required identifier" minlength="2" /></div></div>';
+            var tpl_ftr = '</select><div class="obj_name"><label for="new_obj_name">Name</label><input id="new_obj_name" type="text" name="name" class="obj_name required identifier" minlength="2" /></div></div>';
             for (t=0; t<item_types.length; t++) {
                 template += '<option value="{0}" label="{0}">{0}</option>'.replace(/\{0\}/g, item_types[t]);
             }
@@ -353,17 +365,22 @@ $(document).ready(function(){
                 new_obj.dialog("close");
                 var item = {
                     'class': new_obj.find('.obj_class').val(),
-                    'name': new_obj.find('#new_obj_name').val(),
+                    'name': new_obj.find('input.obj_name').val(),
                 };
                 $.post('add', item, call_hook_add_item);
             }
 
-            new_obj.find('#new_obj_name').keyup(check_fn);
+            new_obj.find('input.obj_name').keyup(check_fn);
 
             new_obj.dialog({
                 modal: true,
                 buttons: [ {text: 'OK', click: validate_fn} ],
             });
+
+            if (item_types.length == 1) {
+                new_obj.find(".obj_class").val(item_types[0]).attr('disabled', true);
+                new_obj.find('input.obj_name').trigger('click').focus();
+            }
         },
         // EDIT
         edit_entry: function(data) {
@@ -458,6 +475,29 @@ $(document).ready(function(){
             return true;
         };
     });
+    $('input.completable[complete_type=objpath]').keyup(function(e) {
+        if (e.which < 64) return;
+        var o = $(this);
+        get_matching_elts(o.val(), function(items, path) {
+                    $(o).parent().find('.completed').remove();
+                    if (items.length > 1) {
+                        var list = items.join(', ');
+                        $('<span class="completed">' + list + '</span>').insertAfter(o);
+                    } else {
+                        if (items.length == 1 ) {
+                            var best_match = items[0];
+                            var components = path.split(/\//);
+                            if ( components && components[components.length-1] != '' ) {
+                                components.pop();
+                            };
+                            components.push(best_match);
+                            components.push('');
+                            o.val(components.join('/'));
+                        }
+                    };
+            }
+        );
+    });
 
     // change style of checkboxes titles in editable spans form
     $('.editable span').click( function() {
@@ -474,18 +514,18 @@ $(document).ready(function(){
     // drop edit form's droppable, FIXME: is this code executed ?
     $('.edit_form').droppable({
         drop: function(event, ui) {
-            console.log('This code is executed #343 drop');
+            if(debug) console.log('This code is executed #343 drop');
             $(this).removeClass("selected");
     		$($(this)[0][0]).val(ui.draggable.data('item').replace(/&/g, '%26').replace(/\?/g, '%3f'));
             $(this).attr("action", ui.draggable.data('item')+"/edit");
 			$(this).submit();
         },
         over: function(event, ui) {
-            console.log('This code is executed #343 over');
+            if(debug) console.log('This code is executed #343 over');
             $(this).addClass('selected');
         },
 		out: function(event, ui) {
-            console.log('This code is executed #343 out');
+            if(debug) console.log('This code is executed #343 out');
 		    $(this).removeClass("selected");
 		}
     });
@@ -531,30 +571,33 @@ $(document).ready(function(){
     // Some shortcuts
     add_shortcut('DOWN', function() {
         if (ui.current_index < $('ul > li.entry').length - 1) {
-            if (ui.current_index >= 0) {
-                $($('ul > li.entry')[ui.current_index].children[0]).removeClass('highlighted');
-            }
-            ui.current_index += 1;
-            var n = $($('ul > li.entry')[ui.current_index].children[0]);
+            var n = $($('ul > li.entry')[++ui.current_index].children[0]);
             n.addClass('highlighted');
             n.focus();
             n.trigger('click');
             n.center();
+            if (ui.current_index > 0) {
+                $($('ul > li.entry')[ui.current_index-1].children[0]).removeClass('highlighted');
+            }
         }
     });
     add_shortcut('UP', function() {
         if (ui.current_index > 0) {
-            $($('ul > li.entry')[ui.current_index].children[0]).removeClass('highlighted');
-            ui.current_index -= 1;
-            var n = $($('ul > li.entry')[ui.current_index].children[0]);
+            var n = $($('ul > li.entry')[--ui.current_index].children[0]);
             n.addClass('highlighted');
             n.trigger('click');
             n.center();
+            $($('ul > li.entry')[ui.current_index+1].children[0]).removeClass('highlighted');
         }
     });
     add_shortcut('ENTER', function() {
         if (ui.current_index > -1) {
             window.location = $($('ul > li.entry > a')[ui.current_index]).attr('href');
+        }
+    });
+    add_shortcut('DEL', function() {
+        if (ui.current_index > -1) {
+            ui.main_list.remove_entry( $($('ul > .entry')[ui.current_index]).data('item') );
         }
     });
     add_shortcut('BACK', function() {
@@ -567,11 +610,18 @@ $(document).ready(function(){
     add_shortcut('E', function() {
         window.location = base_uri+'edit';
     });
+    add_shortcut('ESC', function() {
+        $($('ul > li.entry')[ui.current_index].children[0]).removeClass('highlighted');
+        ui.current_index = -1;
+    });
     add_shortcut('L', function() {
         window.location = base_uri+'list';
     });
     add_shortcut('V', function() {
         window.location = base_uri+'view';
+    });
+    add_shortcut('H', function() {
+        $('<div title="Keyboard shortcuts"><ul><li>[E]dit</li><li>[S]earch</li><li>[L]ist</li><li>[V]iew</li><li>BACKSPACE: one level up</li><li>UP/DOWN: change selection</li><li>[DEL]ete</li><li>[ENTER]</li><li>ESCAPE: close dialogs</li></ul></div>').dialog({width: '40ex'});
     });
 // end of statup code
 });

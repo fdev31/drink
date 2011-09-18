@@ -43,7 +43,7 @@ class TODO(drink.Page):
 
     @property
     def html(self):
-        return '<div><h2>%(title)s</h2><p class="comment">%(date)s at %(start_time)s for %(duration)s hours</p><p class="description">%(content)s</p></div>'%self.__dict__
+        return u'<div><h2>%(title)s</h2><p class="comment">%(date)s at %(start_time)s for %(duration)s hours</p><p class="description">%(content)s</p></div>'%self.__dict__
 
     @property
     def description(self):

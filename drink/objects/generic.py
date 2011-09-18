@@ -6,10 +6,12 @@ from mimetypes import guess_type
 import transaction
 import drink
 from drink import request
-from drink import template
 from drink.types import dt2str
 from drink.zdb import Model
 from . import classes
+import bottle
+
+__all__ = ['Page', 'ListPage', 'WebFile', 'Settings']
 
 # TODO: Create a "BigListPage" (aka BigFolder) inheriting OOBtree & Page
 
@@ -94,8 +96,6 @@ class Page(Model):
             drink.types.Text("Every user's permissions (wrta)", group="x_permissions"),
         'write_groups':
             drink.types.GroupCheckBoxes("Write-enabled groups", group="x_permissions"),
-        'disable_ajax' :
-            drink.types.BoolOption('Disable Js')
     }
 
     #: actions
@@ -105,10 +105,12 @@ class Page(Model):
         return {'actions' : self._actions, 'types': self.classes.keys()}
 
     _actions = [
+        dict(title="Help", href="/pages/help/", perm="r", icon="help"),
+        dict(title="Back", onclick="if(!!document.location.pathname.match(/\/$/)) {document.location.href='../'} else{document.location.href='./'}", perm="r", icon="undo"),
         dict(title="View/Reload", onclick="document.location.href = base_uri", icon="view", perm='r'),
         dict(title="Edit", style="edit_form", href="edit", icon="edit", perm='w'),
         dict(title="List content", href="list", icon="open", perm='r'),
-        dict(title="Add object", style="add_form", onclick="ui.main_list.new_entry_dialog()", key='INS', icon="new", perm='a'),
+        dict(title="Add object", condition="item_types.length!=0", style="add_form", onclick="ui.main_list.new_entry_dialog()", key='INS', icon="new", perm='a'),
         #dict(title="Remove object", onclick="ui.main_list.remove_entry()", icon="delete", perm='w'),
     ]
 
@@ -121,8 +123,6 @@ class Page(Model):
 
     #: mime-type of the object, used for icon
     mime = 'page'
-    #: object may read this to disable some ajax
-    disable_ajax = False
     #: list of css files required by this object
     css = []
     #: html content, used by default in :meth:`view`
@@ -175,6 +175,21 @@ class Page(Model):
         except AttributeError:
             self.owner = request.identity.user
 
+    def render(self, page='main.html', obj=None, css=None, js=None, html=None, embed=None, classes=None, **kw):
+        return bottle.template(page,
+                template_adapter=bottle.Jinja2Template,
+                obj=obj or self,
+                css=css or self.css,
+                js=js or self.js,
+                html=html or self.html,
+                embed=bool(drink.request.params.get('embedded', False)) if embed is None else embed,
+                classes=self.classes if classes is None else classes,
+                isstring=lambda x: isinstance(x, basestring),
+                req=request,
+                authenticated=request.identity,
+                **kw
+            )
+
     def __hash__(self):
         return hash(self.id)
 
@@ -195,9 +210,7 @@ class Page(Model):
 
     def view(self):
         drink.response.content_type = "text/html; charset=utf-8"
-        return drink.template('main.html', obj=self,
-            css=self.css, js=self.js, html=self.html, embed=bool(drink.request.params.get('embedded', False)),
-            classes=self.classes, authenticated=request.identity)
+        return self.render()
 
     def struct(self, childs=True, full=None):
         return get_struct_from_obj(self, childs, full)
@@ -294,8 +307,7 @@ class Page(Model):
                 form.insert(0, '''<form
                  class="auto_edit_form" id="auto_edit_form" action="edit" %s method="post">'''%(' '.join(form_opts)))
 
-            return drink.template('main.html', obj=self, html='\n'.join(form), css=self.css, js=self.js,
-                    embed=embedded, classes=self.classes, authenticated=request.identity)
+            return self.render(html='\n'.join(form))
 
     def _upload(self, obj):
         self.editable_fields['content'].set(self, 'content', obj)
@@ -403,9 +415,7 @@ class Page(Model):
             return drink.rdr(o.quoted_path+'edit')
 
     def list(self):
-        return template('list.html', obj=self, css=self.css, js=self.js,
-                embed=bool(drink.request.params.get('embedded', '')),
-                classes=self.classes, authenticated=request.identity)
+        return self.render('main.html', html=u'<h1>%s</h1>\n<ul id="main_list" class="sortable" />'%self.title)
 
 class ListPage(Page):
     description = u"An ordered folder-like display"
@@ -431,7 +441,11 @@ class ListPage(Page):
         return list(self.forced_order)
 
     def move(self):
-        self.forced_order = unquote(request.params.get('set')).decode('utf-8').split('/')
+        if request.is_ajax:
+            self.forced_order = unquote(request.params.get('set')).decode('utf-8').split('/')
+        else:
+            html = '<input class="completable" complete_type="objpath"></input>'
+            return self.render(html=html)
 
     def itervalues(self):
         for k in self.iterkeys():
@@ -540,21 +554,56 @@ class WebFile(Page):
             self.mimetype = get_type(self.content_name)
         return r
 
-    def view(self):
+    @property
+    def html(self):
         drink.response.content_type = "text/html; charset=utf-8"
-        html = [u'<div class="download"><a href="raw">Download file (original name: %r)</a></div>'%self.content_name]
-
         if self.content:
             mime = self.mimetype
+            sz = os.stat(self.content.filename).st_size
+
+            yield u'<div class="download">Download file (%sB) <a href="raw"><img src="/static/actions/download.png" title="Click here to download"/></a></div>'%drink.bytes2human(sz)
+            yield u'<h1 title="%s">%s</h1>'%(self.description, self.content_name)
+            yield u'<br/>'
             if mime.startswith('image/'):
-                html.append('<img src="raw" />')
+                yield u'<img src="raw" style="width: 80%; margin-left: 10%; margin-right: 10%;"/>'
             elif mime in ('application/xml', ) or mime.startswith('text/'):
                 f = self.content.open('r')
-                html.append(u'<pre>')
-                html.append(unicode(f.read(), 'utf-8'))
-                html.append(u'</pre>')
+                yield u'<pre>'
+                yield unicode(f.read(), 'utf-8')
+                yield u'</pre>'
+        else:
+            yield u'<h1>No content :(</h1>'
 
-        return drink.template('main.html', obj=self, css=self.css, js=self.js, html=u'\n'.join(html), embed=bool(drink.request.get('embedded', '')),
-             classes=self.classes, authenticated=request.identity)
+
+class Settings(Page):
+    description = 'Drink settings panel'
+    default_action = 'edit'
+    classes = {}
+    server_backend = 'auto'
+    server_port = 5000
+    server_address = '0.0.0.0'
+    debug_framework = 'auto'
+    active_objects = set('generic users tasks markdown finder filesystem sonic'.split())
+
+    owner_fields = {}
+
+    editable_fields = {
+        'server_backend': drink.types.Choice('WSGI server', group='server', options={
+            'Paste': 'paste',
+            'Bjoern': 'bjoern',
+            'Gevent': 'gevent',
+            'Debug mode': 'debug',
+            'Automatic': 'drink',
+            }),
+        'server_port': drink.types.Int('HTTP port', group='server_addr2'),
+        'server_address': drink.types.Text('Server address', group='server_addr1'),
+        'debug_framework': drink.types.Choice('Debug framework', group='debug', options={
+            'Weberror middleware': 'weberror',
+            'werkzeug.debug': 'werkzeug',
+            'repoze.debug': 'repoze',
+            'Automatic': 'auto',
+            }),
+        'active_objects': drink.types.CheckboxSet('Enabled modules', group='plugins', options=active_objects),
+    }
 
 exported = {'Folder index': ListPage, 'WebFile': WebFile}

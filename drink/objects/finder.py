@@ -196,13 +196,10 @@ class ObjectBrowser(drink.Page):
         self.lastlog[drink.request.identity.id] = (pattern, matches)
 
         # render
-        return drink.template('main.html', obj=self, html='\n'.join(html),
-                    js=self.js,
-                    embed=bool(drink.request.params.get("embedded", "")),
-                    authenticated=drink.request.identity, classes=self.classes)
+        return self.render(html='\n'.join(html))
 
-    # TODO: Change that to Javascript code, use a refactored `make_li` to create new items
-    def view(self):
+    @property
+    def html(self):
         auth = drink.request.identity
 
         if auth.id in self.lastlog:
@@ -220,10 +217,8 @@ class ObjectBrowser(drink.Page):
             form.append('<h2>Last search</h2>')
 
             form.extend('<li><a href="%(path)s">%(title)s</a></li>'%i for i in items)
+        return '\n'.join(form)
 
-        return drink.template('main.html', obj=self, html='\n'.join(form),
-         js=self.js,
-         authenticated=auth, classes=self.classes, embed=bool(drink.request.params.get("embedded", "")))
 
 init()
 
