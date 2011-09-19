@@ -37,6 +37,7 @@ def get_struct_from_obj(obj, childs, full):
         d['id'] = quote(obj.id.encode('utf-8'))
         d['title'] = obj.title
         d['description'] = obj.description
+        d['logged_in'] = request.identity.success
         d['path'] = quote(obj.rootpath.encode('utf-8'))
         d['mime'] = obj.mime
         d['_perm'] = auth
@@ -561,7 +562,7 @@ class WebFile(Page):
             mime = self.mimetype
             sz = os.stat(self.content.filename).st_size
             if not sz:
-                yield u'<h1>No content :(</h1>')
+                yield u'<h1>No content :(</h1>'
             else:
                 yield u'<div class="download">Download file (%sB) <a href="raw"><img src="/static/actions/download.png" title="Click here to download"/></a></div>'%drink.bytes2human(sz)
                 yield u'<h1 title="%s">%s</h1>'%(self.description, self.content_name)

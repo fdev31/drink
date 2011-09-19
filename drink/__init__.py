@@ -81,7 +81,7 @@ def unauthorized(message='Action NOT allowed'):
         else:
             raise abort(401, message)
     else:
-        rdr('/login')
+        rdr('/login?from='+request.path)
 
 #import cgi
 #def escape(text):
@@ -203,7 +203,8 @@ def log_in():
     if request.forms.get('login_name', ''):
         response.set_cookie('password', request.forms.get('login_password', ''), 'drink')
         response.set_cookie('login', request.forms.get('login_name', ''), 'drink')
-        rdr('/')
+        url = request.params.get('from', '/')
+        rdr(url)
     else:
         html='''
         <form name="login_form" id="login_form" class="autovalidate" action="/login" method="post">
@@ -211,10 +212,11 @@ def log_in():
             <input type="text" class="required" name="login_name" id="ilogin" />
             <label for="ipasswd">Password:</label>
             <input type="password" class="required" name="login_password" id="ipassword" />
+            <input type="hidden" name="from" value="%s" />
             <input class="submit" type="submit" value="Log in!"/>
         </form>
 
-        '''
+        '''%request.params.get('from', '/')
         return bottle.jinja2_template('main.html', html=html, obj=db.db, css=[], js=[],
             isstring=lambda x: isinstance(x, basestring),
             embed='', classes={}, req=request, authenticated=request.identity)
