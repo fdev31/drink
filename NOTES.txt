@@ -1,3 +1,4 @@
+- [login] link whenever not logged in (then clean html & js redirects)
 - for css not starting with '/' or 'http://' just compile it:
      scss.Scss().compile(css)
    and allow it inclusion in template

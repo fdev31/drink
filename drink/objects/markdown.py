@@ -64,7 +64,6 @@ add_hook_add_item(reload_page);
     _template = r'''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<link rel="stylesheet" type="text/css" href="/static/page.css" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>Drink! preview template</title>
 </head>
@@ -150,5 +149,5 @@ add_hook_add_item(reload_page);
 _title = 'Web page (markdown)'
 
 exported = {_title: MarkdownPage}
-drink.Page.upload_map['md'] = _title
 
+drink.add_upload_handler('md txt'.split(), _title)

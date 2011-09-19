@@ -25,7 +25,9 @@ page_struct = {
     items: [],
     mime: "none",
     path:"/",
-    title:"unk"};
+    logged_in: false,
+    title:"unk",
+    };
 
 url_regex = /^(\/|http).+/;
 base_uri = document.location.href.replace(/[^/]*$/, '');
