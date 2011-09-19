@@ -295,7 +295,7 @@ def init():
         settings = Settings('settings', '/')
         settings.server_backend = config.get('server', 'backend')
         settings.server_port = int(config.get('server', 'port'))
-        settings.server_address = config.get('server', 'address')
+        settings.server_address = config.get('server', 'host')
         settings.debug_framework = config.get('server', 'debug')
         settings.active_objects = set(config.items('objects'))
 
