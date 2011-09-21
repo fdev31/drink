@@ -141,6 +141,7 @@ b.match {
 fieldset.toggler {
     > legend {
         cursor: pointer;
+        padding-bottom: 1ex;
     }
 }
 span.toggler {
@@ -303,7 +304,7 @@ STANDARD HTML SET
 */
 body {
 	padding:0;
-	margin: 0 1ex 0 1ex;
+	margin: 0;
 	background-color: $background;
 	font-family: Helvetica, sans-serif;
 	color: $main_color;
@@ -365,24 +366,9 @@ a {
 fieldset {
     margin: 0.5ex 0 0.5ex 0;
     padding: 0 0.5ex 0 0.5ex;
-    border: {
-        bottom: {
-            style: dotted;
-            color: #eee;
-            width: 2px;
-        }
-        right: {
-            style: none;
-        }
-        left: {
-            style: none;
-        }
-        top: {
-            style: solid;
-            width: 2px;
-            color: #eef
-        }
-    }
+    @include single-box-shadow($shadow_color, 0, 3px, 2px, 0px, true);
+    @include background-image(linear-gradient(#fff  10%, #bbb 30%, $background 100%));
+
 }
 input[type="file"] {
     border: none !important;
