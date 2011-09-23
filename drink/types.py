@@ -1,5 +1,6 @@
 __all__ = ['_Editable',
     'Text', 'TextArea', 'GroupListArea', 'GroupCheckBoxes',
+    'Mime', 'Choice',
     'Date',
     'Id', 'Int', 'Password', 'File']
 
@@ -69,6 +70,22 @@ class Choice(_Editable):
             _template=r'<select class="select" id="%(id)s" name="%(name)s">'+options+r'</select>',
             no_label=no_label)
 
+class Mime(Choice):
+    _options = dict((k.capitalize(), k) for k in '''executable
+            folder
+            group
+            groups
+            markdown
+            note
+            page
+            search
+            tasks
+            user'''.split())
+
+    def __init__(self, caption="Icon", options=None, group=None):
+        if options is None:
+            options = self._options
+        Choice.__init__(self, caption, options, group)
 
 class Text(_Editable):
 

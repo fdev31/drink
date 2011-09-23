@@ -505,13 +505,9 @@ class WebFile(Page):
     description = u"Some file"
     classes = {}
 
-    owner_fields = {
-        'read_groups':
-            drink.types.GroupCheckBoxes("Read-enabled groups", group="x_permissions"),
-        'write_groups':
-            drink.types.GroupCheckBoxes("Write-enabled groups", group="x_permissions"),
-        'mime': drink.types.Text(),
-    }
+    owner_fields = Page.owner_fields.copy()
+    owner_fields.pop('default_action')
+    owner_fields['mime'] = drink.types.Mime()
 
     editable_fields = Page.editable_fields.copy()
 
@@ -519,7 +515,7 @@ class WebFile(Page):
         'content':
             drink.types.File("File to upload"),
 #        'content_name': drink.types.Text("File name"),
-        'mimetype': drink.types.Text(),
+        'mimetype': drink.types.Text("mimetype (rendering)"),
     } )
 
     content = ''
