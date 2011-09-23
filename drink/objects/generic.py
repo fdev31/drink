@@ -92,11 +92,11 @@ class Page(Model):
         'easy_permissions':
             drink.types.EasyPermissions("EZ !", group="x_permissiona"),
         'read_groups':
-            drink.types.GroupCheckBoxes("Read-enabled groups", group="x_permissions"),
+            drink.types.GroupCheckBoxes("Users allowed to view the document", group="starts_hidden x_permissions"),
         'min_rights':
-            drink.types.Text("Every user's permissions (wrta)", group="x_permissions"),
+            drink.types.Text("Every user's permissions (wrta)", group="starts_hidden x_permissions"),
         'write_groups':
-            drink.types.GroupCheckBoxes("Write-enabled groups", group="x_permissions"),
+            drink.types.GroupCheckBoxes("Users allowed to edit the document", group="starts_hidden x_permissions"),
     }
 
     #: actions
@@ -284,7 +284,7 @@ class Page(Model):
                 form = ['<div class="error_message">Not editable, sorry...</div>']
             else:
                 # sort by group+id
-                items.sort(key=lambda o: o[1].group+o[0])
+                items.sort(key=lambda o: o[1].group.split()[-1]+o[0])
                 current_group = None
                 form_opts = []
                 form = ['<input type="hidden" name="_dk_fields" value="%s" />'%('/'.join(x[0] for x in items))]

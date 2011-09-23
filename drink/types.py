@@ -307,15 +307,18 @@ class File(_Editable):
 
 class EasyPermissions(_Editable):
     def html(self, name, value, _template=None):
-        return """
-        <div class="option" onclick="$('#edit_read_groups input').each( function() { $(this).attr('checked', false ) } ) ; $('#edit_write_gro
-        Private document</div>
-        <div class="option" onclick="$('#edit_read_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/
-        Users can only consult</div>
-        <div class="option" onclick="$('#edit_read_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/
-        Users can change content</div>
-        <div class="option" onclick="$('#edit_read_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/
-        Everybody can see</div>
+        return """<ul>
+        <li class="option" onclick="$('#edit_read_groups input').each( function() { $(this).attr('checked', false ) } ) ; $('#edit_write_groups input').each( function() { $(this).attr('checked', false ) } )">
+        Reset (this document will only be accessible from your account)</li>
+        <li class="option" onclick="$('#edit_read_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/^users|admin$/) ) } ) ; $('#edit_write_groups input').each( function() { $(this).attr('checked', false ) } ) ">
+        Viewable by registered users</li>
+        <li class="option" onclick="$('#edit_read_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/^users|admin$/) ) } ) ; $('#edit_write_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/^users|admin$/) ) } ) ">
+        Viewable and Editable by registered users</li>
+        <li class="option" onclick="$('#edit_read_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/^users|anonymous|admin$/) ) } ) ">
+        Everybody can view the document</li>
+        </ul>
+        <div class="option" id="show_hide_permissions" onclick="var o=$('#show_hide_permissions'); var g=$('.x_permissions_grp'); if(g.css('display') == 'none') {o.html('Hide detailed permissions')} else {o.html('Show detailed permissions')}; g.slideToggle('slow');">
+        Show detailed permissions</div>
         """
 
     def set(self, obj, name, val):

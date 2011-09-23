@@ -262,7 +262,8 @@ function get_matching_elts(path_elt, callback) {
 /////// INIT/STARTUP STUFF
 
 $(document).ready(function(){
-    $('fieldset.toggler').slideUp(0);
+    // hides some things by default
+    $('.starts_hidden').slideUp(0);
 
     // some globals
     ui.main_list = $("#main_list"); // TODO: manage .sortable class
