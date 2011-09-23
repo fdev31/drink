@@ -196,7 +196,7 @@ class GroupListArea(TextArea):
 class BoolOption(_Editable):
     def html(self, name, value):
         html = r'<input type="checkbox" name=%(name)s value="%(name)s"'+\
-            ('checked="checked" />' if value else '/>')+r'<span class="label'+\
+            ('checked="checked" />' if value else '/>')+r'<span class="bool'+\
             (' selected' if value else '')+r'">%(caption)s</span>'
         return _Editable.html(self, name, None, _template=html, no_label=True)
 
