@@ -130,12 +130,12 @@ def str2d(text):
     except AttributeError:
         return text
 
-class Date(_Editable):
+class Date(Text):
 
     _template = r'''<input class="auto_date" type="text" size="%(size)d" id="%(id)s" value="%(value)s" name="%(name)s" />'''
 
     def __init__(self, caption=None, group=None):
-        _Editable.__init__(self, caption, group)
+        Text.__init__(self, caption, group)
 
     def set(self, obj, name, val):
         setattr(obj, name, str2d(val))
@@ -144,7 +144,7 @@ class Date(_Editable):
         return dt2str(getattr(obj, name))
 
     def html(self, name, value, _template=None, no_label=False):
-        return _Editable.html(self, name, dt2str(value), _template, no_label)
+        return Text.html(self, name, dt2str(value), _template, no_label)
 
 
 class TextArea(_Editable):
