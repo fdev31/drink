@@ -37,9 +37,10 @@
 
     </head>
     <body>
-
     {% if not embed %}
-
+        {% if not authenticated and req.path != '/login' %}
+        <a id="login_link" class="minitext" href="/login?from={{req.path}}">[authenticate]</a>
+        {% endif %}
         {% if not no_admin and authenticated and obj.id != '.' %}
         <fieldset class="toggler starts_hidden" id="commands">
             <legend onclick="$('#commands .togglable').slideToggle('slow');">{{authenticated.id}} <a onclick="$('#commands').fadeOut('slow')">[x]</a></legend>

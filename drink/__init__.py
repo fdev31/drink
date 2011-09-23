@@ -207,13 +207,14 @@ def log_in():
         rdr(url)
     else:
         html='''
+        <h1>Connect to drink</h1>
         <form name="login_form" id="login_form" class="autovalidate" action="/login" method="post">
-            <label for="ilogin">Authenticate as:</label>
-            <input type="text" class="required" name="login_name" id="ilogin" />
-            <label for="ipasswd">Password:</label>
-            <input type="password" class="required" name="login_password" id="ipassword" />
-            <input type="hidden" name="from" value="%s" />
-            <input class="submit" type="submit" value="Log in!"/>
+            <div class="label"><label for="ilogin">Authenticate as:</label></div>
+            <div><input type="text" class="required" name="login_name" id="ilogin" /></div>
+            <div class="label"><label for="ipasswd">Password:</label></div>
+            <div><input type="password" class="required" name="login_password" id="ipassword" /></div>
+            <div><input type="hidden" name="from" value="%s" /></div>
+            <div><input class="submit" type="submit" value="Log in!"/></div>
         </form>
 
         '''%request.params.get('from', '/')
