@@ -72,7 +72,9 @@ ui = new Object({
                 };
                 if ( text ) { html.push(text); };
             }
-            $('#page_actions').html(html.join(''));
+
+            pa.html(html.join(''));
+            dom_initialize( pa );
 
             if (data.length == 0) {
                 $('fieldset.toggler').slideUp();
@@ -233,6 +235,96 @@ function enter_edit_func() {
     inp.keyup(blur_on_validate);
 }
 
+function dom_initialize(dom) {
+    // sumbit forms on Ctrl+Enter press
+    dom.find('#auto_edit_form').keypress( function(ev, elt) {
+        if ( ev.ctrlKey && ev.charCode == 10 ) {
+            $(this).submit();
+            return true;
+        };
+    });
+    dom.find('input.completable[complete_type=objpath]').keyup(function(e) {
+        if (e.which < 64) return;
+        var o = $(this);
+        get_matching_elts(o.val(), function(items, path) {
+                    $(o).parent().find('.completed').remove();
+                    if (items.length > 1) {
+                        var list = items.join(', ');
+                        $('<span class="completed">' + list + '</span>').insertAfter(o);
+                    } else {
+                        if (items.length == 1 ) {
+                            var best_match = items[0];
+                            var components = path.split(/\//);
+                            if ( components && components[components.length-1] != '' ) {
+                                components.pop();
+                            };
+                            components.push(best_match);
+                            components.push('');
+                            o.val(components.join('/'));
+                        }
+                    };
+            }
+        );
+    });
+
+    // change style of checkboxes titles in editable spans form
+    dom.find('.editable span').click( function() {
+        var o = $(this).prev();
+        if ( ! o.is(':checked') ) {
+            o.attr('checked', true);
+            $(this).addClass('selected', 1000);
+        } else {
+            o.attr('checked', false);
+            $(this).removeClass('selected', 1000);
+        }
+    });
+
+    // drop edit form's droppable, FIXME: is this code executed ?
+    dom.find('.edit_form').droppable({
+        drop: function(event, ui) {
+            if(debug) console.log('This code is executed #343 drop');
+            $(this).removeClass("selected");
+    		$($(this)[0][0]).val(ui.draggable.data('item').replace(/&/g, '%26').replace(/\?/g, '%3f'));
+            $(this).attr("action", ui.draggable.data('item')+"/edit");
+	        $(this).submit();
+        },
+        over: function(event, ui) {
+            if(debug) console.log('This code is executed #343 over');
+            $(this).addClass('selected');
+        },
+        out: function(event, ui) {
+            if(debug) console.log('This code is executed #343 out');
+            $(this).removeClass("selected");
+        }
+    });
+
+    // the old rm_form was droppable, FIXME: replace with a trash icon or something
+    dom.find('.rm_form').droppable({
+        drop: function(event, ui) {
+            var item = ui.draggable.data('item');
+            $(this).removeClass("selected");
+	        ui.main_list.remove_entry(ui.draggable.remove());
+	        ui.draggable.remove();
+        },
+        over: function(event, ui) {
+            $(this).addClass('selected');
+        },
+        out: function(event, ui) {
+            $(this).removeClass("selected");
+        }
+    });
+
+    // automatic settings for some special classes
+    dom.find('.editable span').addClass('toggler');
+
+    // setup some behaviors
+
+    dom.find(".autovalidate").each(function(index, ob) { $(ob).validate() } );
+
+    dom.find('.auto_date').datepicker({dateFormat: "dd/mm/yy"});
+
+} // dom_initialize
+
 
 // Helper function to complete valid object path's
 
@@ -339,6 +431,7 @@ $(document).ready(function(){
                     //console.log('Uploader code not available');
                 }
             };
+       dom_initialize( ui.main_list );
         }, // End of sortable startup code
 
 
@@ -470,99 +563,11 @@ $(document).ready(function(){
         }
     );
 
-
-    // sumbit forms on Ctrl+Enter press
-    $('#auto_edit_form').keypress( function(ev, elt) {
-        if ( ev.ctrlKey && ev.charCode == 10 ) {
-            $(this).submit();
-            return true;
-        };
-    });
-    $('input.completable[complete_type=objpath]').keyup(function(e) {
-        if (e.which < 64) return;
-        var o = $(this);
-        get_matching_elts(o.val(), function(items, path) {
-                    $(o).parent().find('.completed').remove();
-                    if (items.length > 1) {
-                        var list = items.join(', ');
-                        $('<span class="completed">' + list + '</span>').insertAfter(o);
-                    } else {
-                        if (items.length == 1 ) {
-                            var best_match = items[0];
-                            var components = path.split(/\//);
-                            if ( components && components[components.length-1] != '' ) {
-                                components.pop();
-                            };
-                            components.push(best_match);
-                            components.push('');
-                            o.val(components.join('/'));
-                        }
-                    };
-            }
-        );
-    });
-
-    // change style of checkboxes titles in editable spans form
-    $('.editable span').click( function() {
-        var o = $(this).prev();
-        if ( ! o.is(':checked') ) {
-            o.attr('checked', true);
-            $(this).addClass('selected', 1000);
-        } else {
-            o.attr('checked', false);
-            $(this).removeClass('selected', 1000);
-        }
-    });
-
-    // drop edit form's droppable, FIXME: is this code executed ?
-    $('.edit_form').droppable({
-        drop: function(event, ui) {
-            if(debug) console.log('This code is executed #343 drop');
-            $(this).removeClass("selected");
-    		$($(this)[0][0]).val(ui.draggable.data('item').replace(/&/g, '%26').replace(/\?/g, '%3f'));
-            $(this).attr("action", ui.draggable.data('item')+"/edit");
-			$(this).submit();
-        },
-        over: function(event, ui) {
-            if(debug) console.log('This code is executed #343 over');
-            $(this).addClass('selected');
-        },
-		out: function(event, ui) {
-            if(debug) console.log('This code is executed #343 out');
-		    $(this).removeClass("selected");
-		}
-    });
-
-    // the old rm_form was droppable, FIXME: replace with a trash icon or something
-    $('.rm_form').droppable({
-        drop: function(event, ui) {
-            var item = ui.draggable.data('item');
-            $(this).removeClass("selected");
-			ui.main_list.remove_entry(ui.draggable.remove());
-			ui.draggable.remove();
-        },
-        over: function(event, ui) {
-            $(this).addClass('selected');
-        },
-		out: function(event, ui) {
-		    $(this).removeClass("selected");
-		}
-    });
-
-    // automatic settings for some special classes
-    $('.editable span').addClass('toggler');
-
-    // validator (forms)
+    // extend validator (forms)
 
     $.validator.addMethod("identifier", function(value, element) {
         return this.optional(element) || !/^[._$%/][$%/]*/i.test(value);
     }, 'No "$", "%" or "/" and don\' start with a dot or an underscore, please :)');
-
-    // setup some behaviors
-
-    $(".autovalidate").each(function(index, ob) { $(ob).validate() } );
-
-    $('.auto_date').datepicker({dateFormat: "dd/mm/yy"});
 
     // Hook all keypresses in window
     $('body').bind('keydown', null, call_hook_keyup );
@@ -626,5 +631,7 @@ $(document).ready(function(){
     add_shortcut('H', function() {
         $('<div title="Keyboard shortcuts"><ul><li>[E]dit</li><li>[S]earch</li><li>[L]ist</li><li>[V]iew</li><li>BACKSPACE: one level up</li><li>UP/DOWN: change selection</li><li>[DEL]ete</li><li>[ENTER]</li><li>ESCAPE: close dialogs</li></ul></div>').dialog({width: '40ex'});
     });
+
+    dom_initialize($(document));
 // end of statup code
 });
