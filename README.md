@@ -122,7 +122,6 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
    - object_path => integrate it to markdown editor
 - generalize edit & _edit behavior, with a special return value
 - standardize json answers {'success': true} or {'error': true, 'message': 'permission denied'} or {'redirect': url, \*\*kw}
-- review 401 handling, ask for login/passwd in case of new session (to be finished)
 - change cookie on password change => Create session cookie !
 - handle per-owner "recycle bin", "changes log" & groups
 - clean javascript to provide a library, allowing mobile detection & adaptation

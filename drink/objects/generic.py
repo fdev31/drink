@@ -103,7 +103,7 @@ class Page(Model):
 
     @property
     def actions(self):
-        return {'actions' : self._actions, 'types': self.classes.keys()}
+        return {'actions' : self._actions}
 
     _actions = [
         dict(title="Help", href="/pages/help/", perm="r", icon="help"),
@@ -111,7 +111,7 @@ class Page(Model):
         dict(title="View/Reload", onclick="document.location.href = base_uri", icon="view", perm='r'),
         dict(title="Edit", style="edit_form", href="edit", icon="edit", perm='w'),
         dict(title="List content", href="list", icon="open", perm='r'),
-        dict(title="Add object", condition="item_types.length!=0", style="add_form", onclick="ui.main_list.new_entry_dialog()", key='INS', icon="new", perm='a'),
+        dict(title="Add object", condition="page_struct.classes.length!=0", style="add_form", onclick="ui.main_list.new_entry_dialog()", key='INS', icon="new", perm='a'),
         #dict(title="Remove object", onclick="ui.main_list.remove_entry()", icon="delete", perm='w'),
     ]
 
@@ -214,7 +214,9 @@ class Page(Model):
         return self.render()
 
     def struct(self, childs=True, full=None):
-        return get_struct_from_obj(self, childs, full)
+        o =  get_struct_from_obj(self, childs, full)
+        o['classes'] = self.classes.keys()
+        return o
 
     @property
     def path(self):

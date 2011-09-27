@@ -17,8 +17,8 @@ for (i=65; i<=90; i++) {
     Keys[String.fromCharCode(i)] = i;
 };
 
-item_types = [];
 page_struct = {
+    classes : [],
     _perm : 'r',
     description: '',
     id: '?',
@@ -27,7 +27,7 @@ page_struct = {
     path:"/",
     logged_in: false,
     title:"unk",
-    };
+};
 
 url_regex = /^(\/|http).+/;
 base_uri = document.location.href.replace(/[^/]*$/, '');
@@ -39,11 +39,10 @@ ui = new Object({
                 $('fieldset.toggler').slideUp();
                 return;
             }
-
-            item_types = data.types;
-            data = data.actions;
             var pa = $('#page_actions');
             var html = [];
+
+            data = data.actions;
 
             for (i=0 ; i<data.length ; i++) {
                 elt = data[i];
@@ -394,7 +393,7 @@ $(document).ready(function(){
             if(debug) console.log(data);
             if (!data._perm) return;
 
-            page_struct = data;
+            $.extend(page_struct, data);
 
             if ('' != ui.main_list.html()) {
                 ui.main_list.html('');
@@ -431,21 +430,21 @@ $(document).ready(function(){
                     //console.log('Uploader code not available');
                 }
             };
-       dom_initialize( ui.main_list );
+        dom_initialize( ui.main_list );
         }, // End of sortable startup code
 
 
         // ADD an entry
         new_entry_dialog: function() {
-             if ( item_types.length < 1 ) {
+             if ( page_struct.classes.length < 1 ) {
                 w = $('<div title="Ooops!">Nothing can be added here, sorry</div>').dialog({closeOnEscape:true});
                 setTimeout(function(){w.fadeOut(function(){w.dialog('close')})}, 2000);
                 return;
              };
             var template = '<div id="new_obj_form"  title="New item informations"><select class="obj_class" class="required" name="class"><option value="" label="Select one item type">Select one item type</option>';
             var tpl_ftr = '</select><div class="obj_name"><label for="new_obj_name">Name</label><input id="new_obj_name" type="text" name="name" class="obj_name required identifier" minlength="2" /></div></div>';
-            for (t=0; t<item_types.length; t++) {
-                template += '<option value="{0}" label="{0}">{0}</option>'.replace(/\{0\}/g, item_types[t]);
+            for (t=0; t<page_struct.classes.length; t++) {
+                template += '<option value="{0}" label="{0}">{0}</option>'.replace(/\{0\}/g, page_struct.classes[t]);
             }
 
             var new_obj = $(template+tpl_ftr);
@@ -473,8 +472,8 @@ $(document).ready(function(){
                 buttons: [ {text: 'OK', click: validate_fn} ],
             });
 
-            if (item_types.length == 1) {
-                new_obj.find(".obj_class").val(item_types[0]).attr('disabled', true);
+            if (page_struct.classes.length == 1) {
+                new_obj.find(".obj_class").val(page_struct.classes[0]).attr('disabled', true);
                 new_obj.find('input.obj_name').trigger('click').focus();
             }
         },
@@ -630,7 +629,7 @@ $(document).ready(function(){
         window.location = base_uri+'view';
     });
     add_shortcut('H', function() {
-        $('<div title="Keyboard shortcuts"><ul><li>[E]dit</li><li>[S]earch</li><li>[L]ist</li><li>[V]iew</li><li>BACKSPACE: one level up</li><li>UP/DOWN: change selection</li><li>[DEL]ete</li><li>[ENTER]</li><li>ESCAPE: close dialogs</li></ul></div>').dialog({width: '40ex'});
+        $('<div title="Keyboard shortcuts"><ul><li>[E]dit</li><li>[S]earch / [S]elect first input field</li><li>[L]ist</li><li>[V]iew</li><li>BACKSPACE: one level up</li><li>UP/DOWN: change selection</li><li>[DEL]ete</li><li>[ENTER]</li><li>ESCAPE: close dialogs</li></ul></div>').dialog({width: '40ex'});
     });
 
     dom_initialize($(document));
