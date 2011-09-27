@@ -593,6 +593,7 @@ $(document).ready(function(){
         if (ui.current_index > 0) {
             var n = $($('ul > li.entry')[--ui.current_index].children[0]);
             n.addClass('highlighted');
+            n.focus();
             n.trigger('click');
             n.center();
             $($('ul > li.entry')[ui.current_index+1].children[0]).removeClass('highlighted');
