@@ -68,7 +68,7 @@ class ObjectBrowser(drink.Page):
     }
     ''']
 
-    _actions = drink.Page._actions + [dict(title="Rebuild", onclick='browser_rebuild()', icon="download", perm="w")]
+    _actions = drink.Page._actions + [dict(title="Rebuild", action='browser_rebuild()', icon="download", perm="w")]
 
     hidden_class = True # TODO: add non-hidden finder that is not whoosh related but more
                         # like the old "Dumb" indexer, with local (but recursive) lookup

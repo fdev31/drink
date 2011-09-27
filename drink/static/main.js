@@ -49,21 +49,24 @@ ui = new Object({
                 if (typeof(elt) == "string") {
                     var text=elt;
                 } else {
+                    // if condition validated & write operations allowed
+                    console.log(elt);
                     if (
-                        (!elt.condition || eval(elt.condition))
+                        (!elt.condition || eval(elt.condition) )
                         &&
                         (page_struct._perm.match('w') || page_struct._perm.match(elt.perm))
                         ) {
-                        if (elt.href) {
-                            if(!!elt.href.match(/\/$/)) {
-                                var text='<a class="action '+(elt.style || '')+'"  title="'+elt.title+'" href="'+elt.href+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
+                        // if plain link
+                        if (elt.action.match(/^[a-zA-Z0-9/]+$/)) {
+                            if(!!elt.action.match(/\/$/)) {
+                                var text='<a class="action '+(elt.style || '')+'"  title="'+elt.title+'" href="'+elt.action+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
                             } else {
-                                var text='<a class="action '+(elt.style || '')+'"  title="'+elt.title+'" href="'+base_uri+elt.href+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
+                                var text='<a class="action '+(elt.style || '')+'"  title="'+elt.title+'" href="'+base_uri+elt.action+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
                             }
-                        } else {
-                          var text='<a class="action '+(elt.style || '')+'" title="'+elt.title+'" onclick="'+elt.onclick+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
+                        } else { // javascript code
+                          var text='<a class="action '+(elt.style || '')+'" title="'+elt.title+'" onclick="'+elt.action+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
                           if (elt.key)
-                            add_shortcut(elt.key, elt.onclick);
+                            add_shortcut(elt.key, elt.action);
                         };
                     } else {
                         var text=null;

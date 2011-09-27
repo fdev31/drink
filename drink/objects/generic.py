@@ -106,12 +106,12 @@ class Page(Model):
         return {'actions' : self._actions}
 
     _actions = [
-        dict(title="Help", href="/pages/help/", perm="r", icon="help"),
-        dict(title="Back", onclick="if(!!document.location.pathname.match(/\/$/)) {document.location.href='../'} else{document.location.href='./'}", perm="r", icon="undo"),
-        dict(title="View/Reload", onclick="document.location.href = base_uri", icon="view", perm='r'),
-        dict(title="Edit", style="edit_form", href="edit", icon="edit", perm='w'),
-        dict(title="List content", href="list", icon="open", perm='r'),
-        dict(title="Add object", condition="page_struct.classes.length!=0", style="add_form", onclick="ui.main_list.new_entry_dialog()", key='INS', icon="new", perm='a'),
+        dict(title="Help", action="/pages/help/", perm="r", icon="help"),
+        dict(title="Back", action="if(!!document.location.pathname.match(/\/$/)) {document.location.href='../'} else{document.location.href='./'}", perm="r", icon="undo"),
+        dict(title="View/Reload", action="document.location.href = base_uri", icon="view", perm='r'),
+        dict(title="Edit", style="edit_form", action="edit", icon="edit", perm='w'),
+        dict(title="List content", action="list", icon="open", perm='r'),
+        dict(title="Add object", condition="page_struct.classes.length!=0", style="add_form", action="ui.main_list.new_entry_dialog()", key='INS', icon="new", perm='a'),
         #dict(title="Remove object", onclick="ui.main_list.remove_entry()", icon="delete", perm='w'),
     ]
 
@@ -427,7 +427,7 @@ class ListPage(Page):
 
     forced_order = None
 
-    _actions = Page._actions + [dict(perm='w', title="Reset items", onclick="$.ajax({url:base_uri+'reset_items'}).success(ui.reload)", icon="download")]
+    _actions = Page._actions + [dict(perm='w', title="Reset items", action="$.ajax({url:base_uri+'reset_items'}).success(ui.reload)", icon="download")]
 
     def __init__(self, name, rootpath=None):
         self.forced_order = []
