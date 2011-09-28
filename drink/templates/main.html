@@ -1,84 +1,96 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr" lang="fr">
-    <head>
-        <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon" />
-        <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <meta name="viewport" content="user-scalable=yes, width=device-width" />
-        <!-- Cascading Style Sheets -->
-        <link href="/static/page.css" rel="stylesheet" type="text/css" />
-        <link href="/static/pygments.css" rel="stylesheet" type="text/css" />
-        <link href="/static/smoothness/jquery-ui.custom.css" rel="stylesheet" type="text/css" />
-        {% if css %}
-            {% for url in css %}
-            <link href="{{url}}" rel="stylesheet" type="text/css" />
-            {% endfor %}
-        {% endif %}
-        <!-- Javascript -->
-        <script type="text/javascript" src="/static/jquery.min.js"></script>
-        <script type="text/javascript" src="/static/jquery-ui-1.8.custom.min.js"></script>
-        <script type="text/javascript" src="/static/jquery.validate.min.js"></script>
-        <script type="text/javascript" src="/static/jquery.dataSelector.js"></script>
-        <script type="text/javascript" src="/static/fileuploader.js"></script>
-        <script type="text/javascript" src="/static/main.js"></script>
-        {% if js %}
-            {% for url in js %}
-                {% if url.startswith('http://') or url[0] == '/' %}
-                <script type="text/javascript" src="{{url}}"></script>
-                {% else %}
-                <script type="text/javascript">{{url}}</script>
-                {% endif %}
-            {% endfor %}
-        {% endif %}
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"> <![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"> <![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"> <![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"> <!--<![endif]-->
+<head>
 
-        {% block head %}
-        <title>Drink!</title>
-        {% endblock %}
+	<!-- Basic Page Needs
+  ================================================== -->
+	<meta charset="utf-8">
+	<title>Drink!</title>
+	<meta name="description" content="">
+	<meta name="author" content="">
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
 
-    </head>
-    <body>
+	<!-- Mobile Specific Metas
+  ================================================== -->
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<!-- CSS
+  ================================================== -->
+	<link rel="stylesheet" href="/static/css/base.css">
+	<link rel="stylesheet" href="/static/css/skeleton.css">
+	<link rel="stylesheet" href="/static/css/layout.css">
+    <link rel="stylesheet" type="text/css" href="/static/page.css" />
+    <link rel="stylesheet" type="text/css" href="/static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="/static/smoothness/jquery-ui.custom.css" />
+    {% if css %}
+        {% for url in css %}
+        <link href="{{url}}" rel="stylesheet" type="text/css" />
+        {% endfor %}
+    {% endif %}
+
+	<!-- Favicons
+	================================================== -->
+	<link rel="shortcut icon" href="/static/images/favicon.ico">
+	<link rel="apple-touch-icon" href="/static/images/apple-touch-icon.png">
+	<link rel="apple-touch-icon" sizes="72x72" href="/static/images/apple-touch-icon-72x72.png">
+	<link rel="apple-touch-icon" sizes="114x114" href="/static/images/apple-touch-icon-114x114.png">
+
+</head>
+<body>
+
+
+
+	<!-- Primary Page Layout
+	================================================== -->
     {% if not embed %}
         {% if not authenticated and req.path != '/login' %}
         <a id="login_link" class="minitext" href="/login?from={{req.path}}">[authenticate]</a>
         {% endif %}
         {% if not no_admin and authenticated and obj.id != '.' %}
-        <fieldset class="toggler starts_hidden" id="commands">
+        <fieldset class="sixteen toggler starts_hidden" id="commands">
             <legend onclick="$('#commands .togglable').slideToggle('slow');">{{authenticated.id}} <a onclick="$('#commands').fadeOut('slow')">[x]</a></legend>
             <div class="togglable" >
-            <div id="user_actions" >
-            <a title="Account settings" href="/users/{{authenticated.id|e}}/edit"><img class="icon" src="/static/actions/personal.png" alt="your account icon" /></a>
-            <a title="Search" href="/search/"><img  alt="find icon" class="icon" src="/static/actions/find.png" /></a>
-            <form class="autovalidate inline" name="search_form" method="post" action="/search/query">
-                <input type="hidden" name="qtype" value="fast" />
-                <input type="text" class="required" name="pattern" />
-            </form>
-            <!-- <a title="Search" href="/search/"><img  alt="find icon" class="icon" src="/static/actions/find.png" /></a> -->
-            <a title="log out" href="/logout"><img  alt="exit icon" class="icon" src="/static/actions/exit.png" /></a>
-            </div> <!-- /user actions -->
-            <div id="page_actions">
-            </div> <!-- page actions -->
+            <span id="page_actions" ></span>
+            <span id="user_actions" >
+                <form class="autovalidate" name="search_form" method="post" action="/search/query">
+                    <a title="Account settings" href="/users/{{authenticated.id|e}}/edit"><img class="icon" src="/static/actions/personal.png" alt="your account icon" /></a>
+                    <a title="Search" href="/search/"><img  alt="find icon" class="icon" src="/static/actions/find.png" /></a>
+                    <input type="hidden" name="qtype" value="fast" />
+                    <input type="text" class="inline_form required" name="pattern" />
+                    <a title="log out" href="/logout"><img  alt="exit icon" class="icon" src="/static/actions/exit.png" /></a>
+                </form>
+                <!-- <a title="Search" href="/search/"><img  alt="find icon" class="icon" src="/static/actions/find.png" /></a> -->
+            </span> <!-- /user actions -->
             </div> <!-- end of toggleable -->
         </fieldset>
         {% endif %}
     {% endif %}
-    <div id="main_body">
-    {% block body %}
-        {% if html %}
-            {% if isstring(html) %}
-                {{ html|safe }}
-            {% else %}
-                {% for chunk in html %}
-                    {{ chunk|safe }}
-                {% endfor %}
-            {% endif %}
-        {% else %}
-            Please, add some body block or html content...
-        {% endif %}
-    {% endblock %}
-    </div>
 
+	<!-- Delete everything in this .container and get started on your own site! -->
+
+	<div class="container">
+        <div id="main_body" class="column">
+        {% block body %}
+            {% if html %}
+                {% if isstring(html) %}
+                    {{ html|safe }}
+                {% else %}
+                    {% for chunk in html %}
+                        {{ chunk|safe }}
+                    {% endfor %}
+                {% endif %}
+            {% else %}
+                Please, add some body block or html content...
+            {% endif %}
+        {% endblock %}
+        </div>
     {% if 'WebFile' in classes and not embed %}
-    <div id="file-uploader">
+    <div id="file-uploader" class="one-third sixteen columns">
         <noscript>
             <p>Please enable JavaScript to use file uploader.</p>
             <!-- or put a simple form for upload here -->
@@ -86,5 +98,30 @@
     </div>
     {% endif %}
 
-    </body>
+	</div><!-- container -->
+
+	<!-- JS
+	================================================== -->
+    <!--	<script src="http://code.jquery.com/jquery-1.6.4.min.js"></script> -->
+    <script type="text/javascript" src="/static/jquery.min.js"></script>
+    <script type="text/javascript" src="/static/jquery-ui-1.8.custom.min.js"></script>
+    <script type="text/javascript" src="/static/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="/static/jquery.dataSelector.js"></script>
+    <script type="text/javascript" src="/static/fileuploader.js"></script>
+    <script type="text/javascript" src="/static/main.js"></script>
+	<script src="/static/js/tabs.js"></script>
+{% if js %}
+    {% for url in js %}
+        {% if url.startswith('http://') or url[0] == '/' %}
+        <script type="text/javascript" src="{{url}}"></script>
+        {% else %}
+        <script type="text/javascript">{{url}}</script>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+
+<!-- End Document
+================================================== -->
+</body>
 </html>

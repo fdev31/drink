@@ -50,7 +50,6 @@ ui = new Object({
                     var text=elt;
                 } else {
                     // if condition validated & write operations allowed
-                    console.log(elt);
                     if (
                         (!elt.condition || eval(elt.condition) )
                         &&
@@ -81,7 +80,7 @@ ui = new Object({
             if (data.length == 0) {
                 $('fieldset.toggler').slideUp();
             } else {
-                $('fieldset.toggler').delay(500).slideDown('slow');
+                setTimeout(function(){ $('fieldset.toggler').slideDown('slow') }, 1000 );
             }
         },
         reload: function() {

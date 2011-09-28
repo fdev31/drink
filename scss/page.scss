@@ -18,7 +18,6 @@ $background: #A0A0A0;
 
 /* mixins */
 
-@import "compass/reset";
 @import "compass/css3/box-shadow";
 @import "compass/css3/text-shadow";
 @import "compass/css3/border-radius";
@@ -152,6 +151,9 @@ fieldset.toggler {
         cursor: pointer;
         padding-bottom: 1ex;
     }
+}
+div.togglable {
+    height: 60px;
 }
 span.toggler {
     cursor: pointer;
@@ -316,7 +318,7 @@ li.markItUpButton > a {
     }
 }
 #user_actions {
-    text-align: right;
+    float: right;
 }
 #page_actions {
     margin-top: -32px;
@@ -339,37 +341,6 @@ legend {
     color: white;
     font-weight: bold;
 }
-h1 {
-    font-style: italic;
-    font-weight: normal;
-    font-size: 300%;
-    text-align: center;
-    @include text-shadow(rgba(#000, 0.4) 5px 2px 5px);
-}
-h2 {
-    font-size: 300%;
-    margin: 1em 0 0.5em 0;
-    color: $contour;
-    @include text-shadow(rgba(#000, 0.6) 2px 2px 5px);
-}
-h3 {
-    font-size: 250%;
-    margin: 1em 0 0.5em 1ex;
-}
-h4 {
-    font-size: 200%;
-    margin: 1em 0 0.5em 1em;
-}
-h5 {
-    font-size: 150%;
-    margin: 1em 0 0.5em 1.5em;
-    color: rgba($main_color, 0.8);
-}
-h6 {
-    font-size: 150%;
-    margin: 1em 0 0.5em 1.5em;
-    color: rgba($main_color, 0.6);
-}
 ul {
     margin-left: 1em;
 }
@@ -387,6 +358,9 @@ a {
    img {
       border: none;
    }
+}
+.inline_form {
+    display: inline !important;
 }
 fieldset {
     margin: 0.5ex 0 0.5ex 0;
