@@ -116,7 +116,7 @@ span.page_nr {
     background: #afa;
 }
 .minitext {
-    font-size: 60%;
+    font-size: 70%;
 }
 #login_link {
     float: right;
@@ -363,6 +363,7 @@ a {
 }
 .inline_form {
     display: inline !important;
+    width: 15ex !important;
 }
 fieldset {
     margin: 0.5ex 0 0.5ex 0;
