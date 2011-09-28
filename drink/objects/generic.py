@@ -562,9 +562,8 @@ class WebFile(Page):
             if not sz:
                 yield u'<h1>No content :(</h1>'
             else:
-                yield u'<div class="download">Download file (%sB) <a href="raw"><img src="/static/actions/download.png" title="Click here to download"/></a></div>'%drink.bytes2human(sz)
-                yield u'<h1 title="%s">%s</h1>'%(self.description, self.content_name)
-                yield u'<br/>'
+                yield u'<h1 title="%s">%s<a href="raw"><img src="/static/actions/download.png" title="Click here to download (%sB)"/></a></h1>'%(self.description, self.content_name, drink.bytes2human(sz))
+                yield u'<div class="contents">'
                 if mime.startswith('image/'):
                     yield u'<img src="raw" style="width: 80%; margin-left: 10%; margin-right: 10%;"/>'
                 elif mime in ('application/xml', ) or mime.startswith('text/'):
@@ -572,6 +571,7 @@ class WebFile(Page):
                     yield u'<pre>'
                     yield unicode(f.read(), 'utf-8')
                     yield u'</pre>'
+                yield u"</div>"
         else:
             yield u'<h1>No content :(</h1>'
 
