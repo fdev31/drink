@@ -207,6 +207,7 @@ div.codehilite {
     @include inner_shadowed;
     > pre {
         background: none;
+        width: 98%;
     }
 }
 #login_form {
@@ -217,7 +218,7 @@ div.codehilite {
     width: 20em;
     @include border-radius($radius);
     @include background-image(linear-gradient(#aca 0%, #575 100%));
-   @include box-shadow(black 2px 2px 10px);
+    @include box-shadow(black 2px 2px 10px);
 }
 .buttons {
     margin: 1ex auto;
@@ -402,6 +403,8 @@ pre {
     background-color: $contour;
     padding: 0.5ex;
     margin: 1ex;
+    overflow: auto;
+    @include border-radius($radius);
 }
 em {
     font-style: italic;

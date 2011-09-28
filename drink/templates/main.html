@@ -33,6 +33,26 @@
         {% endfor %}
     {% endif %}
 
+	<!-- JS
+	================================================== -->
+    <!--	<script src="http://code.jquery.com/jquery-1.6.4.min.js"></script> -->
+    <script type="text/javascript" src="/static/jquery.min.js"></script>
+    <script type="text/javascript" src="/static/jquery-ui-1.8.custom.min.js"></script>
+    <script type="text/javascript" src="/static/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="/static/jquery.dataSelector.js"></script>
+    <script type="text/javascript" src="/static/fileuploader.js"></script>
+    <script type="text/javascript" src="/static/main.js"></script>
+	<script src="/static/js/tabs.js"></script>
+{% if js %}
+{% for url in js %}
+    {% if url.startswith('http://') or url[0] == '/' %}
+    <script type="text/javascript" src="{{url}}"></script>
+    {% else %}
+    <script type="text/javascript">{{url}}</script>
+    {% endif %}
+{% endfor %}
+{% endif %}
+
 	<!-- Favicons
 	================================================== -->
 	<link rel="shortcut icon" href="/static/images/favicon.ico">
@@ -52,7 +72,7 @@
         <a id="login_link" class="minitext" href="/login?from={{req.path}}">[authenticate]</a>
         {% endif %}
         {% if not no_admin and authenticated and obj.id != '.' %}
-        <fieldset class="sixteen toggler starts_hidden" id="commands">
+        <fieldset class="sixteen toggler" id="commands">
             <legend onclick="$('#commands .togglable').slideToggle('slow');">{{authenticated.id}} <a onclick="$('#commands').fadeOut('slow')">[x]</a></legend>
             <div class="togglable" >
             <span id="page_actions" ></span>
@@ -73,8 +93,7 @@
 
 	<!-- Delete everything in this .container and get started on your own site! -->
 
-	<div class="container">
-        <div id="main_body" class="column">
+	<div id="main_body" class="container">
         {% block body %}
             {% if html %}
                 {% if isstring(html) %}
@@ -88,39 +107,16 @@
                 Please, add some body block or html content...
             {% endif %}
         {% endblock %}
+
+        {% if 'WebFile' in classes and not embed %}
+        <div id="file-uploader" class="one-third sixteen columns">
+            <noscript>
+                <p>Please enable JavaScript to use file uploader.</p>
+                <!-- or put a simple form for upload here -->
+            </noscript>
         </div>
-    {% if 'WebFile' in classes and not embed %}
-    <div id="file-uploader" class="one-third sixteen columns">
-        <noscript>
-            <p>Please enable JavaScript to use file uploader.</p>
-            <!-- or put a simple form for upload here -->
-        </noscript>
-    </div>
-    {% endif %}
-
-	</div><!-- container -->
-
-	<!-- JS
-	================================================== -->
-    <!--	<script src="http://code.jquery.com/jquery-1.6.4.min.js"></script> -->
-    <script type="text/javascript" src="/static/jquery.min.js"></script>
-    <script type="text/javascript" src="/static/jquery-ui-1.8.custom.min.js"></script>
-    <script type="text/javascript" src="/static/jquery.validate.min.js"></script>
-    <script type="text/javascript" src="/static/jquery.dataSelector.js"></script>
-    <script type="text/javascript" src="/static/fileuploader.js"></script>
-    <script type="text/javascript" src="/static/main.js"></script>
-	<script src="/static/js/tabs.js"></script>
-{% if js %}
-    {% for url in js %}
-        {% if url.startswith('http://') or url[0] == '/' %}
-        <script type="text/javascript" src="{{url}}"></script>
-        {% else %}
-        <script type="text/javascript">{{url}}</script>
         {% endif %}
-    {% endfor %}
-{% endif %}
-
-
+	</div><!-- container -->
 <!-- End Document
 ================================================== -->
 </body>
