@@ -3,7 +3,6 @@ import transaction
 import time
 from hashlib import sha1
 import drink
-import json
 from itertools import chain
 from datetime import timedelta, date, datetime
 from drink.types import dt2str, dt2ts
@@ -122,7 +121,7 @@ class TODOList(drink.Page):
             import traceback
             traceback.print_exc()
             print "gmail_events: returning gracefuly"
-        return json.dumps(l)
+        return drink.dumps(l)
 
     def get_gmail_events(self):
         import gdata.calendar.client
