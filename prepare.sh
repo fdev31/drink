@@ -1,6 +1,6 @@
 #!/bin/sh
 VENV=virtualenv
-PY=python2.7
+PY=python
 
 DEST="$1"
 
@@ -13,7 +13,7 @@ rm -fr "$DEST"
 
 $VENV -p $PY --no-site-packages "$DEST"
 
-#source "$DEST/bin/activate"
+source "$DEST/bin/activate"
 "$DEST/bin/pip" install -r requirements.txt
-(cd `dirname "$DEST"` && tar cvf - `basename "$DEST"` | bzip2 -9 `basename "$DEST"`.tbz)
+(cd `dirname "$DEST"` && tar cvf - `basename "$DEST"` | bzip2 -9 > `basename "$DEST"`.tbz)
 

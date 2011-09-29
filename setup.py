@@ -55,7 +55,6 @@ setup(
     packages=find_packages(),
     install_requires = parse_requirements('requirements.txt'),
     dependency_links = parse_dependency_links('requirements.txt'),
-    install_requires = ['setuptools', 'jinja2', 'markdown', 'ZODB3', 'whoosh>=2.2', 'fs>=0.3', 'bottle>=0.9.6'],
 )
 # mkvirtualenv foo --no-site-packages
 # source foo/bin/activate

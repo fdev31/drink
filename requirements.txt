@@ -1,0 +1,11 @@
+jinja2
+markdown
+ZODB3
+whoosh>=2.2
+fs>=0.3
+bottle>=0.9.6
+setproctitle
+repoze.debug
+weberror
+Paste
+
