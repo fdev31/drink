@@ -105,7 +105,7 @@ class DrinkServer(bottle.ServerAdapter):
             bjoern_req_version = (1, 2, 0)
             import bjoern
         except ImportError:
-            print "You can try installing bjoern >= %s"%('.'.join(bjoern_req_version))
+            print "You can try installing bjoern >= %s"%('.'.join(str(x) for x in bjoern_req_version))
         else:
             if bjoern.version >= bjoern_req_version:
                 adapters.insert(1, bottle.BjoernServer)
