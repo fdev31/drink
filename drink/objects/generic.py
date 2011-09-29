@@ -99,12 +99,29 @@ class Page(Model):
             drink.types.GroupCheckBoxes("Users allowed to edit the document", group="starts_hidden x_permissions"),
     }
 
-    #: actions
+    def serialize(self, recurse=True):
+        d = {'drink__class': self.__class__.__name__}
+        for field in self.owner_fields.keys() + self.admin_fields.keys() + self.editable_fields.keys():
+            try:
+                v = getattr(self, field)
+                if isinstance(v, set):
+                    v = list(v)
+
+                d[field] = v
+            except AttributeError:
+                pass
+
+        if recurse:
+            c = d['drink_children'] = []
+            for child in self.keys():
+                c.append((child, self[child].serialize()))
+        return d
 
     @property
     def actions(self):
         return {'actions' : self._actions}
 
+    #: actions
     _actions = [
         dict(title="Help", action="/pages/help/", perm="r", icon="help"),
         dict(title="Back", action="if(!!document.location.pathname.match(/\/$/)) {document.location.href='../'} else{document.location.href='./'}", perm="r", icon="undo"),

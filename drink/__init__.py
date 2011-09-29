@@ -15,6 +15,7 @@ DB_PATH = config.get('server', 'database') or os.path.abspath(os.path.join(BASE_
 DB_CONFIG = os.path.join(DB_PATH, "zodb.conf")
 
 # auto-guess & set datadir in case of inchanged default
+print "Using DB informations from %s"%DB_CONFIG
 lines = open(DB_CONFIG).readlines()
 pattern = '%define DATADIR database\n'
 

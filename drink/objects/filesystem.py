@@ -112,6 +112,12 @@ class Filesystem(drink.ListPage, PyFile):
         'local_path': drink.types.Text("Local folder path", group="a"),
     })
 
+    drink_name = 'Server folder'
+
+    def serialize(self):
+        drink.ListPage.serialize(recurse=False)
+        return d
+
     def __init__(self, name, rootpath):
         self.fd = None
         self.default_view = 'edit'
