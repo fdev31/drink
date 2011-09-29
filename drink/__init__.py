@@ -73,7 +73,6 @@ from .zdb import Database
 db = Database(bottle.app(), DB_CONFIG)
 import transaction
 
-
 def unauthorized(message='Action NOT allowed'):
     # TODO: handler srcuri + redirect
     if request.identity:

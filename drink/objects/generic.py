@@ -112,7 +112,7 @@ class Page(Model):
                 pass
 
         if recurse:
-            c = d['drink_children'] = []
+            c = d['drink__children'] = []
             for child in self.keys():
                 c.append((child, self[child].serialize()))
         return d
@@ -552,7 +552,13 @@ class WebFile(Page):
             cont = u''
         return u'%s\n%s'%(desc, cont)
 
+    def serialize(self, recurse=False):
+        d = Page.serialize(self, recurse=False)
+        d['drink__filename'].self.content.filename
+        return d
+
     def raw(self):
+
         root, fname = os.path.split(self.content.filename)
         return drink.static_file(fname, root, mimetype=self.mimetype, download=self.content_name)
         #Alternatively: drink.response.headers['Content-Type'] = '...'
