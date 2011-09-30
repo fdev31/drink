@@ -101,6 +101,7 @@ class PyFile(object):
 
 class Filesystem(drink.ListPage, PyFile):
 
+    drink_name = 'Server folder'
     local_path = ''
     default_view = 'list'
     mime = 'folder'
@@ -111,8 +112,6 @@ class Filesystem(drink.ListPage, PyFile):
     editable_fields.update({
         'local_path': drink.types.Text("Local folder path", group="a"),
     })
-
-    drink_name = 'Server folder'
 
     def serialize(self):
         drink.ListPage.serialize(recurse=False)
@@ -154,5 +153,3 @@ class Filesystem(drink.ListPage, PyFile):
         if name in self._properties:
             raise KeyError()
         return PyFile(self, self.path, name, name, self.fd)
-
-exported = {'Server folder': Filesystem}

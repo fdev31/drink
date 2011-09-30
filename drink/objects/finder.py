@@ -59,6 +59,8 @@ class ObjectBrowser(drink.Page):
 
     doc = u"A very basic object finder"
 
+    drink_name = "Finder"
+
     classes = {}
 
     js = drink.Page.js + [
@@ -221,6 +223,3 @@ class ObjectBrowser(drink.Page):
 
 
 init()
-
-exported = {"Finder": ObjectBrowser}
-

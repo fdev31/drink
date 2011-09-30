@@ -6,6 +6,8 @@ from hashlib import md5
 
 class User(drink.Page):
 
+    drink_name = None
+
     mime = "user"
 
     description = u"User object"
@@ -82,13 +84,19 @@ class User(drink.Page):
 
 
 class UserList(drink.ListPage):
+
+    drink_name = None
+
     description = u"Users folder"
+
     mime = "group"
 
     classes = {'User': User}
 
 
 class Group(drink.Page):
+
+    drink_name = None
 
     mime = "group"
 
@@ -105,10 +113,11 @@ class Group(drink.Page):
 
 
 class GroupList(drink.ListPage):
+
+    drink_name = None
+
     description = u"Groups"
+
     mime = "groups"
 
     classes = {'Group': Group}
-
-
-exported = {}

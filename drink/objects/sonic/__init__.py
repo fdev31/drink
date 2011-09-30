@@ -4,6 +4,7 @@ from . import libsonic
 
 class SonicHome(drink.Page):
 
+    drink_name = "Subsonic"
     mime = "page"
     description = "A subsonic application"
     login = ""
@@ -43,6 +44,3 @@ class SonicHome(drink.Page):
             s = libsonic.Connection(self.server, self.login, self.password, port=self.port)
             self._v_logon = s
         return drink.Page.view(self)
-
-
-exported = {'Subsonic': SonicHome}

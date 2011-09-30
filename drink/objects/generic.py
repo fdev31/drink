@@ -438,6 +438,9 @@ class Page(Model):
         return self.render('main.html', html=u'<h1>%s</h1>\n<ul id="main_list" class="sortable" />'%self.title)
 
 class ListPage(Page):
+
+    drink_name = "Folder index"
+
     description = u"An ordered folder-like display"
 
     mime = "folder"
@@ -519,6 +522,7 @@ class ListPage(Page):
 
 class WebFile(Page):
 
+    drink_name = "WebFile"
     mime = "page"
     mimetype = "text/plain"
     description = u"Some file"
@@ -629,5 +633,3 @@ class Settings(Page):
             }),
         'active_objects': drink.types.CheckboxSet('Enabled modules', group='plugins', options=active_objects),
     }
-
-exported = {'Folder index': ListPage, 'WebFile': WebFile}

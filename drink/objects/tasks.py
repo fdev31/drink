@@ -90,6 +90,8 @@ class TODO(drink.Page):
 
 class TODOList(drink.Page):
 
+    drink_name = 'TODO list'
+
     description = u"A TODO list"
 
     classes = {'TODO': TODO}
@@ -194,6 +196,3 @@ class TODOList(drink.Page):
             start.isoformat() if start else None,
             end.isoformat() if end else None)
             for feed in all_feeds))
-
-
-exported = {'TODO list': TODOList}

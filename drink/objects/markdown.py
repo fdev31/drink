@@ -34,6 +34,8 @@ class MarkdownEditor(drink.types._Editable):
 class MarkdownPage(drink.Page):
     content = DEFAULT_CONTENT
 
+    drink_name = 'Web page (markdown)'
+
     mime = u"markdown"
 
     description = u"A markdown rendered page"
@@ -146,8 +148,4 @@ add_hook_add_item(reload_page);
     def _upload(self, obj):
         self.content = obj.file.read()
 
-_title = 'Web page (markdown)'
-
-exported = {_title: MarkdownPage}
-
-drink.add_upload_handler('md txt'.split(), _title)
+drink.add_upload_handler(['md', 'txt'], MarkdownPage.drink_name)

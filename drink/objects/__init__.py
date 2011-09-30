@@ -61,9 +61,18 @@ def get_object(current, objpath, no_raise=False):
 
 def init():
     for obj in objects_to_load:
+        print "[Loading %s]"%obj
         try:
-            exec('from .%s import exported'%obj)
-            classes.update(exported)
+            exec('from . import %s as _imported'%obj)
         except Exception:
             print "Unable to load %s, remove it from config file in [objects] section."%obj
             raise
+        else:
+            for _child in dir(_imported):
+                exported_name = getattr(getattr(_imported, _child), 'drink_name', None)
+                if exported_name:
+                    if exported_name in classes:
+                        raise ValueError('Duplicate object: %s !! provided by %r and %r'%(exported_name, classes[exported_name], _imported))
+                    else:
+                        print "  - %s loaded"% exported_name
+                        classes[exported_name] = _child
