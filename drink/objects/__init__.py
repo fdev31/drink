@@ -69,10 +69,11 @@ def init():
             raise
         else:
             for _child in dir(_imported):
-                exported_name = getattr(getattr(_imported, _child), 'drink_name', None)
+                klass = getattr(_imported, _child)
+                exported_name = getattr(klass, 'drink_name', None)
                 if exported_name:
                     if exported_name in classes:
                         raise ValueError('Duplicate object: %s !! provided by %r and %r'%(exported_name, classes[exported_name], _imported))
                     else:
                         print "  - %s loaded"% exported_name
-                        classes[exported_name] = _child
+                        classes[exported_name] = klass
