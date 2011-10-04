@@ -307,15 +307,15 @@ class File(_Editable):
 
 class EasyPermissions(_Editable):
     def html(self, name, value, _template=None):
-        return """<ul>
-        <li class="option" onclick="$('#edit_read_groups input').each( function() { $(this).attr('checked', false ) } ) ; $('#edit_write_groups input').each( function() { $(this).attr('checked', false ) } )">
+        return """<ul id="ez_perm_list">
+        <li class="option" onclick="$('#ez_perm_list > li').removeClass('selected');$('#edit_read_groups input').each( function() { $(this).attr('checked', false ) } ) ; $('#edit_write_groups input').each( function() { $(this).attr('checked', false ) } )">
         Reset (this document will only be accessible from your account)</li>
-        <li class="option" onclick="$('#edit_read_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/^users|admin$/) ) } ) ; $('#edit_write_groups input').each( function() { $(this).attr('checked', false ) } ) ">
+        <li id="ez_perm_ro" class="option" onclick="$(this).addClass('selected'); $('#edit_read_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/^users|admin$/) ) } ) ; $('#edit_write_groups input').each( function() { $(this).attr('checked', false ) } ) ">
         Viewable by registered users</li>
-        <li class="option" onclick="$('#edit_read_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/^users|admin$/) ) } ) ; $('#edit_write_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/^users|admin$/) ) } ) ">
-        Viewable and Editable by registered users</li>
-        <li class="option" onclick="$('#edit_read_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/^users|anonymous|admin$/) ) } ) ">
-        Everybody can view the document</li>
+        <li id="ez_perm_rw" class="option" onclick="$('#ez_perm_ro').addClass('selected');  $(this).addClass('selected'); $('#edit_read_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/^users|admin$/) ) } ) ; $('#edit_write_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/^users|admin$/) ) } ) ">
+        Editable by registered users</li>
+        <li class="option" onclick="$('#ez_perm_rw').addClass('selected');$('#ez_perm_ro').addClass('selected'); $(this).toggleClass('selected'); $('#edit_read_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/^users|anonymous|admin$/) ) } ) ">
+        Viewable by anybody</li>
         </ul>
         <div class="option" id="show_hide_permissions" onclick="var o=$('#show_hide_permissions'); var g=$('.x_permissions_grp'); if(g.css('display') == 'none') {o.html('Hide detailed permissions')} else {o.html('Show detailed permissions')}; g.slideToggle('slow');">
         Show detailed permissions</div>
