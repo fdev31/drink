@@ -118,7 +118,7 @@ add_hook_add_item(reload_page);
 
     def _add(self, *args, **kw):
         new_obj = drink.Page._add(self, *args, **kw)
-        self.content += ("\n* link to [%s](%s/)"%(
+        self.content += (u"\n* link to [%s](%s/)"%(
             new_obj.title, new_obj.id))
         return new_obj
 
@@ -135,17 +135,12 @@ add_hook_add_item(reload_page);
                 }
             )
 
-        data = data or drink.request.params.get('data') or self.content
-        if not isinstance(data, unicode):
-            try:
-                data = data.decode('utf-8')
-            except UnicodeError:
-                data = data.decode('latin1')
+        data = drink.omni(data or drink.request.params.get('data') or self.content)
         return self._template % self._v_wikifier_cache.convert(data)
 
     html = property(process)
 
     def _upload(self, obj):
-        self.content = obj.file.read()
+        self.content = drink.omni(obj.file.read())
 
 drink.add_upload_handler(['md', 'txt'], MarkdownPage.drink_name)
