@@ -149,7 +149,11 @@ b.match {
 fieldset.toggler {
     > legend {
         cursor: pointer;
-        padding-bottom: 1ex;
+       /* padding-bottom: 1ex;
+        */
+        padding: 0 0 .7ex 0;
+        margin: 0;
+        height: 20px;
     }
 }
 div.togglable {
@@ -331,8 +335,12 @@ legend {
 ul {
     margin-left: 1em;
 }
+li.selected {
+    list-style-type: disc;
+}
+
 li {
-    list-style-type: square;
+    list-style-type: circle;
     list-style-position: inside;
 }
 a {
@@ -351,8 +359,12 @@ a {
     width: 15ex !important;
 }
 fieldset {
+    padding: 0;
+    margin: 0;
+/*
     margin: 0.5ex 0 0.5ex 0;
     padding: 0 0.5ex 0 0.5ex;
+  */
     @include single-box-shadow($shadow_color, 0, 3px, 2px, 0px, true);
     @include background-image(linear-gradient(#fff  10%, #bbb 30%, $background 100%));
 
