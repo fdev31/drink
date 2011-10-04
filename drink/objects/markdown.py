@@ -99,7 +99,7 @@ add_hook_add_item(reload_page);
                 ret = '%s%s/view'%(base, lbl)
                 break
         else:
-            ret = '%sadd?name=%s&class=%s'%(base, label, _title)
+            ret = '%sadd?name=%s&class=%s'%(base, label, self.drink_name)
             lbl = None
 
         if lbl:
