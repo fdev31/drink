@@ -2,6 +2,7 @@ __all__ = ['Model', 'Database', 'DataBlob', 'BTree', 'PersistentList']
 
 from UserDict import IterableUserDict
 import ZODB.config
+import logging
 import transaction
 import persistent
 import drink
@@ -12,8 +13,11 @@ from ZODB.blob import Blob
 from BTrees.OOBTree import OOBTree
 from persistent.list import PersistentList
 
+log = logging.getLogger('Database')
+
 class Database(object):
     def __init__(self, wsgi_app, config_file):
+        log.info('DATABASE')
         self.app = wsgi_app
         self._config = config_file
         self.locals = threading.local()
@@ -24,6 +28,7 @@ class Database(object):
         atexit.register(self._cleanup)
 
     def _cleanup(self):
+        log.info('CLEAN')
         if self._db:
             self._db.close()
         if getattr(self.locals, 'c', None):
@@ -53,6 +58,7 @@ class Database(object):
         return r
 
     def start_request(self):
+        log.info('ENTER')
         d = self.db
         transaction.begin()
         return d
@@ -60,9 +66,11 @@ class Database(object):
     __enter__ = start_request
 
     def close_request(self):
+        log.info('CLOSE')
         transaction.commit()
 
     def __exit__(self, exc_type, exc_value, traceback):
+        log.info('EXIT')
         if exc_value:
             transaction.abort()
         else:

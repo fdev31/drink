@@ -3,6 +3,7 @@ from __future__ import absolute_import, with_statement
 
 # configuration time
 
+import logging
 from drink.config import config, BASE_DIR
 
 # bottle & db setup
@@ -500,95 +501,101 @@ if DEBUG environment variable is set, it will start in debug mode.
         with db as root:
             set_trace()
     else:
-        dbg_in_env = 'DEBUG' in os.environ
-
-        if not dbg_in_env and 'BOTTLE_CHILD' not in os.environ:
-
-            reset_required = False
-
-            with db as c:
-                if len(c) < 3:
-                    reset_required = True
-
-            if reset_required:
-                init()
-
-        # And now, http/wsgi part
-
         host = config.get('server', 'host')
         port = int(config.get('server', 'port'))
-        mode = config.get('server', 'backend')
+        app = make_app()
+        debug = (app != bottle.app())
+        bottle.run(app=app, host=host, port=port, reloader=debug, server='wsgiref' if debug else config.get('server', 'backend'))
 
-        # try some (optional) asynchronous optimization
+def make_app():
+    dbg_in_env = 'DEBUG' in os.environ
 
-        async = False
+    if not dbg_in_env and 'BOTTLE_CHILD' not in os.environ:
 
-        if dbg_in_env:
-            mode = 'debug'
+        reset_required = False
 
-        if mode not in ('debug', 'paste', 'rocket'):
+        with db as c:
+            if len(c) < 3:
+                reset_required = True
+
+        if reset_required:
+            init()
+
+    # And now, http/wsgi part
+
+    mode = config.get('server', 'backend')
+
+    # try some (optional) asynchronous optimization
+
+    async = False
+
+    if dbg_in_env:
+        mode = 'debug'
+        logging.getLogger().setLevel(0)
+
+    if mode not in ('debug', 'paste', 'rocket'):
+        try:
+            import gevent.monkey
+            gevent.monkey.patch_all()
+        except ImportError:
+            async = False
+        else:
+            async = True
+
+    config.async = async
+
+    app = bottle.app()
+
+    # handle debug mode
+    debug = False
+    if dbg_in_env:
+        debug = True
+        # trick to allow debug-wrapping
+        app.catchall = False
+
+        def dbg_repoze(app):
+            from repoze.debug.pdbpm import PostMortemDebug
+            app = PostMortemDebug(app)
+            print "Installed repoze.debug's debugging middleware"
+            return app
+
+        def dbg_werkzeug(app):
+            from werkzeug.debug import DebuggedApplication
+            app = DebuggedApplication(app, evalex=True)
+            print "Installed werkzeug debugging middleware"
+            return app
+
+        def dbg_weberror(app):
+            from weberror.evalexception import EvalException
+            app = EvalException(app)
+            print "Installed weberror debugging middleware"
+            return app
+
+        dbg_backend = config.get('server', 'debug')
+
+        if dbg_backend == 'auto':
+            backends = [dbg_werkzeug, dbg_repoze, dbg_weberror]
+        else:
+            backends = [locals()['dbg_%s'%dbg_backend]]
+
+        # debug middleware loading
+        for loader in backends:
             try:
-                import gevent.monkey
-                gevent.monkey.patch_all()
+                app = loader(app)
+                break
             except ImportError:
-                async = False
-            else:
-                async = True
+                continue
+        else:
+            print "Unable to install the debugging middleware, current setting: %s"%dbg_backend
+    # /end dbg_in_env
 
-        config.async = async
+    #from wsgiauth.ip import ip
+    #@ip
+    #def authenticate(env, ip_addr):
+    #    return ip_addr == '127.0.0.1'
+    #
+    #app = authenticate(app)
 
-        app = bottle.app()
-
-        # handle debug mode
-        debug = False
-        if dbg_in_env:
-            debug = True
-            # trick to allow debug-wrapping
-            app.catchall = False
-
-            def dbg_repoze(app):
-                from repoze.debug.pdbpm import PostMortemDebug
-                app = PostMortemDebug(app)
-                print "Installed repoze.debug's debugging middleware"
-                return app
-
-            def dbg_werkzeug(app):
-                from werkzeug.debug import DebuggedApplication
-                app = DebuggedApplication(app, evalex=True)
-                print "Installed werkzeug debugging middleware"
-                return app
-
-            def dbg_weberror(app):
-                from weberror.evalexception import EvalException
-                app = EvalException(app)
-                print "Installed weberror debugging middleware"
-                return app
-
-            dbg_backend = config.get('server', 'debug')
-
-            if dbg_backend == 'auto':
-                backends = [dbg_werkzeug, dbg_repoze, dbg_weberror]
-            else:
-                backends = [locals()['dbg_%s'%dbg_backend]]
-
-            # debug middleware loading
-            for loader in backends:
-                try:
-                    app = loader(app)
-                    break
-                except ImportError:
-                    continue
-            else:
-                print "Unable to install the debugging middleware, current setting: %s"%dbg_backend
-        # /end dbg_in_env
-
-        #from wsgiauth.ip import ip
-        #@ip
-        #def authenticate(env, ip_addr):
-        #    return ip_addr == '127.0.0.1'
-        #
-        #app = authenticate(app)
-
-        # Let's run !
-        bottle.debug(debug)
-        bottle.run(app=app, host=host, port=port, reloader=debug, server='wsgiref' if mode == 'debug' else mode)
+    # Let's run !
+    bottle.debug(debug)
+    return app
