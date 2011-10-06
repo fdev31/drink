@@ -11,10 +11,13 @@ from drink.config import config, BASE_DIR
 import bottle
 import os
 
+# some globals
+classes = {}
 bottle.TEMPLATE_PATH.append(os.path.join(BASE_DIR,'templates'))
 STATIC_PATH = os.path.abspath(os.path.join(BASE_DIR, "static"))
 DB_PATH = config.get('server', 'database') or os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, "database"))
 DB_CONFIG = os.path.join(DB_PATH, "zodb.conf")
+
 
 # auto-guess & set datadir in case of inchanged default
 print "Using DB informations from %s"%DB_CONFIG
@@ -55,10 +58,17 @@ def omni(txt):
         except UnicodeError:
             return txt.decode('latin1')
 
+# Setup db
+from .zdb import Database, DataBlob, Model, transaction
+db = Database(bottle.app(), DB_CONFIG)
+
 # Load Basic objects
-from .objects import classes, get_object, init as init_objects
+from .objects.generic import Page, ListPage, Settings
+from .objects import classes as obj_classes, get_object, init as init_objects
 from . import types
-from .objects.generic import Page, ListPage, Model, Settings
+
+classes.update(obj_classes)
+del obj_classes
 
 def add_upload_handler(ext, obj_name):
     if isinstance(ext, basestring):
@@ -69,11 +79,6 @@ def add_upload_handler(ext, obj_name):
 # Finally load all the objects
 init_objects()
 del init_objects
-
-# Setup db
-from .zdb import Database
-db = Database(bottle.app(), DB_CONFIG)
-import transaction
 
 def unauthorized(message='Action NOT allowed'):
     # TODO: handler srcuri + redirect
@@ -363,7 +368,7 @@ if DEBUG environment variable is set, it will start in debug mode.
         db.pack()
     elif len(sys.argv) == 2 and sys.argv[1] == "rebuild":
 
-        from .zdb import Blob, DataBlob
+        from .zdb import Blob
 
         if not 'settings' in db.db:
             # TODO: request.identity.user = admin
@@ -460,7 +465,6 @@ if DEBUG environment variable is set, it will start in debug mode.
 
     elif len(sys.argv) == 3 and sys.argv[1] == "export":
         import datetime
-        from drink.zdb import DataBlob
         from pprint import pprint
 
         base = sys.argv[2]

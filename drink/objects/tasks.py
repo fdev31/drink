@@ -1,5 +1,4 @@
 from __future__ import absolute_import
-import transaction
 import time
 from hashlib import sha1
 import drink

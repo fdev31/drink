@@ -1,4 +1,4 @@
-__all__ = ['Model', 'Database', 'DataBlob', 'BTree', 'PersistentList']
+__all__ = ['transaction', 'Model', 'Database', 'DataBlob', 'BTree', 'PersistentList']
 
 from UserDict import IterableUserDict
 import ZODB.config

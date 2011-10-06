@@ -3,12 +3,9 @@ import os
 from urllib import quote, unquote
 from datetime import datetime
 from mimetypes import guess_type
-import transaction
 import drink
 from drink import request
 from drink.types import dt2str
-from drink.zdb import Model
-from . import classes
 import bottle
 
 __all__ = ['Page', 'ListPage', 'WebFile', 'Settings']
@@ -47,7 +44,7 @@ def get_struct_from_obj(obj, childs, full):
                 if k in d:
                     continue
                 v = getattr(obj, k, None)
-                if isinstance(v, Model):
+                if isinstance(v, drink.Model):
                     if not 'r' in a(v):
                         continue
                     v = v.struct(False)
@@ -74,7 +71,7 @@ def get_struct_from_obj(obj, childs, full):
 
     return d
 
-class Page(Model):
+class Page(drink.Model):
     """ A dict-like object, defining all properties required by a standard page """
 
     #: fields that are editable (appear in edit panel)
@@ -166,7 +163,7 @@ class Page(Model):
     # Model methods
 
     def __init__(self, name, rootpath=None):
-        Model.__init__(self)
+        drink.Model.__init__(self)
         self.data = {}
         self.read_groups = set()
         self.write_groups = set()
@@ -259,7 +256,7 @@ class Page(Model):
 
         """
         r = resume or self._edit()
-        transaction.commit() # commit before eventual redirect
+        drink.transaction.commit() # commit before eventual redirect
         if isinstance(r, (list, tuple)) and callable(r[0]):
             return r[0](*r[1:])
         else:
@@ -368,7 +365,7 @@ class Page(Model):
             parent_path = '.'
         old_obj = self[name]
         del self[name]
-        transaction.commit()
+        drink.transaction.commit()
 
         database = drink.db.db
         if 'search' in database:
@@ -390,7 +387,7 @@ class Page(Model):
 
     def _add(self, name, cls, read_groups, write_groups):
         if isinstance(cls, basestring):
-            klass = self.classes[cls] if self.classes else classes[cls]
+            klass = self.classes[cls] if self.classes else drink.classes[cls]
         else:
             klass = cls
         if klass.hidden_class and not request.identity.admin:
@@ -406,7 +403,7 @@ class Page(Model):
         if 'search' in database:
             database['search']._add_object(new_obj)
 
-        transaction.commit()
+        drink.transaction.commit()
         return new_obj
 
     def add(self, name=None, cls=None, read_groups=None, write_groups=None):
