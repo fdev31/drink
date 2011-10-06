@@ -8,10 +8,11 @@ BTree = Model
 
 class DataBlob(object):
     def __init__(self, orig_blob=None):
-        self.fd, self.filename = tempfile.mkstemp()
+        fd, self.filename = tempfile.mkstemp()
 
     def open(self, mode='r'):
-        return self.fd
+        return open(self.filename, mode)
+
 
 class Database(object):
     def __init__(self, wsgi_app, config_file):
@@ -22,6 +23,7 @@ class Database(object):
 
     def start_request(self, *a): return self.db
     close_request = __exit__ = __enter__ = start_request
+
 
 class Transaction(object):
     # TODO: implement transactions

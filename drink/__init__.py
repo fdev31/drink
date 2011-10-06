@@ -147,10 +147,6 @@ db = Database(bottle.app(), DB_CONFIG)
 from .objects.generic import Page, ListPage, Settings
 from .objects import classes as obj_classes, get_object, init as init_objects
 from . import types
-
-classes.update(obj_classes)
-del obj_classes
-
 def add_upload_handler(ext, obj_name):
     if isinstance(ext, basestring):
         ext = [ext]
@@ -159,7 +155,8 @@ def add_upload_handler(ext, obj_name):
 
 # Finally load all the objects
 init_objects()
-del init_objects
+classes.update(obj_classes)
+del init_objects, obj_classes
 
 def unauthorized(message='Action NOT allowed'):
     # TODO: handler srcuri + redirect
@@ -330,7 +327,7 @@ def glob_index(objpath="/"):
     elif isinstance(o, basestring):
         response.content_type = "text/plain"
         return o
-    elif isinstance(o, (tuple, list, dict)):
+    elif type(o) in (tuple, list, dict):
         response.content_type = "application/json"
         return dumps(o)
     else:
