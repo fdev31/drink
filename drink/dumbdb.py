@@ -8,7 +8,7 @@ BTree = Model
 
 class DataBlob(object):
     def __init__(self, orig_blob=None):
-        fd, self.filename = tempfile.mkstemp()
+        fd, self.filename = tempfile.mkstemp(prefix="dk_blob_")
 
     def open(self, mode='r'):
         return open(self.filename, mode)
