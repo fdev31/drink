@@ -9,7 +9,6 @@ import drink
 import datetime
 from drink import omni
 from time import mktime, strptime
-from persistent.dict import PersistentDict
 
 class _Editable(object):
 
