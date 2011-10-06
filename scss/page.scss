@@ -250,12 +250,11 @@ div.codehilite {
 }
 .x_permissions_grp {
     @include editable;
-    @include border-radius($radius);
     padding: 1em;
     width: 25em;
     color: black;
     @include background-image(linear-gradient($hi_color 0%, $hi_color*0.9 20%,  $hi_color*0.7 90%, $hi_color 100%));
-    @include box-shadow(black 2px 2px 10px);
+    @include shadowed;
 
     &:before {
       content:"Permissions:";
