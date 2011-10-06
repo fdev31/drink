@@ -3,5 +3,4 @@ import os
 from drink import startup
 
 if __name__ == "__main__":
-    print "Do not forget to run 'zeoctl -C database/zeo.conf start'"
     startup()

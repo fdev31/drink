@@ -58,8 +58,89 @@ def omni(txt):
         except UnicodeError:
             return txt.decode('latin1')
 
+def init():
+    from drink.objects.finder import reset
+    reset()
+    with db as root:
+        root.clear()
+
+        from .objects import users as obj
+
+        class FakeId(object):
+            user = None
+
+            def access(self, obj):
+                return 'rowat'
+
+        request.identity = FakeId()
+        groups = root['groups'] = obj.GroupList('groups', '/')
+        users = root['users'] = obj.UserList('users', '/')
+        root['groups']['users'] = obj.Group('users', '/groups/')
+
+        admin = obj.User('admin', '/users/')
+        request.identity.user = admin
+
+        anon = obj.User('anonymous', '/users/')
+
+        groups.owner = admin
+        groups.read_groups = set()
+        groups.write_groups = set()
+
+        users.owner = admin
+        users.read_groups = set()
+        users.write_groups = set()
+        users.min_rights = 't'
+
+        root['users']['anonymous'] = anon
+        root['users']['admin'] = admin
+
+        admin.password = 'admin'
+        admin.surname = "BOFH"
+        admin.name = "Mr Admin"
+        admin.owner = admin
+
+        anon.groups = set()
+        anon.owner = admin
+
+        users = root['groups']['users']
+        users.owner = admin
+        users.read_groups = set()
+        users.write_groups = set()
+        users.min_rights = 't'
+
+        settings = Settings('settings', '/')
+        settings.server_backend = config.get('server', 'backend')
+        settings.server_port = int(config.get('server', 'port'))
+        settings.server_address = config.get('server', 'host')
+        settings.debug_framework = config.get('server', 'debug')
+        settings.active_objects = set(config.items('objects'))
+
+        root['settings'] = settings
+
+        root['pages'] = Page('pages', '/')
+
+        # deploy layout
+        for pagename, name in config.items('layout'):
+            root[pagename] = classes[ name ](pagename, '/')
+
+        mdown = classes['Web page (markdown)']('help', '/pages/')
+        help = os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, "HELP.md"))
+        mdown.content = open(help).read()
+        mdown.owner = admin
+        mdown.min_rights = 'r'
+        root['pages']['help'] = mdown
+
 # Setup db
-from .zdb import Database, DataBlob, Model, transaction
+try:
+    from . import zdb
+    del zdb
+    PERSISTENT_STORAGE = True
+except ImportError:
+    PERSISTENT_STORAGE = False
+    from .dumbdb import Database, DataBlob, Model, transaction
+    reset_required = True
+else:
+    from .zdb import Database, DataBlob, Model, transaction
 db = Database(bottle.app(), DB_CONFIG)
 
 # Load Basic objects
@@ -258,77 +339,6 @@ def glob_index(objpath="/"):
         except AttributeError:
             o = o[o.default_action]
             return getattr(o, o.default_action)()
-def init():
-    from drink.objects.finder import reset
-    reset()
-    with db as root:
-        root.clear()
-
-        from .objects import users as obj
-
-        class FakeId(object):
-            user = None
-
-            def access(self, obj):
-                return 'rowat'
-
-        request.identity = FakeId()
-        groups = root['groups'] = obj.GroupList('groups', '/')
-        users = root['users'] = obj.UserList('users', '/')
-        root['groups']['users'] = obj.Group('users', '/groups/')
-
-        admin = obj.User('admin', '/users/')
-        request.identity.user = admin
-
-        anon = obj.User('anonymous', '/users/')
-
-        groups.owner = admin
-        groups.read_groups = set()
-        groups.write_groups = set()
-
-        users.owner = admin
-        users.read_groups = set()
-        users.write_groups = set()
-        users.min_rights = 't'
-
-        root['users']['anonymous'] = anon
-        root['users']['admin'] = admin
-
-        admin.password = 'admin'
-        admin.surname = "BOFH"
-        admin.name = "Mr Admin"
-        admin.owner = admin
-
-        anon.groups = set()
-        anon.owner = admin
-
-        users = root['groups']['users']
-        users.owner = admin
-        users.read_groups = set()
-        users.write_groups = set()
-        users.min_rights = 't'
-
-        settings = Settings('settings', '/')
-        settings.server_backend = config.get('server', 'backend')
-        settings.server_port = int(config.get('server', 'port'))
-        settings.server_address = config.get('server', 'host')
-        settings.debug_framework = config.get('server', 'debug')
-        settings.active_objects = set(config.items('objects'))
-
-        root['settings'] = settings
-
-        root['pages'] = Page('pages', '/')
-
-        # deploy layout
-        for pagename, name in config.items('layout'):
-            root[pagename] = classes[ name ](pagename, '/')
-
-        mdown = classes['Web page (markdown)']('help', '/pages/')
-        help = os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, "HELP.md"))
-        mdown.content = open(help).read()
-        mdown.owner = admin
-        mdown.min_rights = 'r'
-        root['pages']['help'] = mdown
 
 
 def startup():
@@ -513,11 +523,8 @@ if DEBUG environment variable is set, it will start in debug mode.
 
 def make_app():
     dbg_in_env = 'DEBUG' in os.environ
-
-    if not dbg_in_env and 'BOTTLE_CHILD' not in os.environ:
-
-        reset_required = False
-
+    global reset_required
+    if not PERSISTENT_STORAGE or 'BOTTLE_CHILD' not in os.environ:
         with db as c:
             if len(c) < 3:
                 reset_required = True
