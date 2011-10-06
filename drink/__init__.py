@@ -131,6 +131,7 @@ def init():
         root['pages']['help'] = mdown
 
 # Setup db
+reset_required = False
 try:
     from . import zdb
     del zdb
@@ -323,13 +324,23 @@ def glob_index(objpath="/"):
         abort(404, "%s not found"%objpath)
 
     if callable(o):
-        return o()
-    elif isinstance(o, basestring):
-        response.content_type = "text/plain"
-        return o
-    elif type(o) in (tuple, list, dict):
+        o = o()
+
+    t = type(o)
+
+    if t == dict:
+        response.content_type = "application/json"
+        if not request.is_ajax:
+            if 'redirect' in o:
+                return rdr(o['redirect'])
+            if 'error' in o:
+                return abort(o['code'], o['message'])
+        return dumps(o)
+    elif t in (list, tuple):
         response.content_type = "application/json"
         return dumps(o)
+    elif isinstance(o, basestring):
+        return o
     else:
         try:
             return getattr(o, o.default_action)()

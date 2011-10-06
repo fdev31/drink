@@ -257,14 +257,11 @@ class Page(drink.Model):
         """
         r = resume or self._edit()
         drink.transaction.commit() # commit before eventual redirect
-        if isinstance(r, (list, tuple)) and callable(r[0]):
-            return r[0](*r[1:])
-        else:
-            return r
+        return r
 
     def _edit(self):
         if 'w' not in request.identity.access(self):
-            return (drink.unauthorized, "Not authorized")
+            return {'error': True, 'code': 401, 'message': "Not authorized"}
 
         items = self.editable_fields.items()
         if request.identity.id == self.owner.id or request.identity.admin:
@@ -294,7 +291,7 @@ class Page(drink.Model):
             database = drink.db.db
             if 'search' in database:
                 database['search']._update_object(self)
-            return (drink.rdr, "%s?embedded=%s"%(self.quoted_path, '1' if embedded else '' ))
+            return {'redirect': "%s?embedded=%s"%(self.quoted_path, '1' if embedded else '' )}
         else:
             if not items:
                 form = ['<div class="error_message">Not editable, sorry...</div>']
@@ -381,7 +378,7 @@ class Page(drink.Model):
     def match(self, pattern=None):
 
         if 'r' not in request.identity.access(self):
-            return drink.unauthorized("Not authorized")
+            return {'error': True, 'message': "Not authorized", 'code': 401}
 
         return self._match(pattern or request.params.get('pattern').decode('utf-8') )
 
@@ -415,16 +412,16 @@ class Page(drink.Model):
         name = name or request.params.get('name').decode('utf-8')
 
         if name in self:
-            return drink.unauthorized("%r is already defined!"%name)
+            return {'error': True, 'code': 401, 'message': "%r is already defined!"%name}
 
         if None == cls:
             cls = request.params.get('class')
         if not cls:
-            return drink.unauthorized("%r incorrect request!"%name)
+            return {'error': True, 'code': 400, 'message': "%r incorrect request!"%name}
 
         o = self._add(name, cls, auth.user.default_read_groups, auth.user.default_write_groups)
         if o is None:
-            return drink.unauthorized("You can't create %r objects!"%name)
+            return {'error': True, 'code': 401, 'message': "You can't create %r objects!"%name}
 
         if request.is_ajax:
             return o.struct()
