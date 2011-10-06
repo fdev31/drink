@@ -342,9 +342,13 @@ li.selected {
     list-style-type: disc;
 }
 
-li {
+ul > li {
+    font-size: 120%;
     list-style-type: circle;
     list-style-position: inside;
+}
+ul > li > * {
+    font-size: 90%;
 }
 a {
    text-decoration: none;
