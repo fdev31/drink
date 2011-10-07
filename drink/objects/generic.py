@@ -10,6 +10,8 @@ from drink.types import dt2str
 from drink.zdb import Model
 from . import classes
 import bottle
+import logging
+log = logging.getLogger('obj')
 
 __all__ = ['Page', 'ListPage', 'WebFile', 'Settings']
 
@@ -585,7 +587,11 @@ class WebFile(Page):
         drink.response.content_type = "text/html; charset=utf-8"
         if self.content:
             mime = self.mimetype
-            sz = os.stat(self.content.filename).st_size
+            try:
+                sz = os.stat(self.content.filename).st_size
+            except Exception, e:
+                log.error(repr(e))
+                sz = 0
             if not sz:
                 yield u'<h1>No content :(</h1>'
             else:
