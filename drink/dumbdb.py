@@ -1,6 +1,9 @@
 __all__ = ['transaction', 'Model', 'Database', 'DataBlob', 'BTree', 'PersistentList']
 
 import tempfile
+import os
+import atexit
+import pickle
 
 PersistentList = list
 class Model(dict): pass
@@ -15,13 +18,27 @@ class DataBlob(object):
 
 
 class Database(object):
-    def __init__(self, wsgi_app, config_file):
-        self.db = Model()
 
-    def pack(self):
+    db = None
+
+    def __init__(self, wsgi_app, config_file):
         pass
 
-    def start_request(self, *a): return self.db
+    def pack(self):
+        _save_db()
+
+    def start_request(self, *a):
+        if Database.db is None:
+            Database.db = Model()
+            try:
+                d = pickle.load(open('_db.p'))
+            except:
+                pass
+            else:
+                if d:
+                    Database.db.update(d)
+                   print "Loaded", Database.db
+        return Database.db
     close_request = __exit__ = __enter__ = start_request
 
 
@@ -33,3 +50,11 @@ class Transaction(object):
         pass
 
 transaction = Transaction()
+
+def _save_db():
+    f = open('_db.p', 'w')
+    print "Saving", Database.db
+    pickle.dump(Database.db, f)
+    f.close()
+
+atexit.register(_save_db)
