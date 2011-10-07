@@ -571,7 +571,7 @@ $(document).ready(function(){
     }, 'No "$", "%" or "/" and don\' start with a dot or an underscore, please :)');
 
     // Hook all keypresses in window
-    $('body').bind('keydown', null, call_hook_keyup );
+    $(document).bind('keydown', null, call_hook_keyup );
 
     // load main content
     ui.reload();
