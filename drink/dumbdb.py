@@ -1,9 +1,12 @@
 __all__ = ['transaction', 'Model', 'Database', 'DataBlob', 'BTree', 'PersistentList']
 
+import logging
 import tempfile
 import os
 import atexit
 import pickle
+
+log = logging.getLogger('dumbdb')
 
 PersistentList = list
 class Model(dict): pass
@@ -37,7 +40,7 @@ class Database(object):
             else:
                 if d:
                     Database.db.update(d)
-                   print "Loaded", Database.db
+                    log.info("Loaded %r", Database.db)
         return Database.db
     close_request = __exit__ = __enter__ = start_request
 
@@ -53,7 +56,7 @@ transaction = Transaction()
 
 def _save_db():
     f = open('_db.p', 'w')
-    print "Saving", Database.db
+    log.info("Saving %r", Database.db)
     pickle.dump(Database.db, f)
     f.close()
 

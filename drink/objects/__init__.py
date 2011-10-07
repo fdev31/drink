@@ -1,8 +1,10 @@
 from __future__ import absolute_import
 from drink.config import config
+import logging
 import drink
 from drink import request
 from urllib import unquote
+log = logging.getLogger('objects')
 
 __all__ = ['classes', 'get_object', 'init']
 
@@ -61,11 +63,11 @@ def get_object(current, objpath, no_raise=False):
 
 def init():
     for obj in objects_to_load:
-        print "[Loading %s]"%obj
+        log.info("[Loading %s]", obj)
         try:
             exec('from . import %s as _imported'%obj)
         except Exception:
-            print "Unable to load %s, remove it from config file in [objects] section."%obj
+            log.error("Unable to load %s, remove it from config file in [objects] section.", obj)
             raise
         else:
             for _child in dir(_imported):
@@ -75,5 +77,6 @@ def init():
                     if exported_name in classes:
                         raise ValueError('Duplicate object: %s !! provided by %r and %r'%(exported_name, classes[exported_name], _imported))
                     else:
-                        print "  - %s loaded"% exported_name
+                        log.info("  - %s loaded"% exported_name)
                         classes[exported_name] = klass
+

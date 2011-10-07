@@ -471,7 +471,7 @@ class ListPage(Page):
             try:
                 yield self[k]
             except KeyError:
-                print "Err, no such key: %r"%k
+                log.error("Err, no such key: %r", k)
 
     def values(self):
         return list(self.itervalues())

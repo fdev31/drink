@@ -1,15 +1,23 @@
 " Drink "
 from __future__ import absolute_import, with_statement
 
-# configuration time
+# imports + basic configuration
 
+import os
 import logging
+logging.basicConfig()
+
+dbg_in_env = 'DEBUG' in os.environ
+if dbg_in_env:
+    logging.getLogger().setLevel(logging.NOTSET)
+else:
+    logging.getLogger().setLevel(logging.WARNING)
+
+log = logging.getLogger('core')
+
 from drink.config import config, BASE_DIR
 
-# bottle & db setup
-
 import bottle
-import os
 
 # some globals
 classes = {}
@@ -20,7 +28,7 @@ DB_CONFIG = os.path.join(DB_PATH, "zodb.conf")
 
 
 # auto-guess & set datadir in case of inchanged default
-print "Using DB informations from %s"%DB_CONFIG
+log.debug("Using DB informations from %s", DB_CONFIG)
 lines = open(DB_CONFIG).readlines()
 pattern = '%define DATADIR database\n'
 
@@ -190,7 +198,7 @@ class DrinkServer(bottle.ServerAdapter):
             bjoern_req_version = (1, 2, 0)
             import bjoern
         except ImportError:
-            print "You can try installing bjoern >= %s"%('.'.join(str(x) for x in bjoern_req_version))
+            log.info("You can try installing bjoern >= %s", '.'.join(str(x) for x in bjoern_req_version))
         else:
             if bjoern.version >= bjoern_req_version:
                 adapters.insert(1, bottle.BjoernServer)
@@ -198,7 +206,7 @@ class DrinkServer(bottle.ServerAdapter):
 
         for sa in adapters:
             try:
-                print "* Trying %s"%sa.__name__
+                log.debug("* Trying %s"%sa.__name__)
                 return sa(self.host, self.port, **self.options).run(handler)
             except ImportError:
                 pass
@@ -353,7 +361,7 @@ def startup():
     try:
         import setproctitle
     except ImportError:
-        print "Unable to set process' name, easy_install setproctitle, if you want it."
+        log.warning("Unable to set process' name, easy_install setproctitle, if you want it.")
     else:
         setproctitle.setproctitle('drink')
 
@@ -399,7 +407,7 @@ if DEBUG environment variable is set, it will start in debug mode.
         objs.extend(db.db['users'].itervalues())
         for o in objs:
             try:
-                print "+%r"% o.id
+                log.info("+%r", o.id)
             except Exception, e:
                 import pdb; pdb.set_trace()
 
@@ -435,7 +443,7 @@ if DEBUG environment variable is set, it will start in debug mode.
                 if isinstance(v, DataBlob) and broken_content:
                     cur_data = v.open().read()
                     if not cur_data:
-                        print "FIXING BROKEN BLOB"
+                        log.error("FIXING BROKEN BLOB")
                         inp = open(o.content_name, 'rb')
                         out = v.open('w')
                         sz = 2**20
@@ -457,7 +465,7 @@ if DEBUG environment variable is set, it will start in debug mode.
                         o.set_field(name, v)
                         f_set.discard(name)
                     except AttributeError:
-                        print "Could not refresh %r on %r"%(field, o.id)
+                        log.error("Could not refresh %r on %r", field, o.id)
                     except (UnicodeError, TypeError), e:
                         import pdb; pdb.set_trace()
             for field in f_set:
@@ -466,36 +474,36 @@ if DEBUG environment variable is set, it will start in debug mode.
                     if isinstance(_d, basestring):
                         setattr(o, field, omni(_d))
                 except AttributeError:
-                    print "Could not set %r on %r"%(field, o.id)
+                    log.error("Could not set %r on %r", field, o.id)
                 except (UnicodeError, TypeError), e:
                     import pdb; pdb.set_trace()
 
             try:
                 transaction.commit()
             except ValueError:
-                print "** cannot commit **"
+                log.error("** cannot commit **")
 
-        print "Whooshing..."
+        log.info("Whooshing...")
         for x in db.db['search'].rebuild():
-            print x.strip()
+            log.info(x.strip())
 
     elif len(sys.argv) == 3 and sys.argv[1] == "export":
         import datetime
         from pprint import pprint
 
         base = sys.argv[2]
-        print "Exploring %s"%base
+        log.info("Exploring %s", base)
 
         all_obj = [ (db.db, '/') ]
         old_cwd = os.getcwd()
         for obj, obj_path in all_obj:
-            print "-"*80
+            log.info("-"*80)
             nbase = os.path.join(base, (obj_path or obj.path).lstrip(os.path.sep))
             try:
                 os.mkdir(nbase)
             except OSError:
                 pass
-            print nbase, type(obj) #.id if hasattr(obj, 'id') else 'ROOT'
+            log.debug("%s %s", nbase, type(obj)) #.id if hasattr(obj, 'id') else 'ROOT'
             data = obj.__dict__.copy()
             for k, v in data.iteritems():
                 if isinstance(v, datetime.date):
@@ -528,7 +536,6 @@ if DEBUG environment variable is set, it will start in debug mode.
         bottle.run(app=app, host=host, port=port, reloader=debug, server='wsgiref' if debug else config.get('server', 'backend'))
 
 def make_app():
-    dbg_in_env = 'DEBUG' in os.environ
     global reset_required
     if not PERSISTENT_STORAGE or 'BOTTLE_CHILD' not in os.environ:
         with db as c:
@@ -548,7 +555,6 @@ def make_app():
 
     if dbg_in_env:
         mode = 'debug'
-        logging.getLogger().setLevel(0)
 
     if mode not in ('debug', 'paste', 'rocket'):
         try:
@@ -573,19 +579,19 @@ def make_app():
         def dbg_repoze(app):
             from repoze.debug.pdbpm import PostMortemDebug
             app = PostMortemDebug(app)
-            print "Installed repoze.debug's debugging middleware"
+            log.debug("Installed repoze.debug's debugging middleware")
             return app
 
         def dbg_werkzeug(app):
             from werkzeug.debug import DebuggedApplication
             app = DebuggedApplication(app, evalex=True)
-            print "Installed werkzeug debugging middleware"
+            log.debug("Installed werkzeug debugging middleware")
             return app
 
         def dbg_weberror(app):
             from weberror.evalexception import EvalException
             app = EvalException(app)
-            print "Installed weberror debugging middleware"
+            log.debug("Installed weberror debugging middleware")
             return app
 
         dbg_backend = config.get('server', 'debug')
@@ -603,7 +609,7 @@ def make_app():
             except ImportError:
                 continue
         else:
-            print "Unable to install the debugging middleware, current setting: %s"%dbg_backend
+            log.error("Unable to install the debugging middleware, current setting: %s", dbg_backend)
     # /end dbg_in_env
 
     #from wsgiauth.ip import ip
