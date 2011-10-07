@@ -18,38 +18,29 @@ class User(drink.Page):
 
     groups = set()
 
+    default_action = "edit"
+
     default_read_groups = set()
 
     default_write_groups = set()
 
-    admin_fields = drink.Page.admin_fields.copy()
-
-    admin_fields.update( {
-        'description': drink.types.Text(),
-        'groups': drink.types.GroupCheckBoxes(),
-        'read_groups':
-            drink.types.GroupCheckBoxes("Read-enabled groups", group="x_permissions"),
-        'min_rights':
-            drink.types.Text("Every user's permissions (wrta)", group="x_permissions"),
-        'write_groups':
-            drink.types.GroupCheckBoxes("Write-enabled groups", group="x_permissions")
-    } )
+    editable_fields = {}
 
     owner_fields = {
     # FIXME: Don't look ordered by group !
-        'title': drink.types.Text('Nickname', group='0'),
+        'title': drink.Page.editable_fields['title'],
         'name': drink.types.Text(group='1'),
         'surname': drink.types.Text(group='2'),
         'email': drink.types.Text(group='3'),
         'password': drink.types.Password(group='4'),
-        'default_read_groups': drink.types.GroupCheckBoxes('Default readers Groups', group='x_permissions'),
-        'default_write_groups': drink.types.GroupCheckBoxes('Default writers Groups', group='x_permissions'),
+        'default_read_groups': drink.types.GroupCheckBoxes("Users that can read your documents by default", group='xx_permissions'),
+        'default_write_groups': drink.types.GroupCheckBoxes("Groups that can edit your documents by default", group='xx_permissions'),
     }
+    owner_fields['title'].caption = 'Nickname'
 
-    editable_fields = {
-    }
-
-    default_action = "edit"
+    admin_fields = drink.Page.owner_fields.copy()
+    del admin_fields['default_action']
+    admin_fields['description'] = drink.Page.editable_fields['description']
 
     def __init__(self, name, rootpath):
         drink.Page.__init__(self, name, rootpath)

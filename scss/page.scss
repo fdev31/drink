@@ -50,16 +50,24 @@ $background: #A0A0A0;
 @mixin light_shadowed {
     @include single-box-shadow($shadow_color, 0, 0px, 5px, 1px);
 }
+.light_shadow {
+    @include light_shadowed;
+}
 @mixin shadowed {
     color: black;
     @include border-radius($radius);
     @include single-box-shadow($shadow_color, $shadow_right, $shadow_down, $shadow_weight, 1px);
 }
+.shadow {
+    @include shadowed;
+}
 @mixin inner_shadowed {
     @include single-box-shadow($shadow_color, $shadow_right, $shadow_down, $shadow_weight, 0, true);
     @include border-radius($radius);
 }
-
+.in_shadow {
+    @include inner_shadowed;
+}
 @mixin entryfont {
 	outline:none;
     font-size: 16pt;
