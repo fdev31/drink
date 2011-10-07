@@ -240,6 +240,40 @@ div.codehilite {
     width: 80%;
     margin: 1em auto 0 auto;
 }
+ul.tabs {
+        margin: 0;
+        border-bottom: none;
+        position: relative;
+        z-index: 1;
+        > li > a {
+                @include shadowed;
+                @include border-top-radius(10px) !important;
+                @include border-bottom-radius(0px) !important;
+                border-left: none;
+                z-index: 1;
+        }
+}
+ul.tabs li a.active {
+        background-color: #fff;
+}
+ul.tabs li a {
+        @include background-image(linear-gradient(#fff  0%, #aaa 100%));
+}
+ul.tabs-content {
+        padding: 1em;
+        @include shadowed;
+        @include background-image(linear-gradient(#fff  0%, #aaa 100%));
+        border-top: none;
+        position: relative;
+        z-index: 5;
+        @include border-radius(0);
+        @include border-bottom-radius(5px);
+        @include border-top-right-radius(5px);
+}
+ul > li {
+    list-style-type: circle;
+    list-style-position: inside;
+}
 .sortable {
     list-style-type: none;
 }
