@@ -1,10 +1,13 @@
 from __future__ import absolute_import
 import time
-from hashlib import sha1
 import drink
+import logging
+from hashlib import sha1
 from itertools import chain
 from datetime import timedelta, date, datetime
 from drink.types import dt2str, dt2ts
+
+log = logging.getLogger('tasks')
 
 class TODO(drink.Page):
 
@@ -118,10 +121,10 @@ class TODOList(drink.Page):
         try:
             l.extend(self.get_gmail_events())
         except Exception, e:
-            print e
+            log.error("%r", e)
             import traceback
             traceback.print_exc()
-            print "gmail_events: returning gracefuly"
+            log.info("gmail_events: returning gracefuly")
         return drink.dumps(l)
 
     def get_gmail_events(self):
@@ -152,7 +155,7 @@ class TODOList(drink.Page):
             if not end_date:
                 end_date = '2012-01-01'
 
-            print 'Date range query for events on Primary Calendar: %s to %s' % (start_date, end_date,)
+            log.info('Date range query for events on Primary Calendar: %s to %s', start_date, end_date)
             query = gdata.calendar.client.CalendarEventQuery()
             query.start_min = start_date
             query.start_max = end_date
@@ -184,7 +187,7 @@ class TODOList(drink.Page):
         for n in xrange(2):
             try:
                 all_feeds = client.GetAllCalendarsFeed().entry
-                print "failed %d"%n
+                log.error("failed %d", n)
             except Exception:
                 pass
             else:
