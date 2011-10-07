@@ -41,22 +41,22 @@ $background: #A0A0A0;
         background: white;
     }
 }
-
 @mixin general_hover {
     &:hover {
         border-bottom: solid 3px $hi2_color;
         color: black;
     }
 }
-
+@mixin light_shadowed {
+    @include single-box-shadow($shadow_color, 0, 0px, 5px, 1px);
+}
 @mixin shadowed {
     color: black;
     @include border-radius($radius);
     @include single-box-shadow($shadow_color, $shadow_right, $shadow_down, $shadow_weight, 1px);
 }
-
 @mixin inner_shadowed {
-    @include single-box-shadow($shadow_color, $shadow_right, $shadow_down, $shadow_weight, 0, false);
+    @include single-box-shadow($shadow_color, $shadow_right, $shadow_down, $shadow_weight, 0, true);
     @include border-radius($radius);
 }
 
@@ -71,7 +71,9 @@ $background: #A0A0A0;
 iframe {
     width: 100%;
 }
-
+div.ui-dialog {
+    @include shadowed;
+}
 .highlighted {
     border-left: solid 5px $hi2_color;
 }
@@ -106,6 +108,9 @@ li.entry {
 .inline {
     display: inline;
     vertical-align: 1ex;
+}
+button {
+    @include light_shadowed;
 }
 span.page_nr_cur {
     padding: 0.1ex 0.5ex 0.1ex 0.5ex;
@@ -216,9 +221,8 @@ div.codehilite {
     text-align: center;
     padding: 1em 0 1em 0;
     width: 20em;
-    @include border-radius($radius);
     @include background-image(linear-gradient(#aca 0%, #575 100%));
-    @include box-shadow(black 2px 2px 10px);
+    @include shadowed;
 }
 .buttons {
     margin: 1ex auto;
@@ -246,12 +250,11 @@ div.codehilite {
 }
 .x_permissions_grp {
     @include editable;
-    @include border-radius($radius);
     padding: 1em;
     width: 25em;
     color: black;
     @include background-image(linear-gradient($hi_color 0%, $hi_color*0.9 20%,  $hi_color*0.7 90%, $hi_color 100%));
-    @include box-shadow(black 2px 2px 10px);
+    @include shadowed;
 
     &:before {
       content:"Permissions:";
@@ -339,9 +342,13 @@ li.selected {
     list-style-type: disc;
 }
 
-li {
+ul > li {
+    font-size: 120%;
     list-style-type: circle;
     list-style-position: inside;
+}
+ul > li > * {
+    font-size: 90%;
 }
 a {
    text-decoration: none;
@@ -378,12 +385,11 @@ input[type="text"], input[type="password"]  {
     @include editable;
     margin: 0 auto 1ex auto;
     text-align: center;
-    @include single-box-shadow($shadow_color, 0, 3px, 2px, 0px, true);
+    @include inner_shadowed;
     &:focus {
         border: none;
         background: #ffb;
-        @include single-box-shadow($shadow_color, 0, 3px, 2px, 0px);
-
+        @include light_shadowed;
     }
 }
 .ui-dialog {

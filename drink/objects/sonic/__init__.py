@@ -37,7 +37,6 @@ class SonicHome(drink.Page):
         #print dir(s)
         #return repr(s.getRandomSongs(size=10))
 
-
     def view(self):
         s = getattr(self, '_v_logon', None)
         if s is None:

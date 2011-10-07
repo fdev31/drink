@@ -1,7 +1,11 @@
 #!/usr/bin/env python2
 from __future__ import absolute_import
+import logging
 import scss
 import os
+
+logging.basicConfig()
+logging.getLogger().setLevel(0)
 
 s = scss.Scss()
 

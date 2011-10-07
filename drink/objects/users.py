@@ -1,6 +1,4 @@
 import drink
-from . import classes
-import transaction
 from hashlib import md5
 
 
@@ -65,7 +63,7 @@ class User(drink.Page):
         self.write_groups.add(new_grp.id)
         self.owner = self
         new_grp.owner = self
-        transaction.commit()
+        drink.transaction.commit()
 
     @property
     def html(self):

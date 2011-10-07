@@ -1,4 +1,4 @@
-__all__ = ['Model', 'Database', 'DataBlob', 'BTree', 'PersistentList']
+__all__ = ['transaction', 'Model', 'Database', 'DataBlob', 'BTree', 'PersistentList']
 
 from UserDict import IterableUserDict
 import ZODB.config
@@ -18,6 +18,7 @@ log = logging.getLogger('Database')
 class Database(object):
     def __init__(self, wsgi_app, config_file):
         log.info('DATABASE')
+        log.warning("Do not forget to run 'zeoctl -C database/zeo.conf start'")
         self.app = wsgi_app
         self._config = config_file
         self.locals = threading.local()

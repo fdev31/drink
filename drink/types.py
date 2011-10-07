@@ -7,12 +7,8 @@ __all__ = ['_Editable',
 import os
 import drink
 import datetime
-import transaction
-from . import classes
 from drink import omni
-from drink.zdb import DataBlob
 from time import mktime, strptime
-from persistent.dict import PersistentDict
 
 class _Editable(object):
 
@@ -288,12 +284,12 @@ class File(_Editable):
     def set(self, obj, name, val):
         if val == '':
             return
-        elif isinstance(val, DataBlob):
+        elif isinstance(val, drink.DataBlob):
             new_o = val
         else:
             fname = omni(val.filename)
             setattr(obj, name+"_name", fname)
-            new_o = DataBlob()
+            new_o = drink.DataBlob()
             o_fd = new_o.open('w')
             chunk_sz = 2**20 # 1MB
             while True:
