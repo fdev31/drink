@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import drink
 import fs
 from fs.osfs import OSFS
-from drink.objects.generic import get_struct_from_obj, Model, get_type
+from drink.objects.generic import get_struct_from_obj, get_type
 
 class PyFile(object):
     description = u'File from disk'
@@ -147,7 +147,7 @@ class Filesystem(drink.ListPage, PyFile):
     iterkeys = keys
 
     def __getattr__(self, name):
-        return Model.__getattribute__(self, name)
+        return drink.Model.__getattribute__(self, name)
 
     def __getitem__(self, name):
         if name in self._properties:
