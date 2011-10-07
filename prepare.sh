@@ -14,6 +14,7 @@ rm -fr "$DEST"
 $VENV -p $PY --no-site-packages "$DEST"
 
 source "$DEST/bin/activate"
+cp -r . "$DEST/drink"
 "$DEST/bin/pip" install -r requirements.txt
 (cd `dirname "$DEST"` && tar cvf - `basename "$DEST"` | bzip2 -9 > `basename "$DEST"`.tbz)
 
