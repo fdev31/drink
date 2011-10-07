@@ -347,6 +347,9 @@ li.markItUpButton > a {
     border-left: solid 7px #567;
     width: 80%;
     margin: 1em 15% 1em 5%;
+    padding: 1ex;
+    background: rgba(255, 255, 255, 0.3);
+    @include light_shadowed;
     a {
         color: #022;
         &:hover {
@@ -390,7 +393,7 @@ ul > li {
     list-style-position: inside;
 }
 ul > li > * {
-    font-size: 90%;
+    font-size: 82%;
 }
 a {
    text-decoration: none;
@@ -475,6 +478,13 @@ em {
 }
 strong {
     font-weight: bold;
+}
+blockquote {
+    background: rgba(255, 255, 255, 0.7);
+    padding: 1ex;
+    @include light_shadowed;
+    @include border-radius($radius);
+
 }
 #calendar {
     margin: 0;
