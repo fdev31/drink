@@ -139,7 +139,6 @@ try:
 except ImportError:
     PERSISTENT_STORAGE = False
     from .dumbdb import Database, DataBlob, Model, transaction
-    reset_required = True
 else:
     from .zdb import Database, DataBlob, Model, transaction
 db = Database(bottle.app(), DB_CONFIG)
