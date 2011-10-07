@@ -338,14 +338,13 @@ def glob_index(objpath="/"):
     elif t in (list, tuple):
         response.content_type = "application/json"
         return dumps(o)
-    elif isinstance(o, basestring):
-        return o
-    else:
+    elif isinstance(o, Model):
         try:
             return getattr(o, o.default_action)()
         except AttributeError:
             o = o[o.default_action]
             return getattr(o, o.default_action)()
+    return o
 
 
 def startup():
