@@ -303,19 +303,57 @@ class File(_Editable):
 
 class EasyPermissions(_Editable):
     def html(self, name, value, _template=None):
-        return """<ul id="ez_perm_list">
-        <li class="option" onclick="$('#ez_perm_list > li').removeClass('selected');$('#edit_read_groups input').each( function() { $(this).attr('checked', false ) } ) ; $('#edit_write_groups input').each( function() { $(this).attr('checked', false ) } )">
-        Reset (this document will only be accessible from your account)</li>
-        <li id="ez_perm_ro" class="option" onclick="$(this).addClass('selected'); $('#edit_read_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/^users|admin$/) ) } ) ; $('#edit_write_groups input').each( function() { $(this).attr('checked', false ) } ) ">
-        Viewable by registered users</li>
-        <li id="ez_perm_rw" class="option" onclick="$('#ez_perm_ro').addClass('selected');  $(this).addClass('selected'); $('#edit_read_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/^users|admin$/) ) } ) ; $('#edit_write_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/^users|admin$/) ) } ) ">
-        Editable by registered users</li>
-        <li class="option" onclick="$('#ez_perm_rw').addClass('selected');$('#ez_perm_ro').addClass('selected'); $(this).toggleClass('selected'); $('#edit_read_groups input').each( function() { $(this).attr('checked', !! $(this).attr('value').match(/^users|anonymous|admin$/) ) } ) ">
-        Viewable by anybody</li>
-        </ul>
+        return """
+        <script type="text/javascript">
+        $.extend({
+            'toggle_perm': function(me, who, mode, simulate) {
+                var a = [];
+                var g = {'matches': 0}
+                if (mode.match(/r/)) {
+                    a.push('read');
+                };
+                if (mode.match(/w/)) {
+                    a.push('write');
+                };
+                var r = RegExp('^'+who+'$');
+                for (i=0;i<a.length;i++) {
+                    $('#edit_'+a[i]+'_groups input').each(function() {
+                        if($(this).attr('checked') == 'checked')
+                            g['matches'] += 1;
+                })};
+                var cur_val = g['matches'] != 0;
+                if (!simulate) {
+                    for (i=0;i<a.length;i++) {
+                        $('#edit_'+a[i]+'_groups input').each(function() {
+                             if ( $(this).attr('value').match(r) ) {
+                                $(this).attr('checked', !cur_val);
+                             }
+                        });
+                    };
+                   $(me).toggleClass('selected', !cur_val);
+                } else {
+                   $(me).toggleClass('selected', cur_val);
+                }
+
+        }});
+        </script>
+        <ul id="ez_perm_list">
+        Friends can:
+        <li onclick="$.toggle_perm(this, '%s', 'r')" class="option">View this document</li>
+        <li class="option" onclick="$.toggle_perm(this, '%s', 'rw')">Edit this document</li>
+
+        Any registered user can:
+        <li onclick="$.toggle_perm(this, 'users', 'r')"class="option">View this document</li>
+        <li onclick="$.toggle_perm(this, 'users', 'rw')"class="option">Edit this document</li>
+
+        Everybody can:
+        <li onclick="$.toggle_perm(this, 'anonymous', 'r')" class="option">View this document</li>
+        <li onclick="$.toggle_perm(this, 'anonymous', 'rw')" class="option">Edit this document</li>
+
+
         <div class="option" id="show_hide_permissions" onclick="var o=$('#show_hide_permissions'); var g=$('.x_permissions_grp'); if(g.css('display') == 'none') {o.html('Hide detailed permissions')} else {o.html('Show detailed permissions')}; g.slideToggle('slow');">
         Show detailed permissions</div>
-        """
+        """%(drink.request.identity.id, drink.request.identity.id)
 
     def set(self, obj, name, val):
         return

@@ -18,7 +18,7 @@ class User(drink.Page):
 
     groups = set()
 
-    default_action = "edit"
+    default_action = "view"
 
     default_read_groups = set()
 
@@ -58,12 +58,34 @@ class User(drink.Page):
 
     @property
     def html(self):
-        return '''
+        d = self.__dict__.copy()
+        client_id = drink.request.identity.id
+        # request handling
+        isaf = drink.request.params.get('is_friend', '')
+        if isaf == '1':
+            self.groups.add(client_id)
+        elif isaf == '0':
+            self.groups.remove(client_id)
+        # produce view code
+        users = drink.db.db[u'users']
+        d['friends'] = u', '.join(users[o].id for o in self.groups if o != self.id)
+        r = [ u'''
         <h2>%(id)s</h2>
-        <strong>Name</strong>: %(name)s
-        <strong>Surname</strong>: %(surname)s
-        <strong>Phones</strong>: %(phones)r
-        '''%self.__dict__
+        <div class="entry"><strong>Name</strong>: %(name)s
+        </div><div class="entry"><strong>Surname</strong>: %(surname)s
+        </div><div class="entry"><strong>Phones</strong>: %(phones)r
+        </div>
+        ''']
+        if len(self.groups) > 1:
+            r.append(u'<div class="entry"><strong>Friends</strong>: %(friends)s</div>')
+        else:
+            r.append(u'No friend yet...')
+        if self.id != client_id:
+            if client_id not in self.groups:
+                r.append(u'<div class="entry"><button class="button"><a href="./?is_friend=1">I know and trust this user :)</a></button></div>')
+            else:
+                r.append(u'''<div class="entry"><button class="button"><a href="./?is_friend=0">I DON'T know and trust this user !</a></button></div>''')
+        return u'\n'.join(r)%d
 
     def edit(self):
         r = drink.Page._edit(self)

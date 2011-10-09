@@ -93,7 +93,7 @@ class Page(drink.Model):
         'read_groups':
             drink.types.GroupCheckBoxes("Users allowed to view the document", group="starts_hidden x_permissions"),
         'min_rights':
-            drink.types.Text("Every user's permissions (wrta)", group="starts_hidden x_permissions"),
+            drink.types.Text("Every user's permissions (<strong>r</strong>ead, <strong>w</strong>rite, <big>t</big>raverse, <strong>a</strong>dd)", group="starts_hidden x_permissions"),
         'write_groups':
             drink.types.GroupCheckBoxes("Users allowed to edit the document", group="starts_hidden x_permissions"),
     }
@@ -124,7 +124,7 @@ class Page(drink.Model):
     _actions = [
         dict(title="Help", action="/pages/help/", perm="r", icon="help"),
         dict(title="Back", action="if(!!document.location.pathname.match(/\/$/)) {document.location.href='../'} else{document.location.href='./'}", perm="r", icon="undo"),
-        dict(title="View/Reload", action="document.location.href = base_uri", icon="view", perm='r'),
+        dict(title="View/Reload", action="document.location.href = base_uri+'/view'", icon="view", perm='r'),
         dict(title="Edit", style="edit_form", action="edit", icon="edit", perm='w'),
         dict(title="List content", action="list", icon="open", perm='r'),
         dict(title="Add object", condition="page_struct.classes.length!=0", style="add_form", action="ui.main_list.new_entry_dialog()", key='INS', icon="new", perm='a'),
@@ -136,7 +136,7 @@ class Page(drink.Model):
     admin_fields = {}
 
     #: permissions given to any user (anonymous or not)
-    min_rights = ''
+    min_rights = 't'
 
     #: mime-type of the object, used for icon
     mime = 'page'
