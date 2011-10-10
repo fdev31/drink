@@ -7,6 +7,9 @@ import os
 import logging
 logging.basicConfig()
 
+import signal
+signal.signal(signal.SIGPIPE, signal.SIG_IGN)
+
 dbg_in_env = 'DEBUG' in os.environ
 if dbg_in_env:
     logging.getLogger().setLevel(logging.NOTSET)

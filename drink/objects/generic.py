@@ -5,6 +5,7 @@ from datetime import datetime
 from mimetypes import guess_type
 import drink
 from drink import request
+from threading import RLock
 from drink.types import dt2str
 import bottle
 import logging
@@ -164,6 +165,11 @@ class Page(drink.Model):
 
     # Model methods
 
+    def _lock(self):
+        if not getattr(self, '_v_lock', None):
+            self._v_lock = RLock()
+        return self._v_lock
+
     def __init__(self, name, rootpath=None):
         drink.Model.__init__(self)
         self.data = {}
@@ -257,8 +263,9 @@ class Page(drink.Model):
         This is used to handle redirects, from "inside" you should always use :meth:`_edit` !
 
         """
-        r = resume or self._edit()
-        drink.transaction.commit() # commit before eventual redirect
+        with self._lock():
+            r = resume or self._edit()
+            drink.transaction.commit() # commit before eventual redirect
         return r
 
     def _edit(self):
@@ -421,7 +428,8 @@ class Page(drink.Model):
         if not cls:
             return {'error': True, 'code': 400, 'message': "%r incorrect request!"%name}
 
-        o = self._add(name, cls, auth.user.default_read_groups, auth.user.default_write_groups)
+        with self._lock():
+            o = self._add(name, cls, auth.user.default_read_groups, auth.user.default_write_groups)
         if o is None:
             return {'error': True, 'code': 401, 'message': "You can't create %r objects!"%name}
 
