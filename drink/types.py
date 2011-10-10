@@ -305,6 +305,15 @@ class EasyPermissions(_Editable):
     def html(self, name, value, _template=None):
         return """
         <script type="text/javascript">
+        $(function() {
+            $.toggle_perm( $('#perm_fr_r'), '%(id)s', 'r', true);
+            $.toggle_perm( $('#perm_fr_w'), '%(id)s', 'w', true);
+            $.toggle_perm( $('#perm_any_r'), 'users', 'r', true);
+            $.toggle_perm( $('#perm_any_w'), 'users', 'w', true);
+            $.toggle_perm( $('#perm_ano_r'), 'anonymous', 'r', true);
+            $.toggle_perm( $('#perm_ano_w'), 'anonymous', 'w', true);
+        });
+
         $.extend({
             'toggle_perm': function(me, who, mode, simulate) {
                 var a = [];
@@ -315,16 +324,22 @@ class EasyPermissions(_Editable):
                 if (mode.match(/w/)) {
                     a.push('write');
                 };
+                console.log(who);
+                console.log(mode);
                 var r = RegExp('^'+who+'$');
                 for (i=0;i<a.length;i++) {
                     $('#edit_'+a[i]+'_groups input').each(function() {
-                        if($(this).attr('checked') == 'checked')
-                            g['matches'] += 1;
+                        if ( $(this).attr('value').match(r) ) {
+                            if($(this).is(':checked'))
+                                g['matches'] += 1;
+                        }
                 })};
                 var cur_val = g['matches'] != 0;
+                console.log('val '+cur_val);
                 if (!simulate) {
                     for (i=0;i<a.length;i++) {
                         $('#edit_'+a[i]+'_groups input').each(function() {
+                            console.log(this);
                              if ( $(this).attr('value').match(r) ) {
                                 $(this).attr('checked', !cur_val);
                              }
@@ -339,21 +354,21 @@ class EasyPermissions(_Editable):
         </script>
         <ul id="ez_perm_list">
         Friends can:
-        <li onclick="$.toggle_perm(this, '%s', 'r')" class="option">View this document</li>
-        <li class="option" onclick="$.toggle_perm(this, '%s', 'rw')">Edit this document</li>
+        <li id="perm_fr_r" onclick="$.toggle_perm(this, '%(id)s', 'r')" class="option">View this document</li>
+        <li id="perm_fr_w" class="option" onclick="$.toggle_perm(this, '%(id)s', 'w')">Edit this document</li>
 
         Any registered user can:
-        <li onclick="$.toggle_perm(this, 'users', 'r')"class="option">View this document</li>
-        <li onclick="$.toggle_perm(this, 'users', 'rw')"class="option">Edit this document</li>
+        <li id="perm_any_r" onclick="$.toggle_perm(this, 'users', 'r')"class="option">View this document</li>
+        <li id="perm_any_w" onclick="$.toggle_perm(this, 'users', 'w')"class="option">Edit this document</li>
 
         Everybody can:
-        <li onclick="$.toggle_perm(this, 'anonymous', 'r')" class="option">View this document</li>
-        <li onclick="$.toggle_perm(this, 'anonymous', 'rw')" class="option">Edit this document</li>
+        <li id="perm_ano_r" onclick="$.toggle_perm(this, 'anonymous', 'r')" class="option">View this document</li>
+        <li id="perm_ano_w" onclick="$.toggle_perm(this, 'anonymous', 'w')" class="option">Edit this document</li>
 
 
-        <div class="option" id="show_hide_permissions" onclick="var o=$('#show_hide_permissions'); var g=$('.x_permissions_grp'); if(g.css('display') == 'none') {o.html('Hide detailed permissions')} else {o.html('Show detailed permissions')}; g.slideToggle('slow');">
-        Show detailed permissions</div>
-        """%(drink.request.identity.id, drink.request.identity.id)
+        <span class="button" id="show_hide_permissions" onclick="var o=$('#show_hide_permissions'); var g=$('.x_permissions_grp'); if(g.css('display') == 'none') {o.html('Hide detailed permissions')} else {o.html('Show detailed permissions')}; g.slideToggle('slow');">
+        Show detailed permissions</span>
+        """%dict(id=drink.request.identity.id)
 
     def set(self, obj, name, val):
         return

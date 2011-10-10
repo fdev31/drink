@@ -12,6 +12,7 @@ $shadow_color: rgba(#444, 0.6);
 $radius: 8px;
 $hi_color: #be8;
 $hi2_color: #fa5;
+$hi3_color: #ffd;
 $contour: #dde;
 $main_color: #093E56;
 $background: #A0A0A0;
@@ -31,7 +32,7 @@ $background: #A0A0A0;
     color: #555;
     border: none;
     padding: 0 1ex 0 1ex;
-    background: #ffd;
+    background: $hi3_color;
 
     &:hover {
         color: black;
@@ -311,12 +312,18 @@ input.submit, .button, span.page_nr {
     @include border-radius(5px);
     border: none;
     @include single-box-shadow($shadow_color, 0, 3px, 2px, 0px, false);
-    background-color: #eda;
+    background-color: $hi3_color;
     position: relative;
+    padding: 0.5ex 1ex 0.5ex 1ex;
+    cursor: pointer;
+    top: 0.5ex;
+    bottom: 0.5ex;
+    font-size: 80%;
+    @include background-image(linear-gradient(#fff  10%, #eda 30%, $background 100%));
     &:hover {
-        top: 2px;
+        top: .7ex;
         border: none;
-        background-color: #bea;
+        background-color: $hi3_color;
         text-decoration: underline;
         @include single-box-shadow($shadow_color, 0, 3px, 2px, 0px, true);
     }
