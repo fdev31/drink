@@ -440,7 +440,6 @@ input[type="text"], input[type="password"]  {
     @include inner_shadowed;
     &:focus {
         border: none;
-        background: #ffb;
         @include light_shadowed;
     }
 }
