@@ -375,6 +375,7 @@ def startup():
 Drink help
 
 commands:
+    run: starts the server
     init: reset database
     pack: pack database (more compact/faster)
     rebuild: EXPERIMENTAL, will try to convert & clean an old database to newer format
@@ -531,7 +532,7 @@ if DEBUG environment variable is set, it will start in debug mode.
         from pdb import set_trace
         with db as root:
             set_trace()
-    else:
+    elif len(sys.argv) == 2 and sys.argv[1] == "run":
         host = config.get('server', 'host')
         port = int(config.get('server', 'port'))
         app = make_app()
