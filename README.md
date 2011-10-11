@@ -102,16 +102,20 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 
 ## Current release changes
 
--   Text type can have different subtypes now (ex: password)
--   New type: Choice
--   Settings can be changed within drink
--   Gcalendar support for Calendar (+ extended Task object)
--   Jquery updated
--   Simple "duration" type
--   Javascript refactor
--   Introduction of a simple generic actions framework
+-   Css update, uses skeleton as base
+-   uWSGI integration
 -   D&Drop form is more integrated
--   Templates dropped support for static HTML, more and more content will come with js/jQuery + JSON
+-   Jquery updated, also Whoosh > 2.0 is required now
+-   Introduction of a simple generic actions framework
+-   Gcalendar support for Calendar (+ extended Task object)
+-   New type: Choice, Duration (very basic)
+-   Text type can have different subtypes now (ex: password)
+-   Authentication now recovers your original location
+-   Shortcuts/Keyboard navigation, press "h" to see help
+-   Add an "in-memory" database, using pickles to save state (useful for testing purposes)
+-   Templates dropped support for static HTML, more and more content comes with js/jQuery + JSON
+-   Simplify easy permissions panel, also add possibility to add someone as "trusted" so it can inherit your permissions on documents
+-   Javascript refactor started
 -   As always: Fixes & Bugs
 
 ## Roadmap
