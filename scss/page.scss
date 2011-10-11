@@ -270,6 +270,9 @@ ul.tabs-content {
         @include border-radius(0);
         @include border-bottom-radius(5px);
         @include border-top-right-radius(5px);
+        > li { 
+                list-style-type: none;
+        }
 }
 ul > li {
     list-style-type: circle;

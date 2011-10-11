@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, with_statement
 import os
 from urllib import quote, unquote
 from datetime import datetime
@@ -341,7 +341,7 @@ class Page(drink.Model):
         except UnicodeError:
             filename = request.GET['qqfile'].decode('latin1')
         if not filename:
-            return {'error': True, 'message': 'Incorrect parameters. Action aborted.'}
+            return {'error': True, 'code': 400, 'message': 'Incorrect parameters. Action aborted.'}
 
         factory = self.upload_map.get(filename.rsplit('.')[-1], 'WebFile')
 
@@ -355,13 +355,15 @@ class Page(drink.Model):
         fake_post_obj.file = request.body
         fake_post_obj.filename = filename
 
-        o._upload(fake_post_obj)
+        with self._lock():
+            o._upload(fake_post_obj)
 
         data = o.struct()
         data['success'] = True
         return data
 
     def rm(self):
+        # TODO: ajaxify
         name = drink.omni(request.GET.get('name'))
         if not ('a' in request.identity.access(self) and 'w' in request.identity.access(self[name])):
             return drink.unauthorized("Not authorized")
@@ -369,13 +371,16 @@ class Page(drink.Model):
             parent_path = self.quoted_path
         except AttributeError: # XXX: unclean
             parent_path = '.'
-        old_obj = self[name]
-        del self[name]
-        drink.transaction.commit()
 
         database = drink.db.db
-        if 'search' in database:
-            database['search']._del_object(old_obj)
+
+        with self._lock():
+            old_obj = self[name]
+            del self[name]
+            drink.transaction.commit()
+
+            if 'search' in database:
+                database['search']._del_object(old_obj)
 
         return drink.rdr(parent_path)
 
