@@ -20,4 +20,4 @@
 http='--http 127.0.0.1:5000'
 sock='-s /tmp/uwsgi.sock -C 666'
 
-exec uwsgi -p 4 $sock $http --module 'drink:make_app()'
+exec uwsgi -p 10 $sock $http --module 'drink:make_app()'

@@ -5,7 +5,7 @@ from datetime import datetime
 from mimetypes import guess_type
 import drink
 from drink import request
-from threading import RLock
+from threading import Lock
 from drink.types import dt2str
 import bottle
 import logging
@@ -167,7 +167,7 @@ class Page(drink.Model):
 
     def _lock(self):
         if not getattr(self, '_v_lock', None):
-            self._v_lock = RLock()
+            self._v_lock = Lock()
         return self._v_lock
 
     def __init__(self, name, rootpath=None):
