@@ -17,7 +17,13 @@
 
 # In venv, add  -H /path/to/py/home
 
+P=
+H=
+cd ${H}
+
 http='--http 127.0.0.1:5000'
 sock='-s /tmp/uwsgi.sock -C 666'
+
+zeoctl -C database/zeo.conf start
 
 exec uwsgi -p 10 $sock $http --module 'drink:make_app()'
