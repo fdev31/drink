@@ -84,7 +84,45 @@ ui = new Object({
             }
         },
         reload: function() {
-            $.ajax({url: 'struct'}).success(ui.main_list.reload).error(function() {$('<div title="Error occured">Listing can\'t be loaded :(</div>').dialog()});
+            $.ajax({url: 'struct'}).success(ui.main_list.reload).error(function() {$('<div title="Error occured">Listing can\'t be loaded :(</div>').dialog({closeOnEscape:true})});
+        },
+        // EDIT
+        edit_entry: function(data) {
+           frame = $('<iframe title="Edit object" src="'+base_uri+'/'+data+'/edit?embedded=1">No iframe support :(</iframe>');
+            frame.dialog({modal:true, width:'90%', closeOnEscape:true});
+            frame.css('width', '100%');
+            frame.css('padding', '0');
+            frame.css('margin', 'auto');
+            frame.css('height', '66%');
+        },
+        // REMOVE
+        remove_entry: function(item) {
+            $('<div id="remove-confirm" title="Do you really want to remove this item ?">Please, confirm removal.</div>').dialog({
+                modal: true,
+                closeOnEscape:true,
+                buttons: {
+                    Accept: function() {
+                        $( this ).dialog( "close" );
+                        $.ajax({
+                            url:'rm?name='+encodeURI(item),
+                        }).success(function() {
+                            var safe_name = item.replace( /"/g, '\\"');
+/*
+                            $('#edit_form select option[value="'+safe_name+'"]').remove();
+                            $('#rm_form select option[value="'+safe_name+'"]').remove();
+                            $('#rm_form select option[value="'+safe_name+'"]').remove();
+  */
+                            $('ul > li.entry:data(item='+item+')').slideUp('slow', function() {$(this).remove()});
+                            delete ui.child_items[item];
+                        }).error(function(){
+                            $('<div title="Error occured">Sorry, something didn\'t work correctly</div>').dialog();
+                           });
+                    },
+                    Cancel: function() {
+                        $( this ).dialog( "close" );
+                    }
+                }
+            });
         },
     current_index: -1,
     child_items: [],
@@ -174,8 +212,8 @@ function popup_actions(event) {
         $(this).data('edit_called', setTimeout(function() {
             var item_name = me.data('item');
             var edit_span = $('<span class="actions"></span>');
-            edit_span.append('<a title="Edit" onclick="ui.main_list.edit_entry(\''+item_name+'\')"><img class="minicon" src="/static/actions/edit.png" /></a>');
-            edit_span.append('<a title="Delete" onclick="ui.main_list.remove_entry(\''+item_name+'\')" ><img class="minicon" src="/static/actions/delete.png" /></a>');
+            edit_span.append('<a title="Edit" onclick="ui.edit_entry(\''+item_name+'\')"><img class="minicon" src="/static/actions/edit.png" /></a>');
+            edit_span.append('<a title="Delete" onclick="ui.remove_entry(\''+item_name+'\')" ><img class="minicon" src="/static/actions/delete.png" /></a>');
             edit_span.fadeIn('slow');
             me.append(edit_span);
 
@@ -304,7 +342,7 @@ function dom_initialize(dom) {
         drop: function(event, ui) {
             var item = ui.draggable.data('item');
             $(this).removeClass("selected");
-	        ui.main_list.remove_entry(ui.draggable.remove());
+	        ui.remove_entry(ui.draggable.remove());
 	        ui.draggable.remove();
         },
         over: function(event, ui) {
@@ -390,7 +428,7 @@ $(document).ready(function(){
         // ITEM LIST LOADING THINGS
         reload: function(data, status, req) {
             // TODO: return actions in struct
-            $.ajax({url: 'actions'}).success(ui.load_action_list).error(function() { $('<div title="Error occured">List of actions failed to load</div>').dialog();});
+            $.ajax({url: 'actions'}).success(ui.load_action_list).error(function() { $('<div title="Error occured">List of actions failed to load</div>').dialog({closeOnEscape:true});});
 
             if(debug) console.log(data);
             if (!data._perm) return;
@@ -452,9 +490,7 @@ $(document).ready(function(){
             var new_obj = $(template+tpl_ftr);
 
             var check_fn = function(e) {
-                if (e.keyCode == 27) {
-                    new_obj.dialog("close");
-                } else if (e.keyCode == 13) {
+                if (e.keyCode == 13) {
                     validate_fn();
                 }
             }
@@ -470,6 +506,7 @@ $(document).ready(function(){
             new_obj.find('input.obj_name').keyup(check_fn);
 
             new_obj.dialog({
+                closeOnEscape:true,
                 modal: true,
                 buttons: [ {text: 'OK', click: validate_fn} ],
             });
@@ -478,43 +515,6 @@ $(document).ready(function(){
                 new_obj.find(".obj_class").val(page_struct.classes[0]).attr('disabled', true);
                 new_obj.find('input.obj_name').trigger('click').focus();
             }
-        },
-        // EDIT
-        edit_entry: function(data) {
-           frame = $('<iframe title="Edit object" src="'+base_uri+'/'+data+'/edit?embedded=1">No iframe support :(</iframe>');
-            frame.dialog({modal:true, width:'90%'});
-            frame.css('width', '100%');
-            frame.css('padding', '0');
-            frame.css('margin', 'auto');
-            frame.css('height', '66%');
-        },
-        // REMOVE
-        remove_entry: function(item) {
-            $('<div id="remove-confirm" title="Do you really want to remove this item ?">Please, confirm removal.</div>').dialog({
-                modal: true,
-                buttons: {
-                    Accept: function() {
-                        $( this ).dialog( "close" );
-                        $.ajax({
-                            url:'rm?name='+encodeURI(item),
-                        }).success(function() {
-                            var safe_name = item.replace( /"/g, '\\"');
-/*
-                            $('#edit_form select option[value="'+safe_name+'"]').remove();
-                            $('#rm_form select option[value="'+safe_name+'"]').remove();
-                            $('#rm_form select option[value="'+safe_name+'"]').remove();
-  */
-                            $('ul > li.entry:data(item='+item+')').slideUp('slow', function() {$(this).remove()});
-                            delete ui.child_items[item];
-                        }).error(function(){
-                            $('<div title="Error occured">Sorry, something didn\'t work correctly</div>').dialog();
-                           });
-                    },
-                    Cancel: function() {
-                        $( this ).dialog( "close" );
-                    }
-                }
-            });
         },
         // ADD
         add_entry: function(data) {
@@ -607,7 +607,7 @@ $(document).ready(function(){
     });
     add_shortcut('DEL', function() {
         if (ui.current_index > -1) {
-            ui.main_list.remove_entry( $($('ul > .entry')[ui.current_index]).data('item') );
+            ui.remove_entry( $($('ul > .entry')[ui.current_index]).data('item') );
         }
     });
     add_shortcut('BACK', function() {
@@ -631,7 +631,7 @@ $(document).ready(function(){
         window.location = base_uri+'view';
     });
     add_shortcut('H', function() {
-        $('<div title="Keyboard shortcuts"><ul><li>[E]dit</li><li>[S]earch / [S]elect first input field</li><li>[L]ist</li><li>[V]iew</li><li>BACKSPACE: one level up</li><li>UP/DOWN: change selection</li><li>[DEL]ete</li><li>[ENTER]</li><li>ESCAPE: close dialogs</li></ul></div>').dialog({width: '40ex'});
+        $('<div title="Keyboard shortcuts"><ul><li>[E]dit</li><li>[S]earch / [S]elect first input field</li><li>[L]ist</li><li>[V]iew</li><li>BACKSPACE: one level up</li><li>UP/DOWN: change selection</li><li>[DEL]ete</li><li>[ENTER]</li><li>ESCAPE: close dialogs</li></ul></div>').dialog({width: '40ex', closeOnEscape: true});
     });
 
     dom_initialize($(document));
