@@ -21,8 +21,8 @@ source "$DEST/bin/activate"
 cp -r . "$DEST/drink"
 
 if [ "$yn" == "y" ]; then
-    grep -v ZODB requirements.txt > requirements_nozodb.txt
-    "$DEST/bin/pip" install -r requirements_nozodb.txt
+    grep -vE ZODB|error|debug requirements.txt > requirements_test.txt
+    "$DEST/bin/pip" install -r requirements_test.txt
 else
     "$DEST/bin/pip" install -r requirements.txt
 fi
