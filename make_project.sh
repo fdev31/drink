@@ -15,20 +15,30 @@ read yn
 
 rm -fr "$DEST"
 
+echo "DEST: $DEST"
+
 $VENV -p $PY --no-site-packages "$DEST"
 
-source "$DEST/bin/activate"
-cp -r . "$DEST/drink"
+. "$DEST/bin/activate"
 
-if [ "$yn" == "y" ]; then
-    grep -vE ZODB|error|debug requirements.txt > requirements_test.txt
-    "$DEST/bin/pip" install -r requirements_test.txt
+cp -r drink "$DEST/drink"
+cp -r scss "$DEST/scss"
+mkdir -p "$DEST/database/cache"
+mkdir -p "$DEST/database/blobs"
+cp database/*.conf "$DEST/database/"
+
+if [ "x$yn" = "xy" ] ; then
+    grep -vE 'ZODB|error|debug|proctitle' requirements.txt > requirements_test.txt
+    $DEST/bin/pip install -r requirements_test.txt
 else
-    "$DEST/bin/pip" install -r requirements.txt
+    $DEST/bin/pip install -r requirements.txt
 fi
-for script in start_standard.sh start_uwsgi.sh; do
-    sed -e "s/P=/P=../bin/python" -e "s/H=/H=$DEST/drink/" < "$DEST/drink/$script" > "$DEST/$script"
+
+for script in manage start_standard.sh start_uwsgi.sh; do
+    sed -e "s#^P=\$#P=../bin/python#" -e "s#^H=\$#H=$DEST/drink/#" < "$script" > "$DEST/$script"
 done
 
-(cd `dirname "$DEST"` && tar cvf - `basename "$DEST"` | bzip2 -9 > `basename "$DEST"`.tbz)
+echo "Generating tarball..."
+(cd `dirname "$DEST"` && tar cvf - `basename "$DEST"` | bzip2 -9 > `basename "$DEST"`.tbz) >/dev/null 2>&1
+
 
