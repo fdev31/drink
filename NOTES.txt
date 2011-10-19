@@ -1,3 +1,6 @@
+Use webtest in tests, looks very fine:
+http://webtest.pythonpaste.org/en/latest/index.html
+
 - FINISH MOVE
     - move function with completion [ FIX accents support ]
 - See if types can be simplified when used from inside (ORM-like ?)
