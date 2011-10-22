@@ -100,9 +100,9 @@ class TODOList(drink.Page):
 
     mime = "tasks"
 
-    css = ['/static/fullcalendar.css']
+    css = ['/static/css/fullcalendar.css']
 
-    js = ['/static/fullcalendar.min.js', '/static/tasks.js']
+    js = ['/static/js/fullcalendar.js', '/static/tasks.js']
 
     html = '<div id="calendar"></div>'
 
