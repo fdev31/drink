@@ -85,7 +85,7 @@ class Mime(Choice):
 
 class Text(_Editable):
 
-    _template = r'''<input type="%(_type)s" size="%(size)d" id="%(id)s" value="%(value)s" name="%(name)s" />'''
+    _template = r'''<input type="%(_type)s" size="%(size)d" style="width:%(size)dex" id="%(id)s" value="%(value)s" name="%(name)s" />'''
 
     _type = None
 
