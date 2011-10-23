@@ -43,7 +43,7 @@ class PyFile(object):
 
     def view(self):
         if self.mime == 'folder':
-            yield self.render(html='<div id="main_list" class="sortable" />')
+            yield drink.Page.view(self, html='<div id="main_list" class="sortable" />')
         else:
             mime = get_type(self.id)
 

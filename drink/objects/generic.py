@@ -198,21 +198,6 @@ class Page(drink.Model):
         except AttributeError:
             self.owner = request.identity.user
 
-    def render(self, page='main.html', obj=None, css=None, js=None, html=None, embed=None, classes=None, **kw):
-        return bottle.template(page,
-                template_adapter=bottle.Jinja2Template,
-                obj=obj or self,
-                css=css or self.css,
-                js=js or self.js,
-                html=html or self.html,
-                embed=bool(drink.request.params.get('embedded', False)) if embed is None else embed,
-                classes=self.classes if classes is None else classes,
-                isstring=lambda x: isinstance(x, basestring),
-                req=request,
-                authenticated=request.identity,
-                **kw
-            )
-
     def __hash__(self):
         return hash(self.id)
 
@@ -231,9 +216,25 @@ class Page(drink.Model):
     def quoted_id(self):
         return quote(self.id.encode('utf-8'))
 
-    def view(self):
+    def view(self, page='main.html', obj=None, css=None, js=None, html=None, embed=None, classes=None, **kw):
+        if 'r' not in request.identity.access(self):
+            return drink.unauthorized()
+
         drink.response.content_type = "text/html; charset=utf-8"
-        return self.render()
+
+        return bottle.template(page,
+                template_adapter=bottle.Jinja2Template,
+                obj=obj or self,
+                css=css or self.css,
+                js=js or self.js,
+                html=html or self.html,
+                embed=bool(drink.request.params.get('embedded', False)) if embed is None else embed,
+                classes=self.classes if classes is None else classes,
+                isstring=lambda x: isinstance(x, basestring),
+                req=request,
+                authenticated=request.identity,
+                **kw
+            )
 
     def struct(self, childs=True, full=None):
         o =  get_struct_from_obj(self, childs, full)
@@ -330,12 +331,15 @@ class Page(drink.Model):
                 form.insert(0, '''<form
                  class="auto_edit_form" id="auto_edit_form" action="edit" %s method="post">'''%(' '.join(form_opts)))
 
-            return self.render(html='\n'.join(form))
+            return self.view(html='\n'.join(form))
 
     def _upload(self, obj):
         self.editable_fields['content'].set(self, 'content', obj)
 
     def upload(self):
+        if 'w' not in request.identity.access(self):
+            return drink.unauthorized()
+
         try:
             filename = request.GET.get('qqfile', '').decode('utf-8')
         except UnicodeError:
@@ -390,7 +394,6 @@ class Page(drink.Model):
         return {'items': [k for k in self.iterkeys() if pattern in k]}
 
     def match(self, pattern=None):
-
         if 'r' not in request.identity.access(self):
             return drink.unauthorized()
 
@@ -444,13 +447,15 @@ class Page(drink.Model):
             return drink.rdr(o.quoted_path+'edit')
 
     def list(self):
-        return self.render('main.html', html=u'<h1>%s</h1>\n<ul id="main_list" class="sortable" />'%self.title)
+        return self.view('main.html', html=u'<h1>%s</h1>\n<ul id="main_list" class="sortable" />'%self.title)
 
 class ListPage(Page):
 
     drink_name = "Folder index"
 
     description = u"An ordered folder-like display"
+
+    default_action = 'list'
 
     mime = "folder"
 
@@ -473,11 +478,14 @@ class ListPage(Page):
         return list(self.forced_order)
 
     def move(self):
+        if 'w' not in request.identity.access(self):
+            return drink.unauthorized()
+
         if request.is_ajax:
             self.forced_order = unquote(request.params.get('set')).decode('utf-8').split('/')
         else:
             html = '<input class="completable" complete_type="objpath"></input>'
-            return self.render(html=html)
+            return self.view(html=html)
 
     def itervalues(self):
         for k in self.iterkeys():
@@ -497,6 +505,9 @@ class ListPage(Page):
         return list(self.iteritems())
 
     def reset_items(self):
+        if 'o' not in request.identity.access(self):
+            return drink.unauthorized("You must be the owner to do that")
+
         orig_order = []
         k = set(Page.keys(self))
 
@@ -525,8 +536,6 @@ class ListPage(Page):
         else:
             self.forced_order.remove(name)
             return r
-
-    view = Page.list
 
 
 class WebFile(Page):
@@ -566,11 +575,16 @@ class WebFile(Page):
         return u'%s\n%s'%(desc, cont)
 
     def serialize(self, recurse=False):
+        if 'o' not in request.identity.access(self):
+            return drink.unauthorized("You must be the owner to do that")
+
         d = Page.serialize(self, recurse=False)
         d['drink__filename'].self.content.filename
         return d
 
     def raw(self):
+        if 'r' not in request.identity.access(self):
+            return drink.unauthorized()
 
         root, fname = os.path.split(self.content.filename)
         return drink.static_file(fname, root, mimetype=self.mimetype, download=self.content_name)
@@ -591,7 +605,11 @@ class WebFile(Page):
 
     @property
     def html(self):
+        if 'r' not in request.identity.access(self):
+            return drink.unauthorized()
+
         drink.response.content_type = "text/html; charset=utf-8"
+        r = []
         if self.content:
             mime = self.mimetype
             try:
@@ -600,20 +618,22 @@ class WebFile(Page):
                 log.error(repr(e))
                 sz = 0
             if not sz:
-                yield u'<h1>No content :(</h1>'
+                r.append(u'<h1>No content :(</h1>')
             else:
-                yield u'<h1 title="%s">%s<a href="raw"><img src="/static/actions/download.png" title="Click here to download (%sB)"/></a></h1>'%(self.description, self.content_name, drink.bytes2human(sz))
-                yield u'<div class="contents">'
+                r.append(u'<h1 title="%s">%s<a href="raw"><img src="/static/actions/download.png" title="Click here to download (%sB)"/></a></h1>'%(self.description, self.content_name, drink.bytes2human(sz)))
+                r.append(u'<div class="contents">')
                 if mime.startswith('image/'):
-                    yield u'<img src="raw" style="width: 80%; margin-left: 10%; margin-right: 10%;"/>'
+                    r.append(u'<img src="raw" style="width: 80%; margin-left: 10%; margin-right: 10%;"/>')
                 elif mime in ('application/xml', ) or mime.startswith('text/'):
                     f = self.content.open('r')
-                    yield u'<pre>'
-                    yield unicode(f.read(), 'utf-8')
-                    yield u'</pre>'
-                yield u"</div>"
+                    r.append(u'<pre>')
+                    r.append(unicode(f.read(), 'utf-8'))
+                    r.append(u'</pre>')
+                r.append(u"</div>")
         else:
-            yield u'<h1>No content :(</h1>'
+            r.append(u'<h1>No content :(</h1>')
+
+        return u''.join(r)
 
 
 class Settings(Page):

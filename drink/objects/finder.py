@@ -198,7 +198,7 @@ class ObjectBrowser(drink.Page):
         self.lastlog[drink.request.identity.id] = (pattern, matches)
 
         # render
-        return self.render(html='\n'.join(html))
+        return self.view(html='\n'.join(html))
 
     @property
     def html(self):
