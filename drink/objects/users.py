@@ -1,6 +1,6 @@
 import drink
 from hashlib import md5
-
+from copy import copy
 
 class User(drink.Page):
 
@@ -28,7 +28,7 @@ class User(drink.Page):
 
     owner_fields = {
     # FIXME: Don't look ordered by group !
-        'title': drink.Page.editable_fields['title'],
+        'title': copy(drink.Page.editable_fields['title']),
         'name': drink.types.Text(group='1'),
         'surname': drink.types.Text(group='2'),
         'email': drink.types.Text(group='3'),
