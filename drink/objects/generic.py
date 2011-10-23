@@ -270,7 +270,7 @@ class Page(drink.Model):
 
     def _edit(self):
         if 'w' not in request.identity.access(self):
-            return {'error': True, 'code': 401, 'message': "Not authorized"}
+            return drink.unauthorized()
 
         items = self.editable_fields.items()
         if request.identity.id == self.owner.id or request.identity.admin:
@@ -392,7 +392,7 @@ class Page(drink.Model):
     def match(self, pattern=None):
 
         if 'r' not in request.identity.access(self):
-            return {'error': True, 'message': "Not authorized", 'code': 401}
+            return drink.unauthorized()
 
         return self._match(pattern or request.params.get('pattern').decode('utf-8') )
 
@@ -426,17 +426,17 @@ class Page(drink.Model):
         name = name or request.params.get('name').decode('utf-8')
 
         if name in self:
-            return {'error': True, 'code': 401, 'message': "%r is already defined!"%name}
+            return drink.unauthorized("%r is already defined!")
 
         if None == cls:
             cls = request.params.get('class')
         if not cls:
-            return {'error': True, 'code': 400, 'message': "%r incorrect request!"%name}
+            return drink.unauthorized("%r incorrect request!"%name)
 
         with self._lock():
             o = self._add(name, cls, auth.user.default_read_groups, auth.user.default_write_groups)
         if o is None:
-            return {'error': True, 'code': 401, 'message': "You can't create %r objects!"%name}
+            return drink.unauthorized("You can't create %r objects!"%name)
 
         if request.is_ajax:
             return o.struct()

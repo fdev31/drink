@@ -168,15 +168,12 @@ init_objects()
 classes.update(obj_classes)
 del init_objects, obj_classes
 
-def unauthorized(message='Action NOT allowed'):
+def unauthorized(message='Action NOT allowed', code=401):
     # TODO: handler srcuri + redirect
     if request.identity:
-        if request.is_ajax:
-            return {'error': True, 'message': message}
-        else:
-            raise abort(401, message)
+        return {'error': True, 'message': message, 'code': code}
     else:
-        rdr('/login?from='+request.path)
+        return rdr('/login?from='+request.path)
 
 #import cgi
 #def escape(text):
@@ -330,7 +327,7 @@ def glob_index(objpath="/"):
     try:
         o = get_object(db.db, objpath)
     except AttributeError, e:
-        abort(404, "%s not found"%objpath)
+        return abort(404, "%s not found"%objpath)
 
     if callable(o):
         o = o()
@@ -345,15 +342,15 @@ def glob_index(objpath="/"):
                 return abort(o['code'], o['message'])
         response.content_type = "application/json"
         return dumps(o)
-    elif t in (list, tuple):
-        response.content_type = "application/json"
-        return dumps(o)
     elif isinstance(o, Model):
         try:
             return getattr(o, o.default_action)()
         except AttributeError:
             o = o[o.default_action]
             return getattr(o, o.default_action)()
+    elif t in (list, tuple):
+        response.content_type = "application/json"
+        return dumps(o)
     return o
 
 
