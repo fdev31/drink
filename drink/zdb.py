@@ -16,11 +16,11 @@ from persistent.list import PersistentList
 log = logging.getLogger('Database')
 
 class Database(object):
-    def __init__(self, wsgi_app, config_file):
+    def __init__(self, wsgi_app, config_data):
         log.info('DATABASE')
-        log.warning("Do not forget to run 'zeoctl -C database/zeo.conf start'")
+        log.warning("Do not forget to run 'manage db'")
         self.app = wsgi_app
-        self._config = config_file
+        self._config = config_data
         self.locals = threading.local()
         self._db = None
         self.connection = None
@@ -48,7 +48,7 @@ class Database(object):
     @property
     def db(self):
         if self._db is None:
-            self._db = ZODB.config.databaseFromURL(self._config)
+            self._db = ZODB.config.databaseFromString(self._config)
 
         r = getattr(self.locals, 'root', None)
 

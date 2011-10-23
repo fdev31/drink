@@ -24,7 +24,7 @@ class Database(object):
 
     db = None
 
-    def __init__(self, wsgi_app, config_file):
+    def __init__(self, wsgi_app, config_data):
         pass
 
     def pack(self):

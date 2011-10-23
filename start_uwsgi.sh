@@ -23,7 +23,9 @@ cd ${H}
 
 http='--http 127.0.0.1:5000'
 sock='-s /tmp/uwsgi.sock -C 666'
+stats='--stats /tmp/stats.socket'
 
 zeoctl -C database/zeo.conf start
 
-exec uwsgi -p 10 $sock $http --module 'drink:make_app()'
+exec uwsgi -p 10 $sock $http $stats --module 'drink:make_app()'
+

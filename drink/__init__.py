@@ -19,7 +19,7 @@ else:
 log = logging.getLogger('core')
 
 from drink.config import config, BASE_DIR
-
+import tempfile
 import bottle
 
 # some globals
@@ -27,21 +27,20 @@ classes = {}
 bottle.TEMPLATE_PATH.append(os.path.join(BASE_DIR,'templates'))
 STATIC_PATH = os.path.abspath(os.path.join(BASE_DIR, "static"))
 DB_PATH = config.get('server', 'database') or os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, "database"))
-DB_CONFIG = os.path.join(DB_PATH, "zodb.conf")
 
 
 # auto-guess & set datadir in case of inchanged default
-log.debug("Using DB informations from %s", DB_CONFIG)
-lines = open(DB_CONFIG).readlines()
-pattern = '%define DATADIR database\n'
+log.debug("Using DB informations from %s", DB_PATH)
+def _fix_datadir(txt):
+    try:
+        i = txt.index('%define DATADIR database\n')
+    except ValueError:
+        i = -1
+    if i >= 0:
+        txt[i] = '%%define DATADIR %s\n'%DB_PATH
+    return ''.join(txt)
 
-try:
-    i = lines.index(pattern)
-except ValueError:
-    i = -1
-if i >= 0:
-    lines[i] = '%%define DATADIR %s\n'%DB_PATH
-    open(DB_CONFIG, 'w').writelines(lines)
+DB_CONFIG = _fix_datadir(open(os.path.join(DB_PATH, "zodb.conf")).readlines())
 
 # Import main modules used + namespace setup
 
@@ -389,6 +388,13 @@ if DEBUG environment variable is set, it will start in debug mode.
     elif len(sys.argv) == 2 and sys.argv[1] == "init":
         init()
         db.pack()
+    elif len(sys.argv) == 2 and sys.argv[1] == "db":
+        fd, fname = tempfile.mkstemp(suffix=".conf")
+        os.write(fd, _fix_datadir(open(os.path.join(DB_PATH, 'zeo.conf')).readlines()))
+        os.close(fd)
+        print fname
+        os.system('zeoctl -C %s start'%fname)
+        os.unlink(fname)
     elif len(sys.argv) == 2 and sys.argv[1] == "pack":
         from drink.objects import finder
         finder.init()
