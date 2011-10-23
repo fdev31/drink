@@ -338,12 +338,12 @@ def glob_index(objpath="/"):
     t = type(o)
 
     if t == dict:
-        response.content_type = "application/json"
         if not request.is_ajax:
             if 'redirect' in o:
                 return rdr(o['redirect'])
             if 'error' in o:
                 return abort(o['code'], o['message'])
+        response.content_type = "application/json"
         return dumps(o)
     elif t in (list, tuple):
         response.content_type = "application/json"
