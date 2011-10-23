@@ -392,7 +392,6 @@ if DEBUG environment variable is set, it will start in debug mode.
         fd, fname = tempfile.mkstemp(suffix=".conf")
         os.write(fd, _fix_datadir(open(os.path.join(DB_PATH, 'zeo.conf')).readlines()))
         os.close(fd)
-        print fname
         os.system('zeoctl -C %s start'%fname)
         os.unlink(fname)
     elif len(sys.argv) == 2 and sys.argv[1] == "pack":
