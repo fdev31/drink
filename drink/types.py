@@ -128,10 +128,10 @@ def str2d(text):
 
 class Date(Text):
 
-    _template = r'''<input class="auto_date" type="text" size="%(size)d" id="%(id)s" value="%(value)s" name="%(name)s" />'''
+    _template = r'''<input class="auto_date" type="text" size="%(size)d" style="width:%(size)dex" id="%(id)s" value="%(value)s" name="%(name)s" />'''
 
     def __init__(self, caption=None, group=None):
-        Text.__init__(self, caption, group)
+        Text.__init__(self, caption, group, size=12)
 
     def set(self, obj, name, val):
         setattr(obj, name, str2d(val))
