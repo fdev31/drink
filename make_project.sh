@@ -35,7 +35,9 @@ else
 fi
 
 for script in manage start_standard.sh start_uwsgi.sh; do
-    sed -e "s#^P=\$#P=../bin/python#" -e "s#^H=\$#H=$DEST/drink/#" < "$script" > "$DEST/$script"
+    script_name="$DEST/drink/$script"
+    sed -e "s#^P=\$#P=../bin/python#" -e "s#^H=\$#H=$DEST/drink/#" < "$script" > $script_name
+    chmod +x $script_name
 done
 
 echo "Generating tarball..."
