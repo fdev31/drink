@@ -331,6 +331,13 @@ input.submit, .button, span.page_nr {
         @include single-box-shadow($shadow_color, 0, 3px, 2px, 0px, true);
     }
 }
+div.markItUpContainer {
+    @include border-radius($radius);
+}
+div.markItUp {
+    @include light_shadowed;
+    @include border-radius($radius);
+}
 textarea.markItUpEditor:hover {
     border: solid 3px $hi_color;
 }
