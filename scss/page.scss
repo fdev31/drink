@@ -15,7 +15,7 @@ $hi2_color: #fa5;
 $hi3_color: #ffd;
 $contour: #eed;
 $main_color: #093E56;
-$background: #A0A0A0;
+$background: #ccc;
 
 /* mixins */
 
@@ -72,7 +72,7 @@ $background: #A0A0A0;
 @mixin entryfont {
 	outline:none;
     font-size: 16pt;
-    color: $contour;
+    color: #555;
 }
 
 /* real CSS here */
@@ -162,10 +162,11 @@ b.match {
 }
 fieldset.toggler {
     > legend {
+        font-weight: bold;
         cursor: pointer;
        /* padding-bottom: 1ex;
         */
-        padding: 0 0 .7ex 0;
+        padding: 0 0 1ex 0;
         margin: 0;
         height: 20px;
     }
@@ -394,10 +395,6 @@ body {
 	color: $main_color;
 	@include min-width(500px);
 }
-legend {
-    color: white;
-    font-weight: bold;
-}
 ul {
     margin-left: 1em;
 }
@@ -427,6 +424,7 @@ a {
 .inline_form {
     display: inline !important;
     width: 15ex !important;
+    vertical-align: 50%;
 }
 fieldset {
     padding: 0;
@@ -484,6 +482,7 @@ pre {
 }
 #main_body {
     > pre {
+        padding: .5ex 1em .5ex 1em;
         @include inner_shadowed;
     }
 }
