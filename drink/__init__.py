@@ -143,14 +143,14 @@ def init():
 # Setup db
 reset_required = False
 try:
-    from . import zdb
-    del zdb
+    from .zdb import Database, DataBlob, Model, transaction
     PERSISTENT_STORAGE = True
+    log.warning("Enabling persistent storage, using ZODB")
 except ImportError:
+    log.warning("Not enabling persistent storage, using dumb db")
     PERSISTENT_STORAGE = False
     from .dumbdb import Database, DataBlob, Model, transaction
-else:
-    from .zdb import Database, DataBlob, Model, transaction
+
 db = Database(bottle.app(), DB_CONFIG)
 
 # Load Basic objects
