@@ -13,7 +13,7 @@ $radius: 8px;
 $hi_color: #be8;
 $hi2_color: #fa5;
 $hi3_color: #ffd;
-$contour: #dde;
+$contour: #eed;
 $main_color: #093E56;
 $background: #A0A0A0;
 
@@ -218,6 +218,7 @@ div.objects_forms {
 }
 div.codehilite {
     padding: 1ex;
+    background: $contour;
     @include inner_shadowed;
     > pre {
         background: none;
@@ -480,6 +481,21 @@ pre {
     margin: 1ex;
     overflow: auto;
     @include border-radius($radius);
+}
+#main_body {
+    > pre {
+        @include inner_shadowed;
+    }
+}
+td.linenos {
+    > div.linenodiv {
+        > pre {
+            margin: 0;
+            @include-radius(3px);
+            background: none;
+            font-weight: bold;
+        }
+    }
 }
 em {
     font-style: italic;
