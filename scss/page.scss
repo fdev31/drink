@@ -170,6 +170,10 @@ fieldset.toggler {
         margin: 0;
         height: 20px;
     }
+    @include light_shadowed;
+    @include background-image(linear-gradient(#fff  5%, #bbb 30%, #eee 90%, $background 100%));
+    padding: 0;
+    margin: 0;
 }
 div.togglable {
     height: 60px;
@@ -391,7 +395,7 @@ STANDARD HTML SET
 body {
 	padding:0;
 	margin: 0;
-	background-color: $background;
+	background-color: #ddd;
 	color: $main_color;
 	@include min-width(500px);
 }
@@ -425,17 +429,6 @@ a {
     display: inline !important;
     width: 15ex !important;
     vertical-align: 50%;
-}
-fieldset {
-    padding: 0;
-    margin: 0;
-/*
-    margin: 0.5ex 0 0.5ex 0;
-    padding: 0 0.5ex 0 0.5ex;
-  */
-    @include single-box-shadow($shadow_color, 0, 3px, 2px, 0px, true);
-    @include background-image(linear-gradient(#fff  10%, #bbb 30%, $background 100%));
-
 }
 input[type="file"] {
     border: none !important;
@@ -485,6 +478,9 @@ pre {
         padding: .5ex 1em .5ex 1em;
         @include inner_shadowed;
     }
+    padding: 1em;
+    @include light_shadowed;
+    background-color: $background;
 }
 td.linenos {
     > div.linenodiv {
