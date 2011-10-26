@@ -342,7 +342,7 @@ def glob_index(objpath="/"):
                 return abort(o['code'], o['message'])
         response.content_type = "application/json"
         return dumps(o)
-    elif isinstance(o, Model):
+    elif hasattr(o, 'drink_name'): # isinstance(o, 'Model') but more implicit
         try:
             return getattr(o, o.default_action)()
         except AttributeError:
