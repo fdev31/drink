@@ -2,7 +2,9 @@
 P=
 H=
 
-cd ${H}
+if [ -n "$H" ]; then
+    cd ${H}
+fi
 
 zeoctl -C database/zeo.conf start
 

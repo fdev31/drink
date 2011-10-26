@@ -20,7 +20,10 @@ export PYTHONPATH=${PWD}
 
 P=
 H=
-cd ${H}
+
+if [ -n "$H" ]; then
+    cd ${H}
+fi
 
 http='--http 127.0.0.1:5000'
 sock='-s /tmp/uwsgi.sock -C 666'
