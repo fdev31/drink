@@ -118,12 +118,13 @@ add_hook_add_item(reload_page);
             return self._v_cooked
         else:
             workdir = tempfile.mkdtemp(suffix=".drink-mdown")
-            open(os.path.join(workdir, 'in.md'), 'w').write(self.content)
+            in_f = os.path.join(workdir, 'in.md')
+            out_f = os.path.join(workdir, 'out.html')
+            open(in_f, 'w').write(self.content)
             try:
-                generator.Generator(os.path.join(workdir, 'in.md'),
-                    destination_file=os.path.join(workdir, 'out.html'),
-                    embed=True).execute()
-                self._v_cooked = open(os.path.join(workdir, 'out.html')).read()
+                g = generator.Generator(in_f, destination_file=out_f, embed=True)
+                g.execute()
+                self._v_cooked = open(out_f).read()
             except Exception, e:
                 log.error("Slide Error: %r", e)
             finally:
