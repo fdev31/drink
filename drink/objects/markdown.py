@@ -1,6 +1,18 @@
 from __future__ import absolute_import
+import os
 import drink
+import shutil
+import logging
+import tempfile
 from markdown import Markdown
+try:
+    import landslide.main
+    from landslide import generator
+    landslide = True
+except ImportError:
+    landslide = False
+
+log = logging.getLogger('markdown')
 
 DEFAULT_CONTENT = u"""
 <!- hehe, you can add html tags directly too: -->
@@ -76,15 +88,47 @@ add_hook_add_item(reload_page);
 '''
 
     editable_fields = drink.Page.editable_fields.copy()
+
     editable_fields.update({
         'content': MarkdownEditor("Content"),
         'markup_name': drink.types.Text('[[WikiLink]] name'),
         'mime': drink.types.Text(),
     })
 
+    _v_cooked = ''
+
     def __init__(self, name, rootpath=None):
         drink.Page.__init__(self, name, rootpath)
         self.markup_name = name
+        self._v_cooked = ''
+
+    @property
+    def actions(self):
+        try:
+            return self._v_actions
+        except AttributeError:
+            a = self._actions + []
+            if landslide:
+                a.append(dict(title="Slide!", action="slide", perm="r", icon="view"))
+                self._v_actions = {'actions': a}
+            return self._v_actions
+
+    def slide(self):
+        if self._v_cooked:
+            return self._v_cooked
+        else:
+            workdir = tempfile.mkdtemp(suffix=".drink-mdown")
+            open(os.path.join(workdir, 'in.md'), 'w').write(self.content)
+            try:
+                generator.Generator(os.path.join(workdir, 'in.md'),
+                    destination_file=os.path.join(workdir, 'out.html'),
+                    embed=True).execute()
+                self._v_cooked = open(os.path.join(workdir, 'out.html')).read()
+            except Exception, e:
+                log.error("Slide Error: %r", e)
+            finally:
+                shutil.rmtree(workdir)
+            return self._v_cooked
 
     def _wikify(self, label, base, end):
         cache = getattr(self, '_wikilinks', {})
@@ -121,6 +165,10 @@ add_hook_add_item(reload_page);
         self.content += (u"\n* link to [%s](%s/)"%(
             new_obj.title, new_obj.id))
         return new_obj
+
+    def edit(self, *a, **kw):
+        self._v_cooked = ''
+        return drink.Page.edit(self, *a, **kw)
 
     def process(self, data=None):
         if not hasattr(self, '_v_wikifier_cache'):
