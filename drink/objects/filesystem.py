@@ -4,7 +4,8 @@ import fs
 from fs.osfs import OSFS
 from drink.objects.generic import get_struct_from_obj, get_type
 
-class PyFile(object):
+
+class PyFile(drink.ListPage):
     description = u'File from disk'
 
     actions = []
@@ -26,6 +27,10 @@ class PyFile(object):
         self.path = parent_path + uuid + '/'
 
     @property
+    def default_action(self):
+        return 'list' if self.mime == 'folder' else 'view'
+
+    @property
     def mime(self):
         if not self._v_mime:
             self._v_mime = 'folder' if self.o.fd.isdir(self.realpath) else 'page'
@@ -41,9 +46,9 @@ class PyFile(object):
     def edit(self, *a):
         return self.view()
 
-    def view(self):
+    def view(self, *a):
         if self.mime == 'folder':
-            yield drink.Page.view(self, html='<div id="main_list" class="sortable" />')
+            return drink.Page.view(self, html='<div id="main_list" class="sortable" />')
         else:
             mime = get_type(self.id)
 
@@ -53,14 +58,8 @@ class PyFile(object):
                 drink.response.headers['Content-Disposition'] = 'attachment; filename="%s"'%self.id
             drink.response.headers['Content-Type'] = mime
             drink.response.headers['Content-Length'] = self.o.fd.getsize(self.realpath)
-
-            CZ = 2**20
-            fd = self.o.fd.open(self.realpath, 'rb')
-            while True:
-                data = fd.read(CZ)
-                if not data:
-                    break
-                yield data
+            root, fname = '/'.join((self.local_path, self.realpath)).rsplit('/', 1)
+            return drink.static_file(fname, root, mimetype=mime, download=self.id)
 
     def struct(self, childs=True, full=None):
         return get_struct_from_obj(self, childs, full)
@@ -76,7 +75,7 @@ class PyFile(object):
     def __len__(self):
         try:
             return len(self.keys())
-        except fs.PermissionDeniedError:
+        except fs.errors.PermissionDeniedError:
             return 0
 
     def keys(self):
@@ -102,10 +101,13 @@ class PyFile(object):
 class Filesystem(drink.ListPage, PyFile):
 
     drink_name = 'Server folder'
+
     local_path = ''
-    default_view = 'list'
+
     mime = 'folder'
+
     hidden_class = True
+
     path = ''
 
     editable_fields = drink.ListPage.editable_fields.copy()
@@ -135,7 +137,7 @@ class Filesystem(drink.ListPage, PyFile):
         if self.local_path and not self.fd:
             try:
                 self.fd = OSFS(self.local_path, thread_synchronize=True)
-            except fs.ResourceNotFoundError:
+            except fs.errors.ResourceNotFoundError:
                 self.fd = None
 
     def keys(self):
