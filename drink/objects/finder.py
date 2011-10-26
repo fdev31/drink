@@ -177,9 +177,11 @@ class ObjectBrowser(drink.Page):
         for item in matches:
             if isinstance(item, basestring):
                 continue
-            html.append('<li class="entry"><a href="%(path)s">%(hi_title)s</a></li>'%item)
+            html.append('<li class="entry"><a href="%(path)s">%(hi_title)s'%item)
             if item.get('hi', None):
-                html.append('<a href="%s"><div class="minipage">%s</div></a>'%(item['path'], item['hi'].replace('\n', '<br/>')))
+                html.append('<div class="minipage">%s</div></a></li>'%(item['hi'].replace('\n', '<br/>')))
+            else:
+                html.append('</a></li>')
 
         if pages > 1:
             html.append('</ul><br/>pages:&nbsp;')
