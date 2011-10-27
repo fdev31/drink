@@ -283,7 +283,7 @@ function dom_initialize(dom) {
         };
     });
     dom.find('input.completable[complete_type=objpath]').keyup(function(e) {
-        if (e.which < 64) return;
+        if (e.which < 64 && e.which != 17 && e.which != 32 && e.which != 16) return;
         var o = $(this);
         get_matching_elts(o.val(), function(items, path) {
                     $(o).parent().find('.completed').remove();
