@@ -35,14 +35,13 @@ base_path = base_uri.replace(/http?:\/\/[^/]*/, '');
 
 ui = new Object({
         move_current_page: function() {
-            var win = $('<div id="move-confirm" title="Do you really want to move this item ?">Please, type destination path:<input id="move-destination" class="completable" complete_type="objpath"</input></div>');
+            var win = $('<div id="move-confirm" title="Do you really want to move this item ?">Please, type destination path:<input id="move-destination" class="completable" complete_type="objpath"></input></div>');
             dom_initialize(win);
             win.dialog({
                 modal: true,
                 closeOnEscape:true,
                 buttons: {
                     Move: function() {
-                        console.log('coin');
                         $.post($('#move-confirm #move-destination').val()+'/move',
                             {'obj': base_path},
                             function() {
@@ -306,6 +305,7 @@ function dom_initialize(dom) {
         };
     });
     dom.find('input.completable[complete_type=objpath]').keyup(function(e) {
+        if (1 ||debug) { console.log('match'); console.log(e) };
         if (e.which < 64 && e.which != 17 && e.which != 32 && e.which != 16) return;
         var o = $(this);
         get_matching_elts(o.val(), function(items, path) {
