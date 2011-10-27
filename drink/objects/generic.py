@@ -129,6 +129,7 @@ class Page(drink.Model):
         dict(title="Edit", style="edit_form", action="edit", icon="edit", perm='w'),
         dict(title="List content", action="list", icon="open", perm='r'),
         dict(title="Add object", condition="page_struct.classes.length!=0", style="add_form", action="ui.main_list.new_entry_dialog()", key='INS', icon="new", perm='a'),
+        dict(title="Move", style="move_form", action="ui.move_current_page()", icon="move", perm='o'),
         #dict(title="Remove object", onclick="ui.main_list.remove_entry()", icon="delete", perm='w'),
     ]
 
@@ -445,6 +446,22 @@ class Page(drink.Model):
             return o.struct()
         else:
             return drink.rdr(o.quoted_path+'edit')
+
+    def borrow(self, obj=None):
+        if not obj:
+            obj = get_object(request.POST.get('obj'))
+        if obj.id in self:
+            return drink.unauthorized("An object with the same id stands here!")
+        try:
+            parent = get_object(obj.rootpath)
+            self[obj.id] = obj
+            obj.rootpath = self.path
+        except Exception, e:
+            return drink.unauthorized("Unhandled error: %r"%e)
+        finally:
+            del parent[obj.id]
+
+        return {'success': True}
 
     def list(self):
         return self.view('main.html', html=u'<h1>%s</h1>\n<ul id="main_list" class="sortable" />'%self.title)

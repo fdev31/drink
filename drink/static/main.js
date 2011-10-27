@@ -31,8 +31,31 @@ page_struct = {
 
 url_regex = /^(\/|http).+/;
 base_uri = document.location.href.replace(/[^/]*$/, '');
+base_path = base_uri.replace(/http?:\/\/[^/]*/, '');
 
 ui = new Object({
+        move_current_page: function() {
+            var win = $('<div id="move-confirm" title="Do you really want to move this item ?">Please, type destination path:<input id="move-destination" class="completable" complete_type="objpath"</input></div>');
+            dom_initialize(win);
+            win.dialog({
+                modal: true,
+                closeOnEscape:true,
+                buttons: {
+                    Move: function() {
+                        console.log('coin');
+                        $.post($('#move-confirm #move-destination').val()+'/move',
+                            {'obj': base_path},
+                            function() {
+                                document.location.href = $('#move-confirm #move-destination').val();
+                        }).error(function(){
+                            $('<div title="Error occured">Sorry, something didn\'t work correctly</div>').dialog();
+                       });
+                    },
+                    Cancel: function() {
+                        $( this ).dialog( "close" );
+                    },
+            }});
+        },
         load_action_list: function(data) {
 
             if ( !data || !data.actions && !data.types  )  {
@@ -288,8 +311,8 @@ function dom_initialize(dom) {
         get_matching_elts(o.val(), function(items, path) {
                     $(o).parent().find('.completed').remove();
                     if (items.length > 1) {
-                        var list = items.join(', ');
-                        $('<span class="completed">' + list + '</span>').insertAfter(o);
+                        var list = items.join('</li><li>');
+                        $('<ul class="completed"><li>' + list + '</li></ul>').insertAfter(o);
                     } else {
                         if (items.length == 1 ) {
                             var best_match = items[0];
