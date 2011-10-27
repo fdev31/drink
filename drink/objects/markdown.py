@@ -120,7 +120,7 @@ add_hook_add_item(reload_page);
             workdir = tempfile.mkdtemp(suffix=".drink-mdown")
             in_f = os.path.join(workdir, 'in.md')
             out_f = os.path.join(workdir, 'out.html')
-            open(in_f, 'w').write(self.content)
+            open(in_f, 'w').write(self.content.encode('utf-8'))
             try:
                 g = generator.Generator(in_f, destination_file=out_f, embed=True)
                 g.execute()
