@@ -1,6 +1,6 @@
 __all__ = ['_Editable',
     'Text', 'TextArea', 'GroupListArea', 'GroupCheckBoxes',
-    'Mime', 'Choice',
+    'Mime', 'Choice', 'Link',
     'Date',
     'Id', 'Int', 'Password', 'File']
 
@@ -66,6 +66,7 @@ class Choice(_Editable):
             _template=r'<select class="select" id="%(id)s" name="%(name)s">'+options+r'</select>',
             no_label=no_label)
 
+
 class Mime(Choice):
     _options = dict((k.capitalize(), k) for k in '''executable
             folder
@@ -83,6 +84,7 @@ class Mime(Choice):
             options = self._options
         Choice.__init__(self, caption, options, group)
 
+
 class Text(_Editable):
 
     _template = r'''<input type="%(_type)s" size="%(size)d" style="width:%(size)dex" id="%(id)s" value="%(value)s" name="%(name)s" />'''
@@ -93,6 +95,15 @@ class Text(_Editable):
         _Editable.__init__(self, caption, group)
         self.size = size
         self._type = type
+
+
+class Link(Text):
+
+    _template = '''<input type="%(_type)s" size="%(size)d" style="width:%(size)dex" id="%(id)s" value="%(value)s" name="%(name)s" class="completable" complete_type="objpath" />'''
+
+    def __init__(self, caption=None, group=None, size=60, type="text"):
+        Text.__init__(self, caption, group, size, type)
+
 
 DATE_FMT = r'%d/%m/%Y'
 
