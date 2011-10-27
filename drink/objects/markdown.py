@@ -95,12 +95,12 @@ add_hook_add_item(reload_page);
         'mime': drink.types.Text(),
     })
 
-    _v_cooked = ''
+    _v_slide_cooked = ''
+    _v_view_cooked = ''
 
     def __init__(self, name, rootpath=None):
         drink.Page.__init__(self, name, rootpath)
         self.markup_name = name
-        self._v_cooked = ''
 
     @property
     def actions(self):
@@ -114,8 +114,8 @@ add_hook_add_item(reload_page);
             return self._v_actions
 
     def slide(self):
-        if self._v_cooked:
-            return self._v_cooked
+        if self._v_slide_cooked:
+            return self._v_slide_cooked
         else:
             workdir = tempfile.mkdtemp(suffix=".drink-mdown")
             in_f = os.path.join(workdir, 'in.md')
@@ -124,12 +124,12 @@ add_hook_add_item(reload_page);
             try:
                 g = generator.Generator(in_f, destination_file=out_f, embed=True)
                 g.execute()
-                self._v_cooked = open(out_f).read()
+                self._v_slide_cooked = open(out_f).read()
             except Exception, e:
                 log.error("Slide Error: %r", e)
             finally:
                 shutil.rmtree(workdir)
-            return self._v_cooked
+            return self._v_slide_cooked
 
     def _wikify(self, label, base, end):
         cache = getattr(self, '_wikilinks', {})
@@ -168,24 +168,27 @@ add_hook_add_item(reload_page);
         return new_obj
 
     def edit(self, *a, **kw):
-        self._v_cooked = ''
+        self._v_slide_cooked = ''
+        self._v_view_cooked = ''
         return drink.Page.edit(self, *a, **kw)
 
     def process(self, data=None):
-        if not hasattr(self, '_v_wikifier_cache'):
-            self._v_wikifier_cache = Markdown(
-            extensions = ['tables', 'wikilinks', 'fenced_code',
-            'toc', 'def_list', 'codehilite(force_linenos=True)'],
-            extension_configs = {
-                "codehilite":
-                     ("force_linenos", True),
-                "wikilinks":
-                    [("base_url", self.path), ('build_url', self._wikify)],
-                }
-            )
+        if not self._v_view_cooked:
+            if not hasattr(self, '_v_wikifier_cache'):
+                self._v_wikifier_cache = Markdown(
+                extensions = ['tables', 'wikilinks', 'fenced_code',
+                'toc', 'def_list', 'codehilite(force_linenos=True)'],
+                extension_configs = {
+                    "codehilite":
+                         ("force_linenos", True),
+                    "wikilinks":
+                        [("base_url", self.path), ('build_url', self._wikify)],
+                    }
+                )
 
-        data = drink.omni(data or drink.request.params.get('data') or self.content)
-        return self._template % self._v_wikifier_cache.convert(data)
+            data = drink.omni(data or drink.request.params.get('data') or self.content)
+            self._v_view_cooked = self._template % self._v_wikifier_cache.convert(data)
+        return self._v_view_cooked
 
     html = property(process)
 
