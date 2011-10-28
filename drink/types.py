@@ -364,15 +364,15 @@ class EasyPermissions(_Editable):
         }});
         </script>
         <ul id="ez_perm_list">
-        Friends can:
+        <strong>Friends can:</strong>
         <li id="perm_fr_r" onclick="$.toggle_perm(this, '%(id)s', 'r')" class="option">View this document</li>
         <li id="perm_fr_w" class="option" onclick="$.toggle_perm(this, '%(id)s', 'w')">Edit this document</li>
 
-        Any registered user can:
+        <strong>Any registered user can:</strong>
         <li id="perm_any_r" onclick="$.toggle_perm(this, 'users', 'r')"class="option">View this document</li>
         <li id="perm_any_w" onclick="$.toggle_perm(this, 'users', 'w')"class="option">Edit this document</li>
 
-        Everybody can:
+        <strong>Everybody can:</strong>
         <li id="perm_ano_r" onclick="$.toggle_perm(this, 'anonymous', 'r')" class="option">View this document</li>
         <li id="perm_ano_w" onclick="$.toggle_perm(this, 'anonymous', 'w')" class="option">Edit this document</li>
 

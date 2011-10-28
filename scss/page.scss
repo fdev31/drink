@@ -173,6 +173,9 @@ span.toggler {
 }
 span.selected {
     border: solid white 1px;
+    @include border-radius($radius);
+    @include background-image(linear-gradient(#91be15 0%, #84b710 100%));
+    background: $hi_color;
 }
 label {
     > img {
@@ -266,17 +269,9 @@ ul.tabs-content {
                 list-style-type: none;
         }
 }
-ul > li {
-    list-style-type: circle;
-    list-style-position: inside;
-}
-.sortable {
+.sortable , ul > li.option {
     list-style-type: none;
-}
-.selected {
-    @include border-radius($radius);
-    @include background-image(linear-gradient(#91be15 0%, #84b710 100%));
-    background: $hi_color;
+    margin-left: 1em;
 }
 .x_permissiona_grp {
     margin-top: 2ex;
@@ -365,7 +360,7 @@ li.markItUpButton > a {
     a {
         color: #022;
         &:hover {
-            color: #eff;
+            font-weight: bold;
         }
     }
 }
@@ -391,13 +386,13 @@ body {
 ul {
     margin-left: 1em;
 }
-li.selected {
-    list-style-type: disc;
+li.selected:before {
+    content: url(/static/checked.png) " ";
 }
 
 ul > li {
     font-size: 120%;
-    list-style-type: circle;
+    list-style-type: square;
     list-style-position: inside;
 }
 ul > li > * {
@@ -406,6 +401,7 @@ ul > li > * {
 a {
    text-decoration: none;
    padding: 0;
+    border-bottom: solid 1px rgba(0, 0, 0, 0.1);
     cursor: pointer;
    @include general_hover;
    /*
