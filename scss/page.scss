@@ -162,7 +162,8 @@ b.match {
 div.togglable {
     height: 35px;
     @include light_shadowed;
-    @include background-image(linear-gradient(#fff  5%, #bbb 30%, #eee 90%, $background 100%));
+    padding: 0 1ex 0 1ex;
+    @include background-image(linear-gradient(#fff  5%, #ddd 30%, #eee 90%, $background 100%));
 }
 span.toggler {
     cursor: pointer;
