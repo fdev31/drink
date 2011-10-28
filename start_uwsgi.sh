@@ -32,5 +32,5 @@ stats=''
 
 zeoctl -C database/zeo.conf start
 
-exec uwsgi -p 10 $sock $http $stats --module 'drink:make_app()'
+exec uwsgi -p 1 $sock $http $stats --module 'drink:make_app()'
 
