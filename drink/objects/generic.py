@@ -270,6 +270,16 @@ class Page(drink.Model):
             drink.transaction.commit() # commit before eventual redirect
         return r
 
+    def _update_lookup_engine(self, add=False, remove=False):
+        database = drink.db.db
+        if 'search' in database:
+            if add:
+                database['search']._add_object(self)
+            elif remove:
+                database['search']._del_object(self)
+            else:
+                database['search']._update_object(self)
+
     def _edit(self):
         if 'w' not in request.identity.access(self):
             return drink.unauthorized()
@@ -299,9 +309,7 @@ class Page(drink.Model):
                     v = forms.get(attr)
                     caster.set(self, attr, v.decode('utf-8') if v else u'')
 
-            database = drink.db.db
-            if 'search' in database:
-                database['search']._update_object(self)
+            self._update_lookup_engine()
             return {'redirect': "%s?embedded=%s"%(self.quoted_path, '1' if embedded else '' )}
         else:
             if not items:
@@ -377,15 +385,11 @@ class Page(drink.Model):
         except AttributeError: # XXX: unclean
             parent_path = '.'
 
-        database = drink.db.db
-
         with self._lock():
             old_obj = self[name]
             del self[name]
+            old_obj._update_lookup_engine(remove=True)
             drink.transaction.commit()
-
-            if 'search' in database:
-                database['search']._del_object(old_obj)
 
         return drink.rdr(parent_path)
 
@@ -414,10 +418,7 @@ class Page(drink.Model):
             new_obj.write_groups = set(write_groups)
 
         self[new_obj.id] = new_obj
-        database = drink.db.db
-        if 'search' in database:
-            database['search']._add_object(new_obj)
-
+        new_obj._update_lookup_engine(add=True)
         drink.transaction.commit()
         return new_obj
 
@@ -447,19 +448,21 @@ class Page(drink.Model):
         else:
             return drink.rdr(o.quoted_path+'edit')
 
-    def borrow(self, obj=None):
-        if not obj:
-            obj = get_object(request.POST.get('obj'))
-        if obj.id in self:
+    def borrow(self, item=None):
+        if not item:
+            item = drink.get_object(drink.db.db, request.POST['item'])
+        if item.id in self:
             return drink.unauthorized("An object with the same id stands here!")
         try:
-            parent = get_object(obj.rootpath)
-            self[obj.id] = obj
-            obj.rootpath = self.path
+            parent = drink.get_object(drink.db.db, item.rootpath)
         except Exception, e:
             return drink.unauthorized("Unhandled error: %r"%e)
         finally:
-            del parent[obj.id]
+            item._update_lookup_engine(remove=True)
+            self[item.id] = item
+            del parent[item.id]
+            item._update_lookup_engine(add=True)
+            item.rootpath = self.path
 
         return {'success': True}
 

@@ -42,8 +42,8 @@ ui = new Object({
                 closeOnEscape:true,
                 buttons: {
                     Move: function() {
-                        $.post($('#move-confirm #move-destination').val()+'/move',
-                            {'obj': base_path},
+                        $.post($('#move-confirm #move-destination').val()+'/borrow',
+                            {'item': base_path},
                             function() {
                                 document.location.href = $('#move-confirm #move-destination').val();
                         }).error(function(){
@@ -306,10 +306,13 @@ function dom_initialize(dom) {
     });
     dom.find('input.completable[complete_type=objpath]').keyup(function(e) {
         if (1 ||debug) { console.log('match'); console.log(e) };
-        if (e.which < 64 && e.which != 17 && e.which != 32 && e.which != 16) return;
         var o = $(this);
+        if (e.which == 13) {
+            o.parent().parent().find('button:first').trigger('click');
+        }
+        if (e.which < 64 && e.which != 17 && e.which != 32 && e.which != 16) return;
         get_matching_elts(o.val(), function(items, path) {
-                    $(o).parent().find('.completed').remove();
+                    o.parent().find('.completed').remove();
                     if (items.length > 1) {
                         var list = items.join('</li><li>');
                         $('<ul class="completed"><li>' + list + '</li></ul>').insertAfter(o);
