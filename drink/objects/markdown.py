@@ -110,7 +110,7 @@ add_hook_add_item(reload_page);
             a = self._actions + []
             if landslide:
                 a.append(dict(title="Slide!", action="slide", perm="r", icon="view"))
-                self._v_actions = {'actions': a}
+            self._v_actions = {'actions': a}
             return self._v_actions
 
     def slide(self):
