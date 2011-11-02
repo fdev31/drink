@@ -73,6 +73,7 @@ def init():
     reset()
     with db as root:
         root.clear()
+        transaction.commit()
 
         from .objects import users as obj
 
