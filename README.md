@@ -107,6 +107,7 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 -   D&Drop form is more integrated
 -   Jquery updated, also Whoosh > 2.0 is required now
 -   Introduction of a simple generic actions framework
+-   Items are easily customizable in list mode as well (but not their actions yet)
 -   Gcalendar support for Calendar (+ extended Task object)
 -   New type: Choice, Duration (very basic)
 -   Text type can have different subtypes now (ex: password)
