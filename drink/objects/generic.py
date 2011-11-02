@@ -21,6 +21,7 @@ def get_type(filename):
     return guess_type(filename)[0] or 'application/octet-stream'
 
 def get_struct_from_obj(obj, childs, full):
+
     k = request.params.keys()
     if None == full:
         full = 'full' in k
@@ -69,6 +70,7 @@ def get_struct_from_obj(obj, childs, full):
                     c['_perm'] = auth
                     items.append(c)
             d['items'] = items
+            d['items_factory'] = obj.items_factory
         else:
             d['_nb_items'] = len(obj)
 
@@ -237,6 +239,11 @@ class Page(drink.Model):
                 **kw
             )
 
+    items_factory = {
+        'dblclick': 'enter_edit_func',
+        'hover': 'popup_actions',
+        'build': 'make_std_item',
+    }
     def struct(self, childs=True, full=None):
         o =  get_struct_from_obj(self, childs, full)
         o['classes'] = self.classes.keys()

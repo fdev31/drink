@@ -33,6 +33,20 @@ url_regex = /^(\/|http).+/;
 base_uri = document.location.href.replace(/[^/]*$/, '');
 base_path = base_uri.replace(/http?:\/\/[^/]*/, '');
 
+make_std_item = function(data) {
+    // builds li element around an item object
+    var mime = "";
+    if ( data.mime ) {
+        if ( data.mime.match( url_regex )) {
+            mime = data.mime;
+        } else {
+            mime = "/static/mime/"+data.mime+".png";
+        }
+    } else {
+        mime = "/static/mime/page.png";
+    }
+    return $('<li class="entry"><img width="32px" src="'+mime+'" /><a class="item_name" href="'+data.path+data.id+'/" title="'+data.description+'">'+(data.title || data.id)+'</a></li>');
+}
 ui = new Object({
         move_current_page: function() {
             var win = $('<div id="move-confirm" title="Do you really want to move this item ?">Please, type destination path:<input id="move-destination" class="completable" complete_type="objpath"></input></div>');
@@ -544,23 +558,17 @@ $(document).ready(function(){
         },
         // ADD
         add_entry: function(data) {
-            // builds li element around an item object
-            var mime = "";
-            if ( data.mime ) {
-                if ( data.mime.match( url_regex )) {
-                    mime = data.mime;
-                } else {
-                    mime = "/static/mime/"+data.mime+".png";
-                }
-            } else {
-                mime = "/static/mime/page.png";
-            }
-
-            var e = $('<li class="entry"><img width="32px" src="'+mime+'" /><a class="item_name" href="'+data.path+data.id+'/" title="'+data.description+'">'+(data.title || data.id)+'</a></li>');
+            var e = eval(page_struct.items_factory.build)(data);
             e.data('item', data.id);
             e.disableSelection();
-	        e.dblclick(enter_edit_func);
-	        e.hover(popup_actions);
+            if (page_struct.items_factory.click) {
+                e.click(eval(page_struct.items_factory.click));
+            } else if (page_struct.items_factory.dblclick) {
+                e.dblclick(eval(page_struct.items_factory.dblclick));
+            }
+            if (page_struct.items_factory.hover) {
+                e.hover(eval(page_struct.items_factory.hover));
+            }
 	        if ( !! data._nb_items ) {
                 if ( data._nb_items == 1 ) {
                     e.append($('&nbsp;<span class="infos">(1 item)</span>'));
