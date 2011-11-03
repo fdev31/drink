@@ -1,5 +1,3 @@
-- Use webtest in tests, looks very fine:
-  http://webtest.pythonpaste.org/en/latest/index.html
 - See if types can be simplified when used from inside (ORM-like ?)
 - Use repoze.who for authentication (not a good idea, see if authkit have a nicer integration)
 - HANDLE ITEMS RANGE /items?from=0&to=100
