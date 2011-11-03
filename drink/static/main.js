@@ -645,7 +645,11 @@ $(document).ready(function(){
         }
     });
     add_shortcut('BACK', function() {
-        window.location = base_uri+'../';
+        if (window.location.href != base_uri) {
+            window.location = base_uri;
+        } else {
+            window.location = base_uri+'../';
+        }
     });
     add_shortcut('S', function() {
         // focus first entry
