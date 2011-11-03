@@ -244,9 +244,12 @@ class Page(drink.Model):
         'hover': 'popup_actions',
         'build': 'make_std_item',
     }
+
     def struct(self, childs=True, full=None):
+
         o =  get_struct_from_obj(self, childs, full)
-        o['classes'] = self.classes.keys()
+        if o:
+            o['classes'] = self.classes.keys()
         return o
 
     @property
