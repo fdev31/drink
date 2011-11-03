@@ -294,8 +294,9 @@ def log_in():
     request.identity = Authenticator()
 
     if request.forms.get('login_name', ''):
-        response.set_cookie('password', request.forms.get('login_password', ''), 'drink')
-        response.set_cookie('login', request.forms.get('login_name', ''), 'drink')
+        a = 15552000 # 6*30*24*60*60
+        response.set_cookie('password', request.forms.get('login_password', ''), 'drink', max_age=a)
+        response.set_cookie('login', request.forms.get('login_name', ''), 'drink', max_age=a)
         url = request.params.get('from', '/')
         rdr(url)
     else:
