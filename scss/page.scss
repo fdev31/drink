@@ -377,12 +377,17 @@ table.codehilitetable {
 /*
 STANDARD HTML SET
 */
+html {
+    background: #eee;
+}
 body {
-	padding:0;
-	margin: 0;
+	padding:0 0 1ex 0;
+	margin: 0 0 2em 0;
 	background-color: #ddd;
 	color: $main_color;
 	@include min-width(500px);
+   @include border-bottom-radius(20px);
+   @include light_shadowed;
 }
 ul {
     margin-left: 1em;
@@ -468,6 +473,7 @@ pre {
     padding: 1em;
     margin-top: 1ex;
     @include light_shadowed;
+    @include border-radius($radius);
     background-color: $background;
 }
 td.linenos {
