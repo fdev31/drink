@@ -62,21 +62,25 @@ def get_object(current, objpath, no_raise=False):
     return current
 
 def init():
+    alern_source = config.get('server', 'objects_source')
     for obj in objects_to_load:
         log.info("[Loading %s]", obj)
         try:
-            exec('from . import %s as _imported'%obj)
+            exec('from %s import %s as _imported'%(alern_source, obj))
         except Exception:
-            log.error("Unable to load %s, remove it from config file in [objects] section.", obj)
-            raise
-        else:
-            for _child in dir(_imported):
-                klass = getattr(_imported, _child)
-                exported_name = getattr(klass, 'drink_name', None)
-                if exported_name:
-                    if exported_name in classes:
-                        raise ValueError('Duplicate object: %s !! provided by %r and %r'%(exported_name, classes[exported_name], _imported))
-                    else:
-                        log.info("  - %s loaded"% exported_name)
-                        classes[exported_name] = klass
+            try:
+                exec('from . import %s as _imported'%obj)
+            except Exception:
+                log.error("Unable to load %s, remove it from config file in [objects] section.", obj)
+                raise
+
+        for _child in dir(_imported):
+            klass = getattr(_imported, _child)
+            exported_name = getattr(klass, 'drink_name', None)
+            if exported_name:
+                if exported_name in classes:
+                    raise ValueError('Duplicate object: %s !! provided by %r and %r'%(exported_name, classes[exported_name], _imported))
+                else:
+                    log.info("  - %s loaded"% exported_name)
+                    classes[exported_name] = klass
 

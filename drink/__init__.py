@@ -26,21 +26,42 @@ import bottle
 classes = {}
 bottle.TEMPLATE_PATH.append(os.path.join(BASE_DIR,'templates'))
 STATIC_PATH = os.path.abspath(os.path.join(BASE_DIR, "static"))
-DB_PATH = config.get('server', 'database') or os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, "database"))
+ORIG_DB_PATH = os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, "database"))
+DB_PATH = config.get('server', 'database') or ORIG_DB_PATH
+if not DB_PATH.endswith(os.sep):
+    DB_PATH += os.sep
 
 
 # auto-guess & set datadir in case of inchanged default
 log.debug("Using DB informations from %s", DB_PATH)
-def _fix_datadir(txt):
+def _fix_datadir(txt, zeo_fname=None):
     try:
         i = txt.index('%define DATADIR database\n')
     except ValueError:
         i = -1
     if i >= 0:
         txt[i] = '%%define DATADIR %s\n'%DB_PATH
+    if zeo_fname:
+        for idx, line in enumerate(txt):
+            if ' zeo.conf' in line:
+                txt[idx] = line.replace("zeo.conf", zeo_fname)
     return ''.join(txt)
 
-DB_CONFIG = _fix_datadir(open(os.path.join(DB_PATH, "zodb.conf")).readlines())
+try:
+    DB_CONFIG = _fix_datadir(open(os.path.join(DB_PATH, "zodb.conf")).readlines())
+except IOError:
+    import shutil
+    try:
+        os.makedirs(os.path.join(DB_PATH, 'blobs'))
+        os.makedirs(os.path.join(DB_PATH, 'cache'))
+    except OSError:
+        pass
+    shutil.copy( os.path.join(ORIG_DB_PATH, 'zodb.conf'), os.path.join(DB_PATH, 'zodb.conf'))
+    shutil.copy( os.path.join(ORIG_DB_PATH, 'zeo.conf'), os.path.join(DB_PATH, 'zeo.conf'))
+    shutil.copy( os.path.join(ORIG_DB_PATH, 'blobs', '.layout'), os.path.join(DB_PATH, 'blobs', '.layout'))
+    DB_CONFIG = _fix_datadir(open(os.path.join(DB_PATH, "zodb.conf")).readlines())
+
+print("DB-CONF:\n%s"%DB_CONFIG)
 
 # Import main modules used + namespace setup
 
@@ -373,13 +394,16 @@ def startup():
 Drink help
 
 commands:
-    run: starts the server
-    init: reset database
-    pack: pack database (more compact/faster)
-    rebuild: EXPERIMENTAL, will try to convert & clean an old database to newer format
-    export: EXPERIMENTAL, will try to dump all the data into the given folder
-    debug: run a debugger after loading
-    help: this help :)
+    make    : make a new drink project
+    run     : starts the server
+    db      : starts the database server
+    stopdb  : stops the database server
+    init    : reset database
+    pack    : pack database (more compact/faster)
+    rebuild : EXPERIMENTAL, will try to convert & clean an old database to newer format
+    export  : EXPERIMENTAL, will try to dump all the data into the given folder
+    debug   : run a debugger after loading
+    help    : this help :)
 
 Without any argument, it will just run the server.
 if DEBUG environment variable is set, it will start in debug mode.
@@ -387,12 +411,69 @@ if DEBUG environment variable is set, it will start in debug mode.
     elif len(sys.argv) == 2 and sys.argv[1] == "init":
         init()
         db.pack()
+    elif len(sys.argv) == 2 and sys.argv[1] == "stopdb":
+        cmd = "zeoctl -C %s stop"%os.path.join(DB_PATH, 'zeo.conf')
+        print(cmd)
+        os.system(cmd)
     elif len(sys.argv) == 2 and sys.argv[1] == "db":
-        fd, fname = tempfile.mkstemp(suffix=".conf")
-        os.write(fd, _fix_datadir(open(os.path.join(DB_PATH, 'zeo.conf')).readlines()))
-        os.close(fd)
-        os.system('zeoctl -C %s start'%fname)
-        os.unlink(fname)
+        fname = os.path.join(DB_PATH, 'zeo.conf')
+        new_conf = _fix_datadir(open(fname).readlines(), fname)
+        open(fname, 'w').write(new_conf)
+        cmd = 'zeoctl -C %s start'%(fname)
+        os.system(cmd)
+    elif len(sys.argv) == 2 and sys.argv[1] == "make":
+        def inp(txt):
+            return raw_input(txt+': ').strip()
+
+        fold = inp('Project folder')
+        cust = inp('Additional python package with drink objects\n(can contain dots)')
+        host = inp('Ip to use (just ENTER to allow all)') or '0.0.0.0'
+        port = inp('HTTP port number (ex: "80"), by default %s:5000 will be used') or '5000'
+        print "Objects to activate:"
+        objs = [
+            ('a gtd-like tasklist', 'tasks'),
+            ('a wiki-like web page in markdown format', 'markdown'),
+            ('a tool to find objects in database', 'finder'),
+            ('a filesystem proxy, allow sharing of arbitrary folder', 'filesystem'),
+        ]
+        objects = []
+        for o in objs:
+            ans = inp('Activate %s, %s (y/N)'%(o[1], o[0]))
+            if ans.lower() == 'y':
+                objects.append(o[1]+'=')
+
+        layout = []
+        k = classes.keys()
+        while True:
+            name = inp('Additional root item name (just ENTER to finish)')
+            if not name:
+                break
+            for i, n in enumerate(k):
+                print "%2d - %s"%(i, n)
+            idx = int(inp('Select the desired type index'))
+            layout.append('%s = %s'%(name, k[idx]))
+
+        if not os.path.exists(fold):
+            os.mkdir(fold)
+
+        conf = """[server]
+        database = %s
+        objects_source = %s
+        host = %s
+        port = %s
+
+        [objects]
+        %s
+
+        [layout]
+        pages = Folder index
+        search = Finder
+        %s
+        """%(fold, cust, host, port,
+                '\n'.join(objects),
+                '\n'.join(layout),
+                )
+        open( os.path.join(fold, 'drink.ini'), 'w' ).write(conf)
     elif len(sys.argv) == 2 and sys.argv[1] == "pack":
         from drink.objects import finder
         finder.init()

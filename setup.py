@@ -56,12 +56,4 @@ setup(
     install_requires = parse_requirements('requirements.txt'),
     dependency_links = parse_dependency_links('requirements.txt'),
 )
-# mkvirtualenv foo --no-site-packages
-# source foo/bin/activate
-# foo/bin/pip install  bottle jinja2 markdown ZODB3 whoosh fs || (echo "Basic dependencies installation failed!" ; exit 1)
-# foo/bin/pip install setproctitle
-# foo/bin/pip install repoze.debug
-# foo/bin/pip install weberror
-# foo/bin/pip install gevent
-# foo/bin/pip install Paste
-# foo/bin/pip install bjoern
+
