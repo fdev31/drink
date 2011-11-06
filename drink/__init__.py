@@ -455,30 +455,31 @@ if DEBUG environment variable is set, it will start in debug mode.
 
         if not os.path.exists(fold):
             os.mkdir(fold)
+            conf = """[server]
+database = %s
+objects_source = %s
+host = %s
+port = %s
 
-        conf = """[server]
-        database = %s
-        objects_source = %s
-        host = %s
-        port = %s
+[objects]
+%s
 
-        [objects]
-        %s
-
-        [layout]
-        pages = Folder index
-        search = Finder
-        %s
-        """%(fold, cust, host, port,
+[layout]
+pages = Folder index
+search = Finder
+%s
+"""%(fold, cust, host, port,
                 '\n'.join(objects),
                 '\n'.join(layout),
                 )
         open( os.path.join(fold, 'drink.ini'), 'w' ).write(conf)
+        print "Project created successfuly."
     elif len(sys.argv) == 2 and sys.argv[1] == "pack":
         from drink.objects import finder
         finder.init()
         finder.indexer.optimize()
         db.pack()
+        print "packed."
     elif len(sys.argv) == 2 and sys.argv[1] == "rebuild":
 
         from .zdb import Blob
