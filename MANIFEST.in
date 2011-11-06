@@ -3,8 +3,8 @@ recursive-include drink/templates *.html
 recursive-include scss *.scss make *.py
 recursive-include tests *.py *.txt
 include drink/settings.ini
-include database/blobs/.layout
-recursive-include database *.conf
+recursive-include drink_defaults/database/ *.conf
+include drink_defaults/database/blobs/.layout
 include manage
 include README.rst
 include HELP.md
