@@ -30,7 +30,7 @@ from drink.config import config, BASE_DIR
 import tempfile
 import bottle
 
-# some globals
+#: some globals
 classes = {}
 bottle.TEMPLATE_PATH.append(os.path.join(BASE_DIR,'templates'))
 STATIC_PATH = os.path.abspath(os.path.join(BASE_DIR, "static"))

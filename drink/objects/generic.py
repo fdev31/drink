@@ -78,7 +78,8 @@ def get_struct_from_obj(obj, childs, full):
 
 
 def default_view(self, page='main.html', obj=None, css=None, js=None, html=None, embed=None, classes=None, **kw):
-    """
+    """ Renders the :class:`~drink.Page` as HTML using a template
+
     :arg self: the object to render, should contain the following properties:
 
         :css: either a list of css http paths (str) or css block
@@ -90,7 +91,7 @@ def default_view(self, page='main.html', obj=None, css=None, js=None, html=None,
 
     :type self: any `object`
 
-    :arg page: template to use for rendering (defaults to "main.html")
+    :arg page: (defaults to "main.html") template to use for rendering
     :type page: a :func:`bottle.template` compatible template
 
     :arg obj: (optional) overrides `self` for `obj` template parameter. The access checking & so will use `self`.
@@ -291,7 +292,7 @@ class Page(drink.Model):
         return self.rootpath + self.id + u'/'
 
     def set_field(self, name, val):
-        """ Set the field :param:`name` to value :param:`val`
+        """ Set the field *name* to value *val*
 
         :arg name: name of the :data:`~drink.Page.editable_fields` to set
         :type name: str

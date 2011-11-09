@@ -6,13 +6,16 @@ API Reference
 Functions
 ---------
 
-.. autosummary::
-   :toctree: apis
+Objects can be safely retrieved (with permission checks) using :func:`drink.get_object`
 
-    default_view
-    get_object
-    add_upload_handler
+The main rendering method is accessible via :func:`drink.default_view`.
 
+.. toctree::
+   :hidden:
+
+   apis/drink.add_upload_handler
+   apis/drink.get_object
+   apis/drink.default_view
 
 Classes
 -------
@@ -44,6 +47,17 @@ Page's supported Properties
 
    drink.types
 
+
+Database related
+----------------
+
+.. autosummary::
+   :toctree: apis
+
+    drink.zdb
+    drink.dumbdb
+    drink.DB_PATH
+
 Internal objects
 ----------------
 
@@ -52,10 +66,8 @@ Internal objects
 
     drink.request
     drink.response
-    drink.config
-    drink.zdb
-    drink.DB_PATH
     drink.classes
+    drink.config
 
 ..   Import directories
      ++++++++++++++++++
