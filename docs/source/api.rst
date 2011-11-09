@@ -1,29 +1,48 @@
 API Reference
 =============
 
-.. currentmodule::   drink
+.. currentmodule:: drink
 
-Object types
-------------
-
-.. autosummary::
-    :toctree: apis
-
-    objects
-    objects.generic
-    objects.filesystem
-    objects.finder
-    objects.tasks
-    objects.markdown
-    objects.users
-
-Properties
-----------
+Functions
+---------
 
 .. autosummary::
    :toctree: apis
 
-   types
+    default_view
+    get_object
+    add_upload_handler
+
+
+Classes
+-------
+
+.. autosummary::
+   :toctree: apis
+
+   drink.Page
+   drink.ListPage
+
+Base Page types
+---------------
+
+.. autosummary::
+    :toctree: apis
+
+    drink.objects.generic
+    drink.objects.filesystem
+    drink.objects.finder
+    drink.objects.tasks
+    drink.objects.markdown
+    drink.objects.users
+
+Page's supported Properties
+---------------------------
+
+.. autosummary::
+   :toctree: apis
+
+   drink.types
 
 Internal objects
 ----------------
@@ -31,21 +50,25 @@ Internal objects
 .. autosummary::
     :toctree: apis
 
-    config
-    zdb
+    drink.request
+    drink.response
+    drink.config
+    drink.zdb
+    drink.DB_PATH
+    drink.classes
 
-Import directories
-++++++++++++++++++
+..   Import directories
+     ++++++++++++++++++
 
-`scss/`
+      `scss/`
 
-   Contains CSS in Sass language
+      Contains CSS in Sass language
 
-`templates/`
+      `templates/`
 
-   Contains Jinja2 templates
+      Contains Jinja2 templates
 
-`static/`
+      `static/`
 
-   Contains all file assets like javascript code, icons, etc...
+      Contains all file assets like javascript code, icons, etc...
 

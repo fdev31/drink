@@ -32,6 +32,7 @@ Site index
 .. toctree::
    :maxdepth: 2
 
+   developpers
    api
 
 Contact
