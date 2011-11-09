@@ -31,7 +31,7 @@ def get_object(current, objpath, no_raise=False):
     :type no_raise: `bool`
     """
 
-    path_list = [unquote(p).decode('utf-8') for p in objpath.split('/') if p]
+    path_list = [drink.omni(p) for p in objpath.split('/') if p]
     last_idx = len(path_list) - 1
     for i, elt in enumerate(path_list):
         if elt[0] in '._' and  elt != '_static':
