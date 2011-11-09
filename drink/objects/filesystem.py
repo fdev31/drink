@@ -46,6 +46,8 @@ class PyFile(object):
 
     def view(self, *a):
         if self.mime == 'folder':
+            if 'index.html' in self.keys():
+                return self['index.html'].view(*a)
             return drink.default_view(self, html='<div id="main_list" class="sortable" />')
         else:
             mime = get_type(self.id)
@@ -57,7 +59,7 @@ class PyFile(object):
             drink.response.headers['Content-Type'] = mime
             drink.response.headers['Content-Length'] = self.o.fd.getsize(self.realpath)
             if mime.split('/', 1)[0] == 'text':
-                return open(os.path.join(self.local_path, self.realpath), 'rb').read()
+                return self.o.fd.open(self.realpath, 'rb').read()
             else:
                 root, fname = '/'.join((self.local_path, self.realpath)).rsplit('/', 1)
                 return drink.static_file(fname, root, mimetype=mime, download=self.id)
@@ -98,6 +100,7 @@ class PyFile(object):
 
     def values(self):
         return list(self.itervalues())
+
 
 class Filesystem(drink.ListPage, PyFile):
 

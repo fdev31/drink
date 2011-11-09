@@ -34,8 +34,10 @@ def get_object(current, objpath, no_raise=False):
     path_list = [unquote(p).decode('utf-8') for p in objpath.split('/') if p]
     last_idx = len(path_list) - 1
     for i, elt in enumerate(path_list):
-        if elt[0] in '._':
-            return drink.unauthorized('Not authorized (forbidden character)')
+        if elt[0] in '._' and  elt != '_static':
+            if not no_raise:
+                drink.unauthorized('Not authorized (forbidden character)')
+            return
         if i == last_idx:
             # getting
             try:
@@ -55,10 +57,6 @@ def get_object(current, objpath, no_raise=False):
         else:
             # traversal
             try:
-                if elt.startswith('_'):
-                    if not no_raise:
-                        return drink.unauthorized('Not authorized')
-                    return
                 current = current[elt]
                 if 't' not in drink.request.identity.access(current):
                     if not no_raise:
