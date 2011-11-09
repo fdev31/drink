@@ -4,6 +4,7 @@ except ImportError:
     from distribute_setup import use_setuptools
     use_setuptools()
 
+import os
 import re
 from setuptools import setup, find_packages
 
@@ -37,7 +38,7 @@ setup(
     license="GPL",
     platform="all",
     description="High-level Web Object-managing framework on top of ZODB and Jinja2",
-    long_description=open('README.rst').read(),
+    long_description=open(os.path.join('drink_defaults', 'README.rst')).read(),
     include_package_data=True,
     zip_safe=False,
     entry_points = {

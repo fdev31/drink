@@ -5,6 +5,5 @@ recursive-include tests *.py *.txt
 include drink/settings.ini
 recursive-include drink_defaults/database/ *.conf
 include drink_defaults/database/blobs/.layout
-include manage
-include README.rst
-include HELP.md
+include drink_defaults/README.rst
+include drink_defaults/HELP.md

@@ -46,8 +46,8 @@ for line in open('setup.py'):
 
 # Update README.rst file with README.md content
 # setting drink version at the same time
-step('markdown README.md -e utf-8 | sed "s/DRINK_VERSION/%s/g" | ./html2rst.py > README.rst'%new_tag)
-readme = open('README.rst').read()
+step('markdown README.md -e utf-8 | sed "s/DRINK_VERSION/%s/g" | ./html2rst.py > drink_defaults%sREADME.rst'%(new_tag, os.path.sep)
+readme = open(os.path.join('drink_defaults', 'README.rst')).read()
 
 if 'DEBUG' in os.environ:
     raise SystemExit()
@@ -57,7 +57,7 @@ else:
 ## update setup.py according to new tag & commit this version
 open('setup.py', 'w').writelines(lines)
 #TODO: replace Hg commands with mercurial module
-step(['hg', 'ci', '-m', 'Prepare version %s'%new_tag, 'setup.py', 'README.rst'])
+step(['hg', 'ci', '-m', 'Prepare version %s'%new_tag, 'setup.py', os.path.join('drink_defaults', 'README.rst')])
 ## Note version & tag it
 uuid = step('hg id -i').rstrip('+ ')
 print uuid, ">", new_tag

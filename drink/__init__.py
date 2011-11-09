@@ -29,12 +29,17 @@ log = logging.getLogger('core')
 from drink.config import config, BASE_DIR
 import tempfile
 import bottle
-
 #: some globals
 classes = {}
-bottle.TEMPLATE_PATH.append(os.path.join(BASE_DIR,'templates'))
-STATIC_PATH = os.path.abspath(os.path.join(BASE_DIR, "static"))
-ORIG_DB_PATH = os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, "database"))
+if config.get('server', 'templates'):
+    bottle.TEMPLATE_PATH.append(config.get('server', 'templates').strip())
+bottle.TEMPLATE_PATH.append(os.path.join(BASE_DIR, 'templates'))
+STATIC_PATH = config.get('server', 'static_folder') or os.path.abspath(os.path.join(BASE_DIR, "static"))
+BASE_DIR = os.path.dirname(STATIC_PATH.rstrip(os.path.sep))
+import drink_defaults
+DEFAULTS_DIR = os.path.dirname(drink_defaults.__file__)
+ORIG_DB_PATH = os.path.abspath(os.path.join(DEFAULTS_DIR, 'database'))
+
 DB_PATH = config.get('server', 'database') or ORIG_DB_PATH
 if not DB_PATH.endswith(os.sep):
     DB_PATH += os.sep
@@ -162,10 +167,13 @@ def init():
 
         # deploy layout
         for pagename, name in config.items('layout'):
-            root[pagename] = classes[ name ](pagename, '/')
+            try:
+                root[pagename] = classes[ name ](pagename, '/')
+            except Exception, e:
+                log.error('Unable to create %r element with type %r (%r)\nexpect problems, try to enable this object type next time.'%(pagename, name, e))
 
         mdown = classes['Web page (markdown)']('help', '/pages/')
-        help = os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, "HELP.md"))
+        help = os.path.abspath(os.path.join(DEFAULTS_DIR, "HELP.md"))
         mdown.content = open(help).read()
         mdown.owner = admin
         mdown.min_rights = 'r'
@@ -436,6 +444,7 @@ if DEBUG environment variable is set, it will start in debug mode.
         os.system(cmd)
     elif len(sys.argv) == 2 and sys.argv[1] == "db":
         fname = os.path.join(DB_PATH, 'zeo.conf')
+        log.debug('fixing %r', fname)
         new_conf = _fix_datadir(open(fname).readlines(), fname)
         open(fname, 'w').write(new_conf)
         cmd = 'zeoctl -C %s start'%(fname)
@@ -444,16 +453,35 @@ if DEBUG environment variable is set, it will start in debug mode.
         def inp(txt):
             return raw_input(txt+': ').strip()
 
+        import shutil
+        import drink
+        import drink_defaults
+
         fold = inp('Project folder')
+
+        if os.path.exists(fold):
+            shutil.rmtree(fold)
+
+        fold = os.path.abspath(fold)
+
+        for project_fold, subs in (
+            [ os.path.dirname(drink_defaults.__file__), None],
+            [ os.path.join(os.path.dirname(drink.__file__)), ['static', 'templates']],
+            ):
+            for src in subs or os.listdir(project_fold):
+                f = os.path.join(project_fold, src)
+                if os.path.isdir(f):
+                    shutil.copytree(f, os.path.join(fold, src))
+
         cust = inp('Additional python package with drink objects\n(can contain dots)')
         host = inp('Ip to use (just ENTER to allow all)') or '0.0.0.0'
-        port = inp('HTTP port number (ex: "80"), by default %s:5000 will be used') or '5000'
+        port = inp('HTTP port number (ex: "80"), by default %s:5000 will be used'%host) or '5000'
         print "Objects to activate:"
         objs = [
             ('a gtd-like tasklist', 'tasks'),
             ('a wiki-like web page in markdown format', 'markdown'),
             ('a tool to find objects in database', 'finder'),
-            ('a filesystem proxy, allow sharing of arbitrary folder', 'filesystem'),
+            ('a filesystem proxy, allow sharing of arbitrary folder or static websites', 'filesystem'),
         ]
         objects = []
         for o in objs:
@@ -471,14 +499,14 @@ if DEBUG environment variable is set, it will start in debug mode.
                 print "%2d - %s"%(i, n)
             idx = int(inp('Select the desired type index'))
             layout.append('%s = %s'%(name, k[idx]))
-
-        if not os.path.exists(fold):
-            os.mkdir(fold)
-            conf = """[server]
-database = %s
+        conf = """[server]
+database = %s%sdatabase
 objects_source = %s
+templates = %s
+static_folder = %s
 host = %s
 port = %s
+
 
 [objects]
 %s
@@ -487,12 +515,24 @@ port = %s
 pages = Folder index
 search = Finder
 %s
-"""%(fold, cust, host, port,
-                '\n'.join(objects),
-                '\n'.join(layout),
-                )
+"""%(fold, os.path.sep, cust,
+        os.path.abspath(os.path.join(fold, 'templates')),
+        os.path.abspath(os.path.join(fold, 'static')),
+        host, port,
+        '\n'.join(objects),
+        '\n'.join(layout),
+        )
         open( os.path.join(fold, 'drink.ini'), 'w' ).write(conf)
-        print "Project created successfuly."
+        print """Project created successfuly.
+
+You can now go into the %s folder and run
+
+- drink db (to start the database daemon)
+- drink run (to start the web server)
+
+If you run with DEBUG=1 in environment, templates and python code should reload automatically when changed.
+For static files changes, no restart is needed.
+        """%fold
     elif len(sys.argv) == 2 and sys.argv[1] == "pack":
         from drink.objects import finder
         finder.init()

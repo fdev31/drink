@@ -72,6 +72,8 @@ def init():
     Objects to load are read at module loading time from the [objects] section
     """
     alern_source = config.get('server', 'objects_source')
+
+    log.debug('Trying to load: %s'%', '.join(objects_to_load))
     for obj in objects_to_load:
         log.info("[Loading %s]", obj)
         try:
@@ -81,7 +83,7 @@ def init():
                 exec('from . import %s as _imported'%obj)
             except Exception:
                 log.error("Unable to load %s, remove it from config file in [objects] section.", obj)
-                raise
+                continue
 
         for _child in dir(_imported):
             klass = getattr(_imported, _child)
