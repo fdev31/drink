@@ -10,6 +10,8 @@ class PyFile(object):
 
     actions = []
 
+    default_action = 'view'
+
     o = None
 
     _properties = ('edit', 'list', 'view', 'add', 'struct', 'actions')
@@ -25,10 +27,6 @@ class PyFile(object):
         self.realpath = real_path
         self.rootpath = parent_path
         self.path = parent_path + uuid + '/'
-
-    @property
-    def default_action(self):
-        return 'list' if self.mime == 'folder' else 'view'
 
     @property
     def mime(self):
@@ -48,7 +46,7 @@ class PyFile(object):
 
     def view(self, *a):
         if self.mime == 'folder':
-            return drink.Page.view(self, html='<div id="main_list" class="sortable" />')
+            return drink.default_view(self, html='<div id="main_list" class="sortable" />')
         else:
             mime = get_type(self.id)
 
@@ -58,8 +56,11 @@ class PyFile(object):
                 drink.response.headers['Content-Disposition'] = 'attachment; filename="%s"'%self.id
             drink.response.headers['Content-Type'] = mime
             drink.response.headers['Content-Length'] = self.o.fd.getsize(self.realpath)
-            root, fname = '/'.join((self.local_path, self.realpath)).rsplit('/', 1)
-            return drink.static_file(fname, root, mimetype=mime, download=self.id)
+            if mime.split('/', 1)[0] == 'text':
+                return open(os.path.join(self.local_path, self.realpath), 'rb').read()
+            else:
+                root, fname = '/'.join((self.local_path, self.realpath)).rsplit('/', 1)
+                return drink.static_file(fname, root, mimetype=mime, download=self.id)
 
     def struct(self, childs=True, full=None):
         return get_struct_from_obj(self, childs, full)

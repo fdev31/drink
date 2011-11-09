@@ -76,6 +76,57 @@ def get_struct_from_obj(obj, childs, full):
 
     return d
 
+
+def default_view(self, page='main.html', obj=None, css=None, js=None, html=None, embed=None, classes=None, **kw):
+    """
+    :arg self: the object to render, should contain the following properties:
+
+        :css: either a list of css http paths (str) or css block
+        :js: either a list of javascript files (str) or javascript code
+        :html: any html <body> content
+        :classes: in case the `classes` parameter is not given
+
+        .. note:: Additional properties may be required, depending on the template used (default is "main.html")
+
+    :type self: any `object`
+
+    :arg page: template to use for rendering (defaults to "main.html")
+    :type page: a :func:`bottle.template` compatible template
+
+    :arg obj: (optional) overrides `self` for `obj` template parameter. The access checking & so will use `self`.
+
+    The following `self` attributes may be overriden:
+
+    :arg css: The list of css files to use (http relative path) or the content itself
+    :type css: `list` of `str` or `str` with newline(s)
+    :arg js: The list of js files to use (http relative path) or the content itself
+    :type js: `list` of `str` or `str` with newline(s)
+    :arg html: HTML content of the `<body>` element
+    :type html: `unicode`
+    :arg classes: A mapping of ``{'Object name': Drink_Page_class}`` usable objects
+    :type classes: `dict` of `str` : :class:`drink.Page`
+
+    """
+    if 'r' not in request.identity.access(self):
+        return drink.unauthorized()
+
+    drink.response.content_type = "text/html; charset=utf-8"
+
+    return bottle.template(page,
+            template_adapter=bottle.Jinja2Template,
+            obj=obj or self,
+            css=css or self.css,
+            js=js or self.js,
+            html=html or self.html,
+            embed=bool(drink.request.params.get('embedded', False)) if embed is None else embed,
+            classes=self.classes if classes is None else classes,
+            isstring=lambda x: isinstance(x, basestring),
+            req=request,
+            authenticated=request.identity,
+            **kw
+        )
+
+
 class Page(drink.Model):
     """ A dict-like object, defining all properties required by a standard page """
 
@@ -152,7 +203,8 @@ class Page(drink.Model):
     js = []
     #: short description of the object or instance
     description = u'An abstract page'
-    #: dictionnary of classes allowed in that contect
+
+    #: dictionnary of ``{object_name: classe}``  allowed in that context
     classes = drink.classes
 
     #: default action if none specified
@@ -219,25 +271,7 @@ class Page(drink.Model):
     def quoted_id(self):
         return quote(self.id.encode('utf-8'))
 
-    def view(self, page='main.html', obj=None, css=None, js=None, html=None, embed=None, classes=None, **kw):
-        if 'r' not in request.identity.access(self):
-            return drink.unauthorized()
-
-        drink.response.content_type = "text/html; charset=utf-8"
-
-        return bottle.template(page,
-                template_adapter=bottle.Jinja2Template,
-                obj=obj or self,
-                css=css or self.css,
-                js=js or self.js,
-                html=html or self.html,
-                embed=bool(drink.request.params.get('embedded', False)) if embed is None else embed,
-                classes=self.classes if classes is None else classes,
-                isstring=lambda x: isinstance(x, basestring),
-                req=request,
-                authenticated=request.identity,
-                **kw
-            )
+    view = default_view
 
     items_factory = {
         'dblclick': 'enter_edit_func',
@@ -257,6 +291,15 @@ class Page(drink.Model):
         return self.rootpath + self.id + u'/'
 
     def set_field(self, name, val):
+        """ Set the field :param:`name` to value :param:`val`
+
+        :arg name: name of the :data:`~drink.Page.editable_fields` to set
+        :type name: str
+
+        :arg val: value of the field
+        :type val: depends on the :mod:`~drink.types`
+        """
+
         self.editable_fields[name].set(self, name, val)
 
     def get_field(self, name):
@@ -265,14 +308,14 @@ class Page(drink.Model):
     def edit(self, resume=None):
         """ Edit form
 
-        :arg resume: when given, won't call :meth:`_edit` but use this value instead
+        :arg resume: when given, won't call :meth:`~drink.Page._edit` but use this return value instead
         :type resume: bool
         :returns: a form allowing to edit the object or http error
 
-        call :meth:`_edit` method and return it's value.
+        call :meth:`~drink.Page._edit` method and return it's value.
         In case you return a tuple which first parameter is callable,
         then it calls the callable with the other tuple elements as parameters.
-        This is used to handle redirects, from "inside" you should always use :meth:`_edit` !
+        This is used to handle redirects, from "inside" you should always use :meth:`~drink.Page._edit` !
 
         """
         with self._lock():
@@ -291,6 +334,14 @@ class Page(drink.Model):
                 database['search']._update_object(self)
 
     def _edit(self):
+        """ Implementation of public :meth:`#drink.Page.edit` method,
+        only looks at http environment for now (no useable parameter)
+
+        .. rubric:: HTTP parameters (other that the properties' names)
+
+        :_dk_fields: field names to edit, separated by a slash ``/``
+
+        """
         if 'w' not in request.identity.access(self):
             return drink.unauthorized()
 
@@ -353,6 +404,7 @@ class Page(drink.Model):
             return self.view(html='\n'.join(form))
 
     def _upload(self, obj):
+        return
         self.editable_fields['content'].set(self, 'content', obj)
 
     def upload(self):

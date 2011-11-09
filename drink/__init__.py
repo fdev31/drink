@@ -1,6 +1,14 @@
-" Drink "
 from __future__ import absolute_import, with_statement
+"""
+Drink!
 
+"""
+__all__ = ['get_object',
+'classes',
+'add_upload_handler',
+'request', 'response',
+ 'Page', 'ListPage'
+'make_app', 'init']
 # imports + basic configuration
 
 import os
@@ -90,6 +98,7 @@ def omni(txt):
             return txt.decode('latin1')
 
 def init():
+    """ Re-initialize drink's database """
     from drink.objects.finder import reset
     reset()
     with db as root:
@@ -176,10 +185,19 @@ except ImportError:
 db = Database(bottle.app(), DB_CONFIG)
 
 # Load Basic objects
-from .objects.generic import Page, ListPage, Settings
+from .objects.generic import Page, ListPage, Settings, default_view
 from .objects import classes as obj_classes, get_object, init as init_objects
 from . import types
+
 def add_upload_handler(ext, obj_name):
+    """ Add an opload handler into drink upload system
+
+    :arg ext: extension to register
+    :type ext: `str` or `list` of `str`
+    :arg obj_name: object name, will be looked up via :obj:`drink.classes`
+    :type obj_name: `str`
+     """
+
     if isinstance(ext, basestring):
         ext = [ext]
     for e in ext:
@@ -378,6 +396,7 @@ def glob_index(objpath="/"):
 
 
 def startup():
+    """ Starts drink application """
     import sys
 
     try:
@@ -626,6 +645,7 @@ search = Finder
         bottle.run(app=app, host=host, port=port, reloader=debug, server='wsgiref' if debug else config.get('server', 'backend'))
 
 def make_app():
+    """ Returns Drink WSGI application """
     global reset_required
     if not PERSISTENT_STORAGE or 'BOTTLE_CHILD' not in os.environ:
         with db as c:

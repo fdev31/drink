@@ -21,6 +21,15 @@ classes = _AuthDict()
 objects_to_load = [k for k, v in config.items('objects')]
 
 def get_object(current, objpath, no_raise=False):
+    """ Fetch an object from database, looking at permissions to approve
+
+    :arg current: root object to browse for childrens
+    :type current: :class:`drink.Page`
+    :arg objpath: path to the children
+    :type objpath: str
+    :arg no_raise: (optional) don't raise exceptions
+    :type no_raise: `bool`
+    """
 
     path_list = [unquote(p).decode('utf-8') for p in objpath.split('/') if p]
     last_idx = len(path_list) - 1
@@ -62,6 +71,10 @@ def get_object(current, objpath, no_raise=False):
     return current
 
 def init():
+    """ Load all objects.
+    Reads configuration `objects_source` from [server].
+    Objects to load are read at module loading time from the [objects] section
+    """
     alern_source = config.get('server', 'objects_source')
     for obj in objects_to_load:
         log.info("[Loading %s]", obj)
