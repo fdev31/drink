@@ -44,10 +44,10 @@ class PyFile(object):
     def edit(self, *a):
         return self.view()
 
-    def view(self, *a):
+    def view(self, *a, **kw):
         if self.mime == 'folder':
             if 'index.html' in self.keys():
-                return self['index.html'].view(*a)
+                return self['index.html'].view(*a, **kw)
             return drink.default_view(self, html='<div id="main_list" class="sortable" />')
         else:
             mime = get_type(self.id)
@@ -112,6 +112,8 @@ class Filesystem(drink.ListPage, PyFile):
 
     hidden_class = True
 
+    default_view = 'edit'
+
     path = ''
 
     editable_fields = drink.ListPage.editable_fields.copy()
@@ -125,15 +127,15 @@ class Filesystem(drink.ListPage, PyFile):
 
     def __init__(self, name, rootpath):
         self.fd = None
-        self.default_view = 'edit'
         drink.ListPage.__init__(self, name, rootpath)
         self._make_fd()
         PyFile.__init__(self, self, rootpath, self.id, self.id, None)
 
     def _edit(self):
         r = drink.ListPage._edit(self)
+        self.fd = None
         self._make_fd()
-        if self.fd:
+        if self.default_view == 'edit' and self.fd:
             self.default_view = 'list'
         return r
 
@@ -143,6 +145,8 @@ class Filesystem(drink.ListPage, PyFile):
                 self.fd = OSFS(self.local_path, thread_synchronize=True)
             except fs.errors.ResourceNotFoundError:
                 self.fd = None
+
+    view = PyFile.view
 
     def keys(self):
         if self.fd:
