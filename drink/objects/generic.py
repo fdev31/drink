@@ -402,7 +402,7 @@ class Page(drink.Model):
                 form.insert(0, '''<form
                  class="auto_edit_form" id="auto_edit_form" action="edit" %s method="post">'''%(' '.join(form_opts)))
 
-            return self.view(html='\n'.join(form))
+            return drink.default_view(self, html='\n'.join(form))
 
     def _upload(self, obj):
         return
@@ -530,7 +530,7 @@ class Page(drink.Model):
         return {'success': True}
 
     def list(self):
-        return self.view('main.html', html=u'<h1>%s</h1>\n<ul id="main_list" class="sortable" />'%self.title)
+        return drink.default_view(self, 'main.html', html=u'<h1>%s</h1>\n<ul id="main_list" class="sortable" />'%self.title)
 
 class ListPage(Page):
 
