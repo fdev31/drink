@@ -35,9 +35,7 @@ def get_object(current, objpath, no_raise=False):
     last_idx = len(path_list) - 1
     for i, elt in enumerate(path_list):
         if elt[0] in '._' and  elt != '_static':
-            if not no_raise:
-                drink.unauthorized('Not authorized (forbidden character)')
-            return
+            return drink.unauthorized('Not authorized (forbidden character)')
         if i == last_idx:
             # getting
             try:
