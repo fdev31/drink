@@ -74,8 +74,6 @@ except IOError:
     shutil.copy( os.path.join(ORIG_DB_PATH, 'blobs', '.layout'), os.path.join(DB_PATH, 'blobs', '.layout'))
     DB_CONFIG = _fix_datadir(open(os.path.join(DB_PATH, "zodb.conf")).readlines())
 
-print("DB-CONF:\n%s"%DB_CONFIG)
-
 # Import main modules used + namespace setup
 
 # http
