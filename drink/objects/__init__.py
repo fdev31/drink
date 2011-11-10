@@ -71,13 +71,13 @@ def init():
     Reads configuration `objects_source` from [server].
     Objects to load are read at module loading time from the [objects] section
     """
-    alern_source = config.get('server', 'objects_source')
+    altern_source = config.get('server', 'objects_source')
 
-    log.debug('Trying to load: %s'%', '.join(objects_to_load))
+    log.debug('Trying to load: %s from %r'%(', '.join(objects_to_load), altern_source))
     for obj in objects_to_load:
         log.info("[Loading %s]", obj)
         try:
-            exec('from %s import %s as _imported'%(alern_source, obj))
+            exec('from %s import %s as _imported'%(altern_source, obj))
         except Exception:
             try:
                 exec('from . import %s as _imported'%obj)
