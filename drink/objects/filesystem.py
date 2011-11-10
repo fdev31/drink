@@ -57,7 +57,10 @@ class PyFile(object):
             else:
                 drink.response.headers['Content-Disposition'] = 'attachment; filename="%s"'%self.id
             drink.response.headers['Content-Type'] = mime
-            drink.response.headers['Content-Length'] = self.o.fd.getsize(self.realpath)
+            try:
+                drink.response.headers['Content-Length'] = self.o.fd.getsize(self.realpath)
+            except fs.errors.ResourceNotFoundError:
+                return {'error': True, 'code': 404, 'message': '%r not found'%self.id}
             if mime.split('/', 1)[0] == 'text':
                 return self.o.fd.open(self.realpath, 'rb').read()
             else:
