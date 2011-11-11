@@ -6,11 +6,17 @@ drink.types
 .. autosummary::
 
    Text
+   Password
    TextArea
+   Choice
+   CheckboxSet
    GroupCheckBoxes
+   GroupListArea
    Id
    Int
-   Password
+   Link
+   Mime
+   Date
    File
 
 Abstract class
