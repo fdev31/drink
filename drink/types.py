@@ -1,5 +1,6 @@
 __all__ = ['_Editable',
     'Text', 'TextArea', 'GroupListArea', 'GroupCheckBoxes',
+    'CheckboxSet',
     'Mime', 'Choice', 'Link',
     'Date',
     'Id', 'Int', 'Password', 'File']
@@ -32,6 +33,9 @@ class _Editable(object):
 
     def get(self, obj, name):
         return getattr(obj, name)
+
+    def __repr__(self):
+        return "drink.types.%s(%r, group=%r)"%(self.__class__.__name__, self.caption, self.group)
 
     def set(self, obj, name, val):
         setattr(obj, name, drink.omni(val))
