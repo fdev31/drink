@@ -436,6 +436,12 @@ if DEBUG environment variable is set, it will start in debug mode.
     elif len(sys.argv) == 2 and sys.argv[1] == "init":
         init()
         db.pack()
+    elif len(sys.argv) == 2 and sys.argv[1] == "run":
+        host = config.get('server', 'host')
+        port = int(config.get('server', 'port'))
+        app = make_app(full=True)
+        debug = (app != bottle.app())
+        bottle.run(app=app, host=host, port=port, reloader=debug, server='wsgiref' if debug else config.get('server', 'backend'))
     elif len(sys.argv) == 2 and sys.argv[1] == "stopdb":
         cmd = "zeoctl -C %s stop"%os.path.join(DB_PATH, 'zeo.conf')
         print(cmd)
@@ -684,14 +690,8 @@ For static files changes, no restart is needed.
         from pdb import set_trace
         with db as root:
             set_trace()
-    elif len(sys.argv) == 2 and sys.argv[1] == "run":
-        host = config.get('server', 'host')
-        port = int(config.get('server', 'port'))
-        app = make_app()
-        debug = (app != bottle.app())
-        bottle.run(app=app, host=host, port=port, reloader=debug, server='wsgiref' if debug else config.get('server', 'backend'))
 
-def make_app():
+def make_app(full=False):
     """ Returns Drink WSGI application """
     global reset_required
     if not PERSISTENT_STORAGE or 'BOTTLE_CHILD' not in os.environ:
@@ -713,7 +713,7 @@ def make_app():
     if dbg_in_env:
         mode = 'debug'
 
-    if mode not in ('debug', 'paste', 'rocket'):
+    if full and mode not in ('debug', 'paste', 'rocket'):
         try:
             import gevent.monkey
             gevent.monkey.patch_all()
@@ -725,6 +725,8 @@ def make_app():
     config.async = async
 
     app = bottle.app()
+    if not full:
+        return app
 
     # handle debug mode
     debug = False
