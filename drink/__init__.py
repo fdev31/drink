@@ -483,7 +483,9 @@ if DEBUG environment variable is set, it will start in debug mode.
         ]
         objects = []
         for o in objs:
-            ans = inp('Activate %s, %s (y/N)'%(o[1], o[0]))
+            #ans = inp('Activate %s, %s (y/N)'%(o[1], o[0]))
+            ans = 'y'
+            print("%s : %s"%(' - '.join(o), ans))
             if ans.lower() == 'y':
                 objects.append(o[1]+'=')
 
@@ -521,6 +523,13 @@ search = Finder
         '\n'.join(layout),
         )
         open( os.path.join(fold, 'drink.ini'), 'w' ).write(conf)
+        if cust.strip():
+            try:
+                __import__(cust)
+            except ImportError:
+                cust_dir = os.path.join(fold, cust.strip())
+                os.mkdir(cust_dir)
+                open(os.path.join(cust_dir, '__init__.py'), 'w')
         print """Project created successfuly.
 
 You can now go into the %s folder and run
