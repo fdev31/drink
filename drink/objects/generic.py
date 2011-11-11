@@ -274,6 +274,8 @@ class Page(drink.Model):
 
     view = default_view
 
+    #: A map of <html/js event>: <js function>, used to hook items interactions
+
     items_factory = {
         'dblclick': 'enter_edit_func',
         'hover': 'popup_actions',
@@ -281,6 +283,7 @@ class Page(drink.Model):
     }
 
     def struct(self, childs=True, full=None):
+        """ returns this item as a json structure """
 
         o =  get_struct_from_obj(self, childs, full)
         if o:
@@ -289,6 +292,7 @@ class Page(drink.Model):
 
     @property
     def path(self):
+        """ Item's relative HTTP path """
         return self.rootpath + self.id + u'/'
 
     def set_field(self, name, val):
@@ -304,6 +308,14 @@ class Page(drink.Model):
         self.editable_fields[name].set(self, name, val)
 
     def get_field(self, name):
+        """ Get the value of field *name*
+
+        :arg name: name of the :data:`~drink.Page.editable_fields` to set
+        :type name: str
+        :returns: The associated value
+
+        .. todo:: add types's internal representation doc + link to it
+        """
         return self.editable_fields[name].get(self, name)
 
     def edit(self, resume=None):
