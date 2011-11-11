@@ -336,11 +336,17 @@ class Page(drink.Model):
 
     def _edit(self):
         """ Implementation of public :meth:`#drink.Page.edit` method,
-        only looks at http environment for now (no useable parameter)
+        only looks at http environment for now (no useable parameter).
+
+        .. note::  Use :meth:`.set_field` to set some editable field value.
+
+        Use :
 
         .. rubric:: HTTP parameters (other that the properties' names)
 
-        :_dk_fields: field names to edit, separated by a slash ``/``
+        :_dk_fields: Field names to edit, separated by a slash ``/``
+        :embedded: Just transmits this parameter to next page
+        :_recurse: Special mode applying permissions (only) in a recursive way
 
         """
         if 'w' not in request.identity.access(self):
@@ -355,6 +361,7 @@ class Page(drink.Model):
 
         forms = request.forms
         embedded = bool(request.params.get('embedded', ''))
+        recursive = bool(request.params.get('_recurse', ''))
 
         if forms:
             if '_dk_fields' in forms:
@@ -372,6 +379,17 @@ class Page(drink.Model):
                     caster.set(self, attr, v.decode('utf-8') if v else u'')
 
             self._update_lookup_engine()
+            if recursive:
+                # apply permissions recursively
+                childs = list(self.values())
+                for child in childs:
+                    try:
+                        child.read_groups = self.read_groups
+                        child.write_groups = self.write_groups
+                    except Exception, e:
+                        log.warning('error applying permissionson %r : %r', child, e)
+                    else:
+                        childs.extend(child.values())
             return {'redirect': "%s?embedded=%s"%(self.quoted_path, '1' if embedded else '' )}
         else:
             if not items:
@@ -401,7 +419,6 @@ class Page(drink.Model):
                 </div></form>''')
                 form.insert(0, '''<form
                  class="auto_edit_form" id="auto_edit_form" action="edit" %s method="post">'''%(' '.join(form_opts)))
-
             return drink.default_view(self, html='\n'.join(form))
 
     def _upload(self, obj):

@@ -376,9 +376,21 @@ class EasyPermissions(_Editable):
         <li id="perm_ano_r" onclick="$.toggle_perm(this, 'anonymous', 'r')" class="option">View this document</li>
         <li id="perm_ano_w" onclick="$.toggle_perm(this, 'anonymous', 'w')" class="option">Edit this document</li>
 
+        <div>
+        <script type="text/javascript">
+        function apply_perms(from) {
+            var fo=$('#auto_edit_form');
+            var o=$('<input type="hidden" name="_recurse" value="1"></input>');
+            fo.append(o);
+            fo.submit();
+        }
+        </script>
+        <span class="button" id="apply_permissions_recursively" onclick="apply_perms(this)">Save and Apply permissions on children</span>
+        </div>
 
         <span class="button" id="show_hide_permissions" onclick="var o=$('#show_hide_permissions'); var g=$('.x_permissions_grp'); if(g.css('display') == 'none') {o.html('Hide detailed permissions')} else {o.html('Show detailed permissions')}; g.slideToggle('slow');">
         Show detailed permissions</span>
+
         """%dict(id=drink.request.identity.id)
 
     def set(self, obj, name, val):
