@@ -251,7 +251,7 @@ class DrinkServer(bottle.ServerAdapter):
 
         for sa in adapters:
             try:
-                log.debug("* Trying %s"%sa.__name__)
+                log.warning("* Trying %s"%sa.__name__)
                 return sa(self.host, self.port, **self.options).run(handler)
             except ImportError:
                 pass
