@@ -10,7 +10,6 @@ class PyFile(object):
 
     actions = []
 
-    default_action = 'view'
 
     o = None
 
@@ -115,7 +114,7 @@ class Filesystem(drink.ListPage, PyFile):
 
     hidden_class = True
 
-    default_view = 'edit'
+    default_action = 'edit'
 
     path = ''
 
@@ -138,8 +137,8 @@ class Filesystem(drink.ListPage, PyFile):
         r = drink.ListPage._edit(self)
         self.fd = None
         self._make_fd()
-        if self.default_view == 'edit' and self.fd:
-            self.default_view = 'list'
+        if self.default_action == 'edit' and self.fd:
+            self.default_action = 'view'
         return r
 
     def _make_fd(self):
