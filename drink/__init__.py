@@ -27,7 +27,6 @@ else:
 log = logging.getLogger('core')
 
 from drink.config import config, BASE_DIR
-import tempfile
 import bottle
 #: some globals
 classes = {}
@@ -182,7 +181,7 @@ reset_required = False
 try:
     from .zdb import Database, DataBlob, Model, transaction
     PERSISTENT_STORAGE = True
-    log.warning("Enabling persistent storage, using ZODB")
+    log.info("Enabling persistent storage, using ZODB")
 except ImportError:
     log.warning("Not enabling persistent storage, using dumb db")
     PERSISTENT_STORAGE = False
@@ -193,7 +192,6 @@ db = Database(bottle.app(), DB_CONFIG)
 # Load Basic objects
 from .objects.generic import Page, ListPage, Settings, default_view
 from .objects import classes as obj_classes, get_object, init as init_objects
-from . import types
 
 def add_upload_handler(ext, obj_name):
     """ Add an opload handler into drink upload system
@@ -420,6 +418,7 @@ Drink help
 
 commands:
     make    : make a new drink project
+    start   : start all required servers
     run     : starts the server
     db      : starts the database server
     stopdb  : stops the database server
@@ -436,22 +435,23 @@ if DEBUG environment variable is set, it will start in debug mode.
     elif len(sys.argv) == 2 and sys.argv[1] == "init":
         init()
         db.pack()
-    elif len(sys.argv) == 2 and sys.argv[1] == "run":
-        host = config.get('server', 'host')
-        port = int(config.get('server', 'port'))
-        app = make_app(full=True)
-        debug = (app != bottle.app())
-        bottle.run(app=app, host=host, port=port, reloader=debug, server='wsgiref' if debug else config.get('server', 'backend'))
+    elif len(sys.argv) == 2 and sys.argv[1] in ("run", "db", "start"):
+        if sys.argv[1] != "run":
+            fname = os.path.join(DB_PATH, 'zeo.conf')
+            log.debug('fixing %r', fname)
+            new_conf = _fix_datadir(open(fname).readlines(), fname)
+            open(fname, 'w').write(new_conf)
+            cmd = 'zeoctl -C %s start'%(fname)
+            os.system(cmd)
+        if sys.argv[1] != "db":
+            host = config.get('server', 'host')
+            port = int(config.get('server', 'port'))
+            app = make_app(full=True)
+            debug = (app != bottle.app())
+            bottle.run(app=app, host=host, port=port, reloader=debug, server='wsgiref' if debug else config.get('server', 'backend'))
     elif len(sys.argv) == 2 and sys.argv[1] == "stopdb":
         cmd = "zeoctl -C %s stop"%os.path.join(DB_PATH, 'zeo.conf')
         print(cmd)
-        os.system(cmd)
-    elif len(sys.argv) == 2 and sys.argv[1] == "db":
-        fname = os.path.join(DB_PATH, 'zeo.conf')
-        log.debug('fixing %r', fname)
-        new_conf = _fix_datadir(open(fname).readlines(), fname)
-        open(fname, 'w').write(new_conf)
-        cmd = 'zeoctl -C %s start'%(fname)
         os.system(cmd)
     elif len(sys.argv) == 2 and sys.argv[1] == "make":
         def inp(txt):
@@ -529,6 +529,34 @@ search = Finder
         '\n'.join(layout),
         )
         open( os.path.join(fold, 'drink.ini'), 'w' ).write(conf)
+        conf = """#!/bin/sh
+SOCK_DIR="/tmp"
+cat << EOF
+Example of nginx configation:
+upsstream drink {
+    ip_hash;
+    server unix:${SOCK_DIR}/uwsgi.sock;
+}
+location / {
+    uwsgi_pass bottle;
+    include uwsgi_params;
+}
+EOF
+export PYTHONPATH="${PWD}:%(proj)s:${PYTHONPATH}"
+
+cd "%(proj)s"
+
+http='--http %(host)s:%(port)s'
+sock="-s ${SOCK_DIR}/uwsgi.sock -C 666"
+stats="--stats ${SOCK_DIR}/stats.socket"
+stats='' # disable stats
+
+zeoctl -C database/zeo.conf start
+
+exec uwsgi -p 1 $sock $http $stats --module 'drink:make_app()'
+"""%dict(proj=fold, host=host, port=port)
+        open( os.path.join(fold, 'start_uwsgi'), 'w' ).write(conf)
+        os.chmod(os.path.join(fold, 'start_uwsgi'), 0777)
         if cust.strip():
             try:
                 __import__(cust)
