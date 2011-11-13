@@ -17,8 +17,7 @@ log = logging.getLogger('Database')
 
 class Database(object):
     def __init__(self, wsgi_app, config_data):
-        log.info('DATABASE')
-        log.warning("Do not forget to run 'manage db'")
+        log.info('New database instance')
         self.app = wsgi_app
         self._config = config_data
         self.locals = threading.local()
