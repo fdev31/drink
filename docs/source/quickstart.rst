@@ -30,9 +30,10 @@ from sources::
 Creating a project
 ******************
 
-Do not forget to activate your virtual environment:
+Do not forget to activate your virtual environment::
 
-   % . drink_env/bin/activate
+    % . drink_env/bin/activate
+
 
 And chose a folder of your own, that can hold several projects and run ``drink make``::
 
@@ -49,7 +50,7 @@ And chose a folder of your own, that can hold several projects and run ``drink m
    a tool to find objects in database - finder : y
    a filesystem proxy, allow sharing of arbitrary folder or static websites - filesystem : y
    Additional root item name (just ENTER to finish):
-   Project created successfuly.
+   Project created successfully.
 
    You can now go into the /home/fab/web_apps/test_project folder and run
 
@@ -62,7 +63,7 @@ And chose a folder of your own, that can hold several projects and run ``drink m
 Running
 *******
 
-GO into the project folder (same name as you answered), and type ``drink start``::
+Go into the project folder (same name as you answered), and type ``drink start``::
 
    % cd ~/web_apps/test_project
    % drink start
@@ -100,7 +101,7 @@ Action's icons are in ``static/actions/`` folder, you can also replace ``static/
 
 The ``templates/main.html`` file can be easily customized as well, but this folder is mainly interesting to add your own custom templates (``main.html`` should be a good base).
 
-An empy python module is also created automatically to fit the informations you
+An empty python module is also created automatically to fit the information you
 gave at *make* time. Feel free to add your objects inside it, if you add a file ``blog_application`` to that folder, you need to activate it in the ``drink.ini`` file:
 
    [objects]
