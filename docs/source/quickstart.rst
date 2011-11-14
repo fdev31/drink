@@ -5,16 +5,16 @@ Pre-requisites
 **************
 
 You should be able to execute a terminal emulator (like ``cmd.exe``, ``xterm``, etc...)
-and have notions with python. Even if the steps are detailed, some experience with :pypi:`virtualenv` may help.
+and have notions with python. Even if the steps are detailed, some experience with virtualenv_ may help.
 
 If you skip the virtual environment part, it
 might require additional work on permissions.
-Feel free to use :pypi:`virtualenvwrapper`.
+Feel free to use virtualenv_.
 
 Installing
 **********
 
-It is recommanded to use a :pypi`virtualenv` for your drink installation::
+It is recommanded to use a virtualenv_ for your drink installation::
 
    % virtualenv --no-site-packages --distribute drink_env
    % . drink_env/bin/activate
@@ -106,3 +106,5 @@ gave at *make* time. Feel free to add your objects inside it, if you add a file 
    [objects]
    markdown=
    blog_application=
+
+.. _virtualenv: http://pypi.python.org/pypi/virtualenv
