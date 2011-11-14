@@ -43,7 +43,7 @@ class MarkdownEditor(drink.types._Editable):
     ''')
 
 
-class MarkdownPage(drink.Page):
+class MarkdownPage(drink.ListPage):
     content = DEFAULT_CONTENT
 
     drink_name = 'Web page (markdown)'
@@ -52,7 +52,7 @@ class MarkdownPage(drink.Page):
 
     description = u"A markdown rendered page"
 
-    js = drink.Page.js + ['/static/markitup/jquery.markitup.js',
+    js = drink.ListPage.js + ['/static/markitup/jquery.markitup.js',
         '/static/markitup/sets/markdown/set.js',
         '''
 function reload_page() {
@@ -70,10 +70,12 @@ add_hook_add_item(reload_page);
         '''
         ]
 
-    css = drink.Page.css + ['/static/markitup/sets/markdown/style.css',
+    css = drink.ListPage.css + ['/static/markitup/sets/markdown/style.css',
      '/static/markitup/skins/markitup/style.css']
 
     markup_name = ''
+
+    subpages_blog = False
 
     _template = r'''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -87,10 +89,11 @@ add_hook_add_item(reload_page);
 </html>
 '''
 
-    editable_fields = drink.Page.editable_fields.copy()
+    editable_fields = drink.ListPage.editable_fields.copy()
 
     editable_fields.update({
         'content': MarkdownEditor("Content"),
+        'subpages_blog': drink.types.BoolOption("Include children web pages like a blog"),
         'markup_name': drink.types.Text('[[WikiLink]] name'),
         'mime': drink.types.Text(),
     })
@@ -99,7 +102,7 @@ add_hook_add_item(reload_page);
     _v_view_cooked = ''
 
     def __init__(self, name, rootpath=None):
-        drink.Page.__init__(self, name, rootpath)
+        drink.ListPage.__init__(self, name, rootpath)
         self.markup_name = name
 
     @property
@@ -154,15 +157,22 @@ add_hook_add_item(reload_page);
         return ret
 
     @property
+    def blog_content(self):
+        items = self.values()
+        dn = self.drink_name
+        #items.sort(key=lambda x: x.title)
+        htmls = [ u'<h1>%s</h1><div class="blog_entries">'%self.title ]
+        htmls.extend(u'<div class="blog_entry">'+i.html+'</div>'
+             for i in items if i.drink_name == dn)
+        htmls.append(u'</div>')
+        return u'\n'.join(htmls)
+
+    @property
     def indexable(self):
         return u"%s %s"%(self.description, self.content)
 
-    @property
-    def html(self):
-        return self.process(self.content)
-
     def _add(self, *args, **kw):
-        new_obj = drink.Page._add(self, *args, **kw)
+        new_obj = drink.ListPage._add(self, *args, **kw)
         self.content += (u"\n* link to [%s](%s/)"%(
             new_obj.title, new_obj.id))
         return new_obj
@@ -170,7 +180,7 @@ add_hook_add_item(reload_page);
     def edit(self, *a, **kw):
         self._v_slide_cooked = ''
         self._v_view_cooked = ''
-        return drink.Page.edit(self, *a, **kw)
+        return drink.ListPage.edit(self, *a, **kw)
 
     def process(self, data=None):
         if not self._v_view_cooked:
@@ -190,7 +200,9 @@ add_hook_add_item(reload_page);
             self._v_view_cooked = self._template % self._v_wikifier_cache.convert(data)
         return self._v_view_cooked
 
-    html = property(process)
+    @property
+    def html(self):
+        return self.blog_content if self.subpages_blog else self.process(self.content)
 
     def _upload(self, obj):
         self.content = drink.omni(obj.file.read())
