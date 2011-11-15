@@ -4,15 +4,16 @@ import drink
 import shutil
 import logging
 import tempfile
+import datetime
 from markdown import Markdown
+log = logging.getLogger('markdown')
 try:
     import landslide.main
     from landslide import generator
     landslide = True
 except ImportError:
+    log.warning('Landslide is not installed: disabling slideshow feature')
     landslide = False
-
-log = logging.getLogger('markdown')
 
 DEFAULT_CONTENT = u"""
 <!- hehe, you can add html tags directly too: -->
@@ -52,6 +53,28 @@ class MarkdownPage(drink.ListPage):
 
     description = u"A markdown rendered page"
 
+    creation_date = ''
+
+    sort_order = 'date'
+
+    markup_name = ''
+
+    subpages_blog = False
+
+    editable_fields = drink.ListPage.editable_fields.copy()
+
+    editable_fields.update({
+        'sort_order': drink.types.Choice('Sort blog entries by', {
+                'creation date': 'date',
+                'title\'s alphabetical order': 'title',
+            }),
+        'creation_date': drink.types.Date("Creation date"),
+        'content': MarkdownEditor("Content"),
+        'subpages_blog': drink.types.BoolOption("Include children web pages like a blog"),
+        'markup_name': drink.types.Text('[[WikiLink]] name'),
+        'mime': drink.types.Text(),
+    })
+
     js = drink.ListPage.js + ['/static/markitup/jquery.markitup.js',
         '/static/markitup/sets/markdown/set.js',
         '''
@@ -73,10 +96,6 @@ add_hook_add_item(reload_page);
     css = drink.ListPage.css + ['/static/markitup/sets/markdown/style.css',
      '/static/markitup/skins/markitup/style.css']
 
-    markup_name = ''
-
-    subpages_blog = False
-
     _template = r'''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -89,21 +108,13 @@ add_hook_add_item(reload_page);
 </html>
 '''
 
-    editable_fields = drink.ListPage.editable_fields.copy()
-
-    editable_fields.update({
-        'content': MarkdownEditor("Content"),
-        'subpages_blog': drink.types.BoolOption("Include children web pages like a blog"),
-        'markup_name': drink.types.Text('[[WikiLink]] name'),
-        'mime': drink.types.Text(),
-    })
-
     _v_slide_cooked = ''
     _v_view_cooked = ''
 
     def __init__(self, name, rootpath=None):
         drink.ListPage.__init__(self, name, rootpath)
         self.markup_name = name
+        self.date = datetime.date.today()
 
     @property
     def actions(self):
@@ -158,12 +169,15 @@ add_hook_add_item(reload_page);
 
     @property
     def blog_content(self):
-        items = self.values()
         dn = self.drink_name
-        #items.sort(key=lambda x: x.title)
+        items = [i for i in self.itervalues() if i.drink_name == dn]
+        if self.sort_order == 'date':
+            sort_key = lambda x: x.creation_date
+        else:
+            sort_key = lambda x: x.title
+        items.sort(key=sort_key, reverse=True)
         htmls = [ u'<h1>%s</h1><div class="blog_entries">'%self.title ]
-        htmls.extend(u'<div class="blog_entry">'+i.html+'</div>'
-             for i in items if i.drink_name == dn)
+        htmls.extend(u'<div class="blog_entry">'+i.html+'</div>' for i in items)
         htmls.append(u'</div>')
         return u'\n'.join(htmls)
 
