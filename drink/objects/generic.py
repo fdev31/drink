@@ -698,9 +698,9 @@ class WebFile(Page):
     def raw(self):
         if 'r' not in request.identity.access(self):
             return drink.unauthorized()
-
-        root, fname = os.path.split(self.content.filename)
-        return drink.static_file(fname, root, mimetype=self.mimetype, download=self.content_name)
+        if self.content:
+            root, fname = os.path.split(self.content.filename)
+            return drink.static_file(fname, root, mimetype=self.mimetype, download=self.content_name)
         #Alternatively: drink.response.headers['Content-Type'] = '...'
         # + read
 
