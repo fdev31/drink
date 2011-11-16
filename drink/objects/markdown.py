@@ -57,6 +57,8 @@ class MarkdownPage(drink.ListPage):
 
     sort_order = 'date'
 
+    forced_order = []
+
     markup_name = ''
 
     subpages_blog = False
