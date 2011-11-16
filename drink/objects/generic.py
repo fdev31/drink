@@ -449,21 +449,23 @@ class Page(drink.Model):
 
         factory = self.upload_map.get(filename.rsplit('.')[-1], 'WebFile')
 
-        o = self._add(filename, factory,
-            request.identity.user.default_read_groups,
-            request.identity.user.default_write_groups)
-        o.mimetype = get_type(filename)
-
-        fake_post_obj = _Mock()
-
-        fake_post_obj.file = request.body
-        fake_post_obj.filename = filename
-
         with self._lock():
+
+            o = self._add(filename, factory,
+                request.identity.user.default_read_groups,
+                request.identity.user.default_write_groups)
+            o.mimetype = get_type(filename)
+
+            fake_post_obj = _Mock()
+
+            fake_post_obj.file = request.body
+            fake_post_obj.filename = filename
+
             o._upload(fake_post_obj)
 
-        data = o.struct()
-        data['success'] = True
+            data = o.struct()
+            data['success'] = True
+
         return data
 
     def rm(self):
