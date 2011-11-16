@@ -434,7 +434,6 @@ class Page(drink.Model):
             return drink.default_view(self, html='\n'.join(form))
 
     def _upload(self, obj):
-        return
         self.editable_fields['content'].set(self, 'content', obj)
 
     def upload(self):
