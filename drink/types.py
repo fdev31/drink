@@ -134,12 +134,16 @@ def str2dt(text):
         return datetime.datetime(*strptime(text, DATE_FMT)[:6])
     except AttributeError:
         return text
+    except ValueError:
+        return datetime.datetime.now()
 
 def str2d(text):
     try:
         return datetime.date(*strptime(text, DATE_FMT)[:3])
     except AttributeError:
         return text
+    except ValueError:
+        return datetime.date.today()
 
 class Date(Text):
 
