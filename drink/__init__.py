@@ -748,6 +748,7 @@ def make_app(full=False):
         except ImportError:
             async = False
         else:
+            log.warning('Using gevent for asynchronous processing')
             async = True
 
     config.async = async
