@@ -4,11 +4,13 @@ Drink!
 
 """
 __all__ = ['get_object',
-'classes',
-'add_upload_handler',
-'request', 'response',
+ 'classes',
+ 'add_upload_handler',
+ 'request', 'response',
  'Page', 'ListPage'
-'make_app', 'init']
+ 'omni', 'bytes2human',
+ 'db', 'unauthorized',
+ 'make_app', 'init']
 # imports + basic configuration
 
 import os
@@ -28,7 +30,9 @@ log = logging.getLogger('core')
 
 from drink.config import config, BASE_DIR
 import bottle
-#: some globals
+
+#: All kind of drink objects as a ``{"name": Page_class}`` mapping.
+
 classes = {}
 if config.get('server', 'templates'):
     bottle.TEMPLATE_PATH.append(config.get('server', 'templates').strip())
@@ -79,10 +83,18 @@ except IOError:
 from bottle import route, static_file, request, response, redirect as rdr, abort
 # templating
 from urllib import unquote
-# json
+
+#: A json serialization function
 dumps = bottle.JSONPlugin().json_dumps
 
 def bytes2human(num):
+    ''' Converts an integer or float value to human-readable string
+
+    :arg num: Number of bytes
+    :type num: `int` or `float`
+    :returns: a short display string containing the value + the "best fitting" unit
+    :rtype: `unicode`
+    '''
     for u in ('k', 'M', 'G'):
         num /= 1000.0
         if num < 951:
@@ -90,6 +102,13 @@ def bytes2human(num):
     return u'%.1f %s'%(num, u)
 
 def omni(txt):
+    ''' Converts any text form to unicode text
+
+    :arg txt: the "unknown state" text
+    :type txt: `unicode` or `str`
+    :returns: an "http" unquoted unicode string
+    :rtype: `unicode`
+    '''
     if isinstance(txt, unicode):
         return txt
     else:
@@ -187,6 +206,8 @@ except ImportError:
     PERSISTENT_STORAGE = False
     from .dumbdb import Database, DataBlob, Model, transaction
 
+#: The database object, prefer using :func:`drink.get_object` instead
+
 db = Database(bottle.app(), DB_CONFIG)
 
 # Load Basic objects
@@ -213,7 +234,13 @@ classes.update(obj_classes)
 del init_objects, obj_classes
 
 def unauthorized(message='Action NOT allowed', code=401):
-    # TODO: handler srcuri + redirect
+    ''' Returns proper value to indicate the user has no access to this ressource
+
+    :arg message: Message to show to the user
+    :type message: `unicode` or `str`
+    :arg code: HTTP error code, defaults to ``401``
+    :type code: int
+    '''
     if request.identity:
         return {'error': True, 'message': message, 'code': code}
     else:
@@ -259,6 +286,7 @@ bottle.server_names['drink'] = DrinkServer
 # Real code starts here
 
 class Authenticator(object):
+    """ Authentication class, handles user's identity """
 
     __slots__ = ['user', 'success', 'groups', 'admin', 'id']
 
@@ -266,16 +294,20 @@ class Authenticator(object):
         login = request.get_cookie('login', 'drink')
         # TODO: handle basic http auth digest
         try:
+            #: current user object
             self.user = db.db['users'][login]
         except KeyError:
+            #: is the user authenticated ?
             self.success = False
         else:
             password = request.get_cookie('password', 'drink')
             self.success = self.user.password == password
 
         if self.success:
+            #: set of current user's groups
             self.groups = self.user.groups.copy()
             self.groups.add('users')
+            #: is the user an admin ?
             self.admin = 'admin' in self.groups or self.user.id == 'admin'
         else:
             self.user = db.db['users']['anonymous']
@@ -284,15 +316,23 @@ class Authenticator(object):
 
         self.groups.add('anonymous')
 
+        #: `id` of the user (same as :obj:`.user.id`)
         self.id = self.user.id
 
     def access(self, obj):
-        """
-        owner
-        write
-        add(& delete if owner)
-        read
-        traversal
+        """ Returns a string describing possible access to `obj`
+
+        :arg obj: the object you want to inspect access
+        :type obj: any Drink-stored object
+        :returns: a string componed of single-letter symbols
+        :rtype: str
+
+        String is a combination of:
+            :o: owner
+            :w: write
+            :r: read
+            :a: add / append
+            :t: traverse (access sub-content but don't imply read access)
         """
 
         groups = self.groups
