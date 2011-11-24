@@ -395,7 +395,6 @@ body {
 	background-color: #ddd;
 	color: $main_color;
 	@include min-width(500px);
-   @include border-bottom-radius(20px);
    @include light_shadowed;
 }
 ul {
@@ -480,9 +479,9 @@ pre {
         @include inner_shadowed;
     }
     padding: 1em;
-    margin-top: 1ex;
+    margin-top: 0;
+    margin-bottom: 0;
     @include light_shadowed;
-    @include border-radius($radius);
     background-color: $background;
 }
 td.linenos {
