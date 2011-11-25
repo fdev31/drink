@@ -153,6 +153,32 @@ class Page(drink.Model):
             drink.types.GroupCheckBoxes("Users allowed to edit the document", group="starts_hidden x_permissions"),
     }
 
+    def gallery(self):
+        def _g():
+            for i in self.itervalues():
+                if getattr(i, 'mimetype', '').startswith('image'):
+                    try:
+                        yield '<a href="%sraw"><img title="%s" alt="%s" src="%sraw" /></a>'%(i.path, i.title, i.description, i.path)
+                    except Exception, e:
+                        log.error('Image error: %r', e)
+
+        html = '''<div id="galleria" style="height: 600px">
+        %s
+        </div>
+
+        <script>
+        // Load the classic theme
+        Galleria.loadTheme('/static/gallery/classic_theme/galleria.classic.min.js');
+
+        // Initialize Galleria
+        $('#galleria').galleria();
+
+        </script>
+
+        '''%'\n'.join(_g())
+
+        return default_view(self, html=html)
+
     def serialize(self, recurse=True):
         d = {'drink__class': self.__class__.__name__}
         for field in self.owner_fields.keys() + self.admin_fields.keys() + self.editable_fields.keys():
@@ -184,6 +210,7 @@ class Page(drink.Model):
         dict(title="List content", action="list", icon="open", perm='r'),
         dict(title="Add object", condition="page_struct.classes.length!=0", style="add_form", action="ui.main_list.new_entry_dialog()", key='INS', icon="new", perm='a'),
         dict(title="Move", style="move_form", action="ui.move_current_page()", icon="move", perm='o'),
+        dict(title="Image gallery", style="move_form", action="gallery", icon="view", perm='r'),
         #dict(title="Remove object", onclick="ui.main_list.remove_entry()", icon="delete", perm='w'),
     ]
 
@@ -698,9 +725,13 @@ class WebFile(Page):
     def raw(self):
         if 'r' not in request.identity.access(self):
             return drink.unauthorized()
-        if self.content:
-            root, fname = os.path.split(self.content.filename)
-            return drink.static_file(fname, root, mimetype=self.mimetype, download=self.content_name)
+        try:
+            if self.content:
+                root, fname = os.path.split(self.content.filename)
+                return drink.static_file(fname, root, mimetype=self.mimetype, download=self.content_name)
+        except Exception, e:
+            log.error('Error while handling %r', self.path)
+
         #Alternatively: drink.response.headers['Content-Type'] = '...'
         # + read
 
