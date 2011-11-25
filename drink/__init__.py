@@ -573,15 +573,20 @@ search = Finder
 SOCK_DIR="/tmp"
 cat << EOF
 Example of nginx configation:
-upsstream drink {
+upstream drink {
     ip_hash;
     server unix:${SOCK_DIR}/uwsgi.sock;
 }
 location / {
-    uwsgi_pass bottle;
+    uwsgi_pass drink;
     include uwsgi_params;
 }
 EOF
+
+if [ ! -z "$VIRTUAL_ENV" ] ; then
+    export PYTHONHOME=$VIRTUAL_ENV
+fi
+
 export PYTHONPATH="${PWD}:%(proj)s:${PYTHONPATH}"
 
 cd "%(proj)s"
