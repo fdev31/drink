@@ -84,7 +84,7 @@ class PyFile(object):
             return 0
 
     def keys(self):
-        if self.o.fd.isfile(self.realpath):
+        if not self.o.fd or self.o.fd.isfile(self.realpath):
             return []
         else:
             return self.o.fd.listdir(self.realpath)
