@@ -67,6 +67,14 @@ div.blog_entry {
     margin: 2em 0;
     background: rgba(255, 255, 255, 0.5);
     @include shadowed;
+    > p {
+        font-family: serif;
+        font-size: 140%;
+        font-style: italic;
+        &:first-letter {
+            font-size: 250%;
+        }
+    }
 }
 @mixin inner_shadowed {
     @include single-box-shadow($shadow_color, $shadow_right, $shadow_down, $shadow_weight, 0, true);
