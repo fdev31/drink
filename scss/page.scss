@@ -127,9 +127,6 @@ li.entry {
 button {
     @include light_shadowed;
 }
-#header_bar {
-    padding: 0 0 0 1em;
-}
 span.page_nr_cur {
     padding: 0.1ex 0.5ex 0.1ex 0.5ex;
     background: $background;
@@ -151,9 +148,9 @@ span.page_nr {
     background: $contour;
     padding: 1em;
     font-size: 65%;
-    width: 70%;
+    width: 98%;
     margin-bottom: 1ex;
-    margin-left: 2em;
+//     margin-left: 2em;
     @include light_shadowed;
 }
 ul.results {
@@ -168,8 +165,16 @@ b.match {
     padding-left: 2px;
     padding-right: 2px;
 }
+#commands {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    height: 32px;
+    #user_actions {
+        float: right;
+    }
+}
 div.togglable {
-    height: 35px;
     @include light_shadowed;
     padding: 0 1ex 0 1ex;
     @include background-image(linear-gradient(#fff  5%, #ddd 30%, #eee 90%, $background 100%));
@@ -374,12 +379,6 @@ li.markItUpButton > a {
         }
     }
 }
-#user_actions {
-    float: right;
-}
-#page_actions {
-    margin-top: -32px;
-}
 table.codehilitetable {
     margin: 1em;
 }
@@ -394,7 +393,7 @@ body {
 	margin: 0 0 2em 0;
 	background-color: #ddd;
 	color: $main_color;
-	@include min-width(500px);
+	@include min-width(300px);
    @include light_shadowed;
 }
 ul {
