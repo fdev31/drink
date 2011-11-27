@@ -69,7 +69,7 @@
 	================================================== -->
     {% if not embed %}
         {% if not authenticated and req.path != '/login' %}
-        <a id="login_link" class="minitext" href="/login?from={{req.path}}">[authenticate]</a>
+        <a id="login_link" class="minitext" href="/login?from={{req.path}}">authenticate</a>
         {% endif %}
         {% if not no_admin and authenticated and obj.id != '.' %}
         <div id="header_bar" class="container"><a onclick="$('#commands').slideToggle('slow');">{{authenticated.id}}</a><a onclick="$('#header_bar').fadeOut('slow')">[x]</a>
