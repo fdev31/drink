@@ -41,26 +41,32 @@ html .fc,
 	}
 
 .fc-header-left {
-	width: 25%;
+	width: 50%;
+	float: left;
 	text-align: left;
 	}
 	
 .fc-header-center {
 	text-align: center;
+	width: 100%;
+	float: left;
 	}
 	
 .fc-header-right {
-	width: 25%;
+	width: 50%;
+	float: right;
 	text-align: right;
 	}
 	
 .fc-header-title {
 	display: inline-block;
+	
 	vertical-align: top;
 	}
 	
 .fc-header-title h2 {
 	margin-top: 0;
+	font-size: 240%;
 	white-space: nowrap;
 	}
 	
@@ -485,7 +491,7 @@ table.fc-border-separate {
 	}
 	
 .fc-agenda .fc-agenda-axis {
-	width: 50px;
+	width: 10px;
 	padding: 0 4px;
 	vertical-align: middle;
 	text-align: right;
