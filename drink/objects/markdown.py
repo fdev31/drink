@@ -153,7 +153,10 @@ add_hook_add_item(reload_page);
         labels = self.keys()
         if label in cache:
             real_id = cache[label]
-            labels.remove(real_id)
+            try:
+                labels.remove(real_id)
+            except ValueError:
+                cache.pop(label)
             labels.insert(0, real_id)
 
         for lbl in labels:
