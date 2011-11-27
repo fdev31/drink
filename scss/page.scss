@@ -88,6 +88,7 @@ iframe {
 }
 div.ui-dialog {
     @include shadowed;
+    @include border-radius(2px);
 }
 .highlighted {
     border-left: solid 5px $hi2_color;
@@ -127,8 +128,9 @@ li.entry {
 button {
     @include light_shadowed;
 }
-#header_bar {
-    padding: 0 0 0 1em;
+.button {
+    vertical-align: 105%;
+    align: 105%;
 }
 span.page_nr_cur {
     padding: 0.1ex 0.5ex 0.1ex 0.5ex;
@@ -146,14 +148,15 @@ span.page_nr {
     position: absolute;
     top: 0;
     right: 0;
+    z-index: 2;
 }
 .minipage {
     background: $contour;
     padding: 1em;
     font-size: 65%;
-    width: 70%;
+    width: 98%;
     margin-bottom: 1ex;
-    margin-left: 2em;
+//     margin-left: 2em;
     @include light_shadowed;
 }
 ul.results {
@@ -168,8 +171,19 @@ b.match {
     padding-left: 2px;
     padding-right: 2px;
 }
+#commands {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    height: 36px;
+    #user_actions {
+        float: right;
+        > form {
+            margin-bottom: 0;
+        }
+    }
+}
 div.togglable {
-    height: 35px;
     @include light_shadowed;
     padding: 0 1ex 0 1ex;
     @include background-image(linear-gradient(#fff  5%, #ddd 30%, #eee 90%, $background 100%));
@@ -226,7 +240,6 @@ div.codehilite {
     @include inner_shadowed;
     > pre {
         background: none;
-        width: 98%;
     }
 }
 #login_form {
@@ -282,6 +295,7 @@ ul.tabs-content {
 .sortable , ul > li.option {
     list-style-type: none;
     margin-left: 1em;
+    list-style-position: inside;
 }
 .x_permissiona_grp {
     margin-top: 2ex;
@@ -318,7 +332,7 @@ input.submit, .button, span.page_nr {
     cursor: pointer;
     top: 0.5ex;
     bottom: 0.5ex;
-    font-size: 80%;
+    
     @include background-image(linear-gradient(#fff  10%, #eda 30%, $background 100%));
     &:hover {
         top: .7ex;
@@ -360,25 +374,22 @@ li.markItUpButton > a {
     margin-right: 1ex;
     margin-bottom: -8px;
 }
-.toc {
+div.toc {
     border-left: solid 7px #567;
     width: 80%;
     margin: 1em 15% 1em 5%;
     padding: 1ex;
     background: rgba(255, 255, 255, 0.3);
     @include light_shadowed;
+    > ul {
+        padding: 0;
+    }
     a {
         color: #022;
         &:hover {
             font-weight: bold;
         }
     }
-}
-#user_actions {
-    float: right;
-}
-#page_actions {
-    margin-top: -32px;
 }
 table.codehilitetable {
     margin: 1em;
@@ -394,8 +405,13 @@ body {
 	margin: 0 0 2em 0;
 	background-color: #ddd;
 	color: $main_color;
-	@include min-width(500px);
+	@include min-width(300px);
    @include light_shadowed;
+   font-family: "sans-serif";
+    font-size: 80%;
+}
+#header_bar {
+    font-weight: bold;
 }
 ul {
     margin-left: 1em;
@@ -403,14 +419,9 @@ ul {
 li.selected:before {
     content: url(/static/checked.png) " ";
 }
-
 ul > li {
-    font-size: 120%;
     list-style-type: square;
     list-style-position: inside;
-}
-ul > li > * {
-    font-size: 82%;
 }
 a {
    text-decoration: none;
@@ -513,6 +524,8 @@ blockquote {
     padding: 1ex;
     @include light_shadowed;
     @include border-radius($radius);
+    margin: .8ex;
+    padding: .2ex;
 
 }
 #calendar {
@@ -521,23 +534,30 @@ blockquote {
 /*
 fileuploader
 */
-.qq-uploader { position:relative; width: 100%;}
+.qq-uploader { position:relative; width: 90%; padding: 0 1ex; margin: 0 auto;}
 .qq-upload-button {
     display:block; /* or inline-block */
-    width: 105px;
+    width: 100%;
+    font-size: 20pt;
+    font-weight: bold;
+    font-family: "helvetica";
      padding: 7px 0;
      text-align:center;
     /*background:#880000;
     */
     border-bottom:2px solid #ddd;
-    color:#755;
+    color:#eee;
 }
-.qq-upload-button-hover {color:#000; border:2px solid #ffa; }
+.qq-upload-button-hover {color: $hi3_color; }
 .qq-upload-button-focus {outline:1px dotted black;}
 
 .qq-upload-drop-area {
     position:absolute; top:0; left:0; width:100%; height:100%; min-height: 70px; z-index:2;
-    border: dashed 5px #ffa;
+    @include inner_shadowed;
+    
+    font-family: "helvetica";
+    background: $background;
+    color: black;
     text-align:center;
 }
 .qq-upload-drop-area span {
@@ -545,7 +565,9 @@ fileuploader
     margin-top:-0.5em;
     font-size:250%;
 }
-.qq-upload-drop-area-active {background:#FF7171;}
+.qq-upload-drop-area-active {
+    background: $hi_color;
+    }
 
 .qq-upload-list {margin:15px 35px; padding:0; list-style:disc;}
 .qq-upload-list li { margin:0; padding:0; line-height:15px; font-size:12px;}

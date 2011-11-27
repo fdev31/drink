@@ -38,7 +38,7 @@
     <script type="text/javascript" src="/static/js/jquery.min.js"></script>
     <script type="text/javascript" src="/static/js/jquery-ui-1.8.custom.min.js"></script>
     <script type="text/javascript" src="/static/js/jquery.validate.min.js"></script>
-    <script type="text/javascript" srv="/static/gallery/galleria.min.js"></script>
+    <script type="text/javascript" src="/static/gallery/galleria.min.js"></script>
     <script type="text/javascript" src="/static/js/jquery.dataSelector.js"></script>
     <script type="text/javascript" src="/static/js/fileuploader.js"></script>
 	<script type="text/javascript" src="/static/js/tabs.js"></script>
@@ -69,14 +69,13 @@
 	================================================== -->
     {% if not embed %}
         {% if not authenticated and req.path != '/login' %}
-        <a id="login_link" class="minitext" href="/login?from={{req.path}}">[authenticate]</a>
+        <a id="login_link" class="minitext" href="/login?from={{req.path}}">authenticate</a>
         {% endif %}
         {% if not no_admin and authenticated and obj.id != '.' %}
-        <span id="header_bar"><a onclick="$('#commands .togglable').slideToggle('slow');">{{authenticated.id}}</a><a onclick="$('#header_bar').fadeOut('slow')">[x]</a>
-        <div class="sixteen toggler" id="commands">
-            <div class="togglable" >
-            <span id="page_actions" ></span>
-            <span id="user_actions" >
+        <div id="header_bar" class="container"><a onclick="$('#commands').slideToggle('slow');">{{authenticated.id}}</a><a onclick="$('#header_bar').fadeOut('slow')">[x]</a>
+        <div class="togglable" id="commands">
+            <div class="column alpha" id="page_actions" ></div>
+            <div class="column omega" id="user_actions" >
                 <form class="autovalidate" name="search_form" method="post" action="/search/query">
                     <a title="Account settings" href="/users/{{authenticated.id|e}}/edit"><img class="icon" src="/static/actions/personal.png" alt="your account icon" /></a>
                     <a title="Search" href="/search/"><img  alt="find icon" class="icon" src="/static/actions/find.png" /></a>
@@ -85,10 +84,9 @@
                     <a title="log out" href="/logout"><img  alt="exit icon" class="icon" src="/static/actions/exit.png" /></a>
                 </form>
                 <!-- <a title="Search" href="/search/"><img  alt="find icon" class="icon" src="/static/actions/find.png" /></a> -->
-            </span> <!-- /user actions -->
-            </div> <!-- end of toggleable -->
-        </div>
-    </span> <!-- header bar -->
+            </div> <!-- /user actions -->
+        </div> <!-- end of toggleable -->
+    </div> <!-- header bar -->
         {% endif %}
     {% endif %}
 

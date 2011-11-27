@@ -506,6 +506,9 @@ if DEBUG environment variable is set, it will start in debug mode.
         if os.path.exists(fold):
             shutil.rmtree(fold)
 
+        # fresh copy
+        os.mkdir(fold)
+
         fold = os.path.abspath(fold)
 
         for project_fold, subs in (
@@ -515,7 +518,10 @@ if DEBUG environment variable is set, it will start in debug mode.
             for src in subs or os.listdir(project_fold):
                 f = os.path.join(project_fold, src)
                 if os.path.isdir(f):
-                    shutil.copytree(f, os.path.join(fold, src))
+                    if fold.endswith('_'):
+                        os.symlink(f, os.path.join(fold, src))
+                    else:
+                        shutil.copytree(f, os.path.join(fold, src))
 
         cust = inp('Additional python package with drink objects\n(can contain dots)')
         host = inp('Ip to use (just ENTER to allow all)') or '0.0.0.0'

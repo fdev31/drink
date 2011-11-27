@@ -51,7 +51,7 @@ class MarkdownPage(drink.ListPage):
 
     mime = u"markdown"
 
-    description = u"A markdown rendered page"
+    default_action = "view"
 
     creation_date = ''
 
@@ -65,6 +65,7 @@ class MarkdownPage(drink.ListPage):
 
     editable_fields = drink.ListPage.editable_fields.copy()
 
+
     editable_fields.update({
         'sort_order': drink.types.Choice('Sort blog entries by', {
                 'default listing order': '',
@@ -75,8 +76,10 @@ class MarkdownPage(drink.ListPage):
         'content': MarkdownEditor("Content"),
         'subpages_blog': drink.types.BoolOption("Include children web pages like a blog"),
         'markup_name': drink.types.Text('[[WikiLink]] name'),
-        'mime': drink.types.Text(),
+        'mime': drink.types.Mime(),
     })
+
+    editable_fields.pop('description')
 
     js = drink.ListPage.js + ['/static/markitup/jquery.markitup.js',
         '/static/markitup/sets/markdown/set.js',
@@ -118,6 +121,10 @@ add_hook_add_item(reload_page);
         drink.ListPage.__init__(self, name, rootpath)
         self.markup_name = name
         self.date = datetime.date.today()
+
+    @property
+    def description(self):
+        return (l for l in self.content.split('\n') if l.strip()).next()
 
     @property
     def actions(self):
@@ -192,7 +199,7 @@ add_hook_add_item(reload_page);
 
     @property
     def indexable(self):
-        return u"%s %s"%(self.description, self.content)
+        return self.content
 
     def _add(self, *args, **kw):
         new_obj = drink.ListPage._add(self, *args, **kw)
@@ -209,11 +216,10 @@ add_hook_add_item(reload_page);
         if not self._v_view_cooked:
             if not hasattr(self, '_v_wikifier_cache'):
                 self._v_wikifier_cache = Markdown(
-                extensions = ['tables', 'wikilinks', 'fenced_code',
-                'toc', 'def_list', 'codehilite(force_linenos=True)'],
+                extensions = ['tables', 'codehilite(noclasses=yes)', 'wikilinks',
+                'toc', 'def_list'],
+                #                , 'fenced_code'],
                 extension_configs = {
-                    "codehilite":
-                         ("force_linenos", True),
                     "wikilinks":
                         [("base_url", self.path), ('build_url', self._wikify)],
                     }
