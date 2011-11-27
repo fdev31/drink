@@ -119,40 +119,28 @@ definition of life
 
 **litteral blocks**
 
-You can use this syntax:
+Just prefix your text block with at least 4 spaces:
 
-    ~~~~~
-    THIS SHOULD BE fixed case text
-    ~~~~~
 
-    ~~~
-    iiiiiiiiOOOOOOOOiiiiiiOOOOO
-    ~~~
+    Some title of mine
+    ==================
+   
+    Blah blah blah:
+
+        THIS SHOULD BE fixed case text
+    
 
 
 To get:
 
-~~~~~
-THIS SHOULD BE fixed case text
-~~~~~
+Some title of mine
+==================
 
-~~~
-iiiiiiiiOOOOOOOOiiiiiiOOOOO
-~~~
+Blah blah blah:
 
-Or, alternatively, you can enable highlight to standard code block mode (just indent the code):
-
-~~~
-    #!python
-    def drink_is_fun():
-        print "Oh yeah!"
-~~~
-
-Will produce
-
-    #!python
-    def drink_is_fun():
-        print "Oh yeah!"
+    #!txt
+    THIS SHOULD BE fixed case text
+    
 
 **TOC**
 
@@ -199,10 +187,13 @@ This is a world containing letters from **wrta**
 
 **w**
 :  write
+
 **r**
 :  read
+
 **t**
 :  traverse
+
 **a**
 :  add / append
 
