@@ -216,7 +216,7 @@ add_hook_add_item(reload_page);
         if not self._v_view_cooked:
             if not hasattr(self, '_v_wikifier_cache'):
                 self._v_wikifier_cache = Markdown(
-                extensions = ['tables', 'codehilite(noclasses=yes)', 'wikilinks',
+                extensions = ['tables', 'codehilite', 'wikilinks',
                 'toc', 'def_list'],
                 #                , 'fenced_code'],
                 extension_configs = {
