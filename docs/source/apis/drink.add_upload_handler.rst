@@ -1,4 +1,6 @@
 drink.add_upload_handler
 ========================
 
-.. autofunction:: drink.add_upload_handler
+.. currentmodule:: drink
+
+.. autofunction:: add_upload_handler

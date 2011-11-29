@@ -5,21 +5,22 @@ drink.Page
 
 .. autoclass:: Page
 
+   
    .. automethod:: __init__
 
-
+   
    .. rubric:: Methods
 
    .. autosummary::
-
+   
       ~Page.__init__
       ~Page.add
       ~Page.borrow
       ~Page.clear
       ~Page.copy
       ~Page.edit
-      ~Page._edit
       ~Page.fromkeys
+      ~Page.gallery
       ~Page.get
       ~Page.get_field
       ~Page.has_key
@@ -39,25 +40,35 @@ drink.Page
       ~Page.struct
       ~Page.update
       ~Page.upload
-      ~Page._upload
       ~Page.values
       ~Page.view
+   
+   
 
-
-
-
-
+   
+   
    .. rubric:: Attributes
 
    .. autosummary::
-
+   
       ~Page.actions
+      ~Page.admin_fields
+      ~Page.classes
+      ~Page.css
+      ~Page.default_action
+      ~Page.description
+      ~Page.editable_fields
+      ~Page.hidden_class
+      ~Page.html
       ~Page.indexable
+      ~Page.items_factory
+      ~Page.js
+      ~Page.mime
+      ~Page.min_rights
+      ~Page.owner_fields
       ~Page.path
       ~Page.quoted_id
       ~Page.quoted_path
-
-Overriding implementations
---------------------------
-
-.. automethod:: drink.Page._edit
+      ~Page.upload_map
+   
+   
