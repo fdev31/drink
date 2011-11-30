@@ -16,19 +16,17 @@ except ImportError:
     landslide = False
 
 DEFAULT_CONTENT = u"""
-<!- hehe, you can add html tags directly too: -->
+# Untitled page
 
-Main title of the document
-==========================
+<img style="float: left; margin: 1ex" src="/static/mime/note.png" />
 
-Getting started
----------------
+You can add your content here... [edit me!](edit)
 
-You can add your content here... [Edit me](edit)
 
-Get a quick overview of the syntax [here](http://daringfireball.net/projects/markdown/basics)
+---
 
-or something more complete [here](http://daringfireball.net/projects/markdown/syntax).
+Markdown syntax
+: [basic](http://daringfireball.net/projects/markdown/basics) or [full](http://daringfireball.net/projects/markdown/syntax)
 
 """
 
@@ -138,9 +136,7 @@ add_hook_add_item(reload_page);
             return self._v_actions
 
     def slide(self):
-        if self._v_slide_cooked:
-            return self._v_slide_cooked
-        else:
+        if not self._v_slide_cooked:
             workdir = tempfile.mkdtemp(suffix=".drink-mdown")
             in_f = os.path.join(workdir, 'in.md')
             out_f = os.path.join(workdir, 'out.html')
@@ -153,7 +149,7 @@ add_hook_add_item(reload_page);
                 log.error("Slide Error: %r", e)
             finally:
                 shutil.rmtree(workdir)
-            return self._v_slide_cooked
+        return self._v_slide_cooked
 
     def _wikify(self, label, base, end):
         cache = getattr(self, '_wikilinks', {})
