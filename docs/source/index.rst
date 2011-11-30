@@ -1,7 +1,3 @@
-.. Drink! documentation master file, created by
-   sphinx-quickstart on Sat Apr  9 21:39:32 2011.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
 
 Welcome to Drink!'s documentation
 =================================
@@ -25,19 +21,12 @@ Technical description
 On top of that, you have simple generic templates you can override if you prefer (instead of writing python).
 Then, you profite from an important layer of javascript, using some of the client power to reduce bandwith usage. Json and plain-text are used for communication.
 
-Site index
-**********
-
 .. toctree::
    :maxdepth: 2
 
    quickstart
-
-.. toctree::
-   :maxdepth: 2
-
    developpers
-   api
+
 
 Contact
 *******

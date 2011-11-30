@@ -416,7 +416,6 @@ body {
 	@include min-width(300px);
    @include light_shadowed;
    font-family: "sans-serif";
-    font-size: 80%;
 }
 #header_bar {
     font-weight: bold;
@@ -498,7 +497,7 @@ pre {
         @include inner_shadowed;
     }
     padding: 1em;
-    margin-top: 0;
+    margin-top: .5ex;
     margin-bottom: 0;
     @include light_shadowed;
     background-color: $background;

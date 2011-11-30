@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from drink.config import config
 import logging
 import drink
+import sys
 from drink import request
 from urllib import unquote
 log = logging.getLogger('objects')
@@ -72,6 +73,7 @@ def init():
     Objects to load are read at module loading time from the [objects] section
     """
     altern_source = config.get('server', 'objects_source')
+    sys.path.insert(0, drink.BASE_DIR)
 
     log.debug('Trying to load: %s from %r'%(', '.join(objects_to_load), altern_source))
     for obj in objects_to_load:

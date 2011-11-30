@@ -1,6 +1,16 @@
 drink.dumbdb
 ============
 
-.. currentmodule:: drink
+.. automodule:: drink.dumbdb
 
-.. autodata:: dumbdb
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   

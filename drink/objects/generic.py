@@ -158,23 +158,22 @@ class Page(drink.Model):
             for i in self.itervalues():
                 if getattr(i, 'mimetype', '').startswith('image'):
                     try:
-                        yield '<a href="%sraw"><img title="%s" alt="%s" src="%sraw" /></a>'%(i.path, i.title, i.description, i.path)
+                        yield '<li><a href="%s"><img title="%s" src="%sraw" /></a><span>%s</span></li>'%(i.path, i.title,  i.path, i.description)
                     except Exception, e:
                         log.error('Image error: %r', e)
 
-        html = '''<div id="galleria" style="height: 600px">
+        html = '''<div><ul id="pikame">
         %s
-        </div>
+        </ul>
 
         <script>
         // Load the classic theme
-        Galleria.loadTheme('/static/gallery/classic_theme/galleria.classic.min.js');
 
         // Initialize Galleria
-        $('#galleria').galleria();
+        $('#pikame').PikaChoose({transition:[0], showTooltips: true});
 
         </script>
-
+        </div>
         '''%'\n'.join(_g())
 
         return default_view(self, html=html)

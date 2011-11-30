@@ -1,4 +1,6 @@
 drink.default_view
 ==================
 
-.. autofunction:: drink.default_view
+.. currentmodule:: drink
+
+.. autofunction:: default_view
