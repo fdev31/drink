@@ -1,6 +1,6 @@
 __all__ = ['_Editable',
     'Text', 'TextArea', 'GroupListArea', 'GroupCheckBoxes',
-    'CheckboxSet',
+    'CheckboxSet', 'BoolOption',
     'Mime', 'Choice', 'Link',
     'Date',
     'Id', 'Int', 'Password', 'File']

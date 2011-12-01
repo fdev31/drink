@@ -77,7 +77,7 @@ def get_struct_from_obj(obj, childs, full):
     return d
 
 
-def default_view(self, page='main.html', obj=None, css=None, js=None, html=None, embed=None, classes=None, **kw):
+def default_view(self, page='main.html', obj=None, css=None, js=None, html=None, embed=None, classes=None, no_auth=None, **kw):
     """ Renders the :class:`~drink.Page` as HTML using a template
 
     :arg self: the object to render, should contain the following properties:
@@ -108,7 +108,7 @@ def default_view(self, page='main.html', obj=None, css=None, js=None, html=None,
     :type classes: `dict` of `str` : :class:`drink.Page`
 
     """
-    if 'r' not in request.identity.access(self):
+    if not no_auth and 'r' not in request.identity.access(self):
         return drink.unauthorized()
 
     drink.response.content_type = "text/html; charset=utf-8"
@@ -121,6 +121,7 @@ def default_view(self, page='main.html', obj=None, css=None, js=None, html=None,
             html=html or self.html,
             embed=bool(drink.request.params.get('embedded', False)) if embed is None else embed,
             classes=self.classes if classes is None else classes,
+            isattr=lambda x, name: hasattr(x, name),
             isstring=lambda x: isinstance(x, basestring),
             req=request,
             authenticated=request.identity,
@@ -138,6 +139,7 @@ class Page(drink.Model):
         'description': drink.types.Text('Description'),
     }
 
+
     #: fields that are only editable by the owner (appear in edit panel)
 
     owner_fields = {
@@ -145,6 +147,8 @@ class Page(drink.Model):
             drink.types.Text("Default action (ex: view, list, edit, ...)", group="w"),
         'easy_permissions':
             drink.types.EasyPermissions("EZ !", group="x_permissiona"),
+        'allow_comments':
+            drink.types.Text("Allow rating and posting comments (either nothing for no comments or a permission string)", group="comments"),
         'read_groups':
             drink.types.GroupCheckBoxes("Users allowed to view the document", group="starts_hidden x_permissions"),
         'min_rights':
@@ -153,30 +157,6 @@ class Page(drink.Model):
             drink.types.GroupCheckBoxes("Users allowed to edit the document", group="starts_hidden x_permissions"),
     }
 
-    def gallery(self):
-        def _g():
-            for i in self.itervalues():
-                if getattr(i, 'mimetype', '').startswith('image'):
-                    try:
-                        yield '<li><a href="%s"><img title="%s" src="%sraw" /></a><span>%s</span></li>'%(i.path, i.title,  i.path, i.description)
-                    except Exception, e:
-                        log.error('Image error: %r', e)
-
-        html = '''<div><ul id="pikame">
-        %s
-        </ul>
-
-        <script>
-        // Load the classic theme
-
-        // Initialize Galleria
-        $('#pikame').PikaChoose({transition:[0], showTooltips: true});
-
-        </script>
-        </div>
-        '''%'\n'.join(_g())
-
-        return default_view(self, html=html)
 
     def serialize(self, recurse=True):
         d = {'drink__class': self.__class__.__name__}
@@ -216,6 +196,9 @@ class Page(drink.Model):
     #: fields that are only editable by the admin (appear in edit panel)
 
     admin_fields = {}
+
+    #: permissions to apply for comments (permissions required, nothing to disable comments & rating)
+    allow_comments = ''
 
     #: permissions given to any user (anonymous or not)
     min_rights = 't'
@@ -315,6 +298,45 @@ class Page(drink.Model):
         if o:
             o['classes'] = self.classes.keys()
         return o
+
+    _like = None
+    _unlike = None
+
+    def rate(self):
+        rate = 0
+        if request.params.get('like'):
+            rate += 1
+        if request.params.get('unlike'):
+            rate -= 1
+
+        if rate != 0:
+            if self._like is None:
+                self._like = set()
+            if self._unlike is None:
+                self._unlike = set()
+
+            if rate > 0:
+                self._like.add(request.identity.id)
+                self._unlike.discard(request.identity.id)
+            else:
+                self._unlike.add(request.identity.id)
+                self._like.discard(request.identity.id)
+            drink.transaction.commit()
+
+        plus = len(self._like) if self._like else 0
+        minus = len(self._unlike) if self._unlike else 0
+        return {'rating': plus - minus, 'redirect': self.path}
+
+    _comments = None
+
+    def comment(self):
+        txt = drink.omni(request.params.get('text', ''))
+        if txt:
+            if not self._comments:
+                self._comments = []
+            self._comments.append( {'from': request.identity.id, 'message': txt} )
+        drink.transaction.commit()
+        return {'comments': self._comments or [], 'redirect': self.path}
 
     @property
     def path(self):
@@ -587,6 +609,32 @@ class Page(drink.Model):
 
     def list(self):
         return drink.default_view(self, 'main.html', html=u'<h1>%s</h1>\n<ul id="main_list" class="sortable" />'%self.title)
+
+    def gallery(self):
+        def _g():
+            for i in self.itervalues():
+                if getattr(i, 'mimetype', '').startswith('image'):
+                    try:
+                        yield '<li><a href="%s"><img title="%s" src="%sraw" /></a><span>%s</span></li>'%(i.path, i.title,  i.path, i.description)
+                    except Exception, e:
+                        log.error('Image error: %r', e)
+
+        html = '''<div><ul id="pikame">
+        %s
+        </ul>
+
+        <script>
+        // Load the classic theme
+
+        // Initialize Galleria
+        $('#pikame').PikaChoose({transition:[0], showTooltips: true});
+
+        </script>
+        </div>
+        '''%'\n'.join(_g())
+
+        return default_view(self, html=html, js=self.js+["/static/js/jquery.pikachoose.js"], css=self.css+["/static/css/pikachoose.css"])
+
 
 class ListPage(Page):
 

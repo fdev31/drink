@@ -80,9 +80,6 @@ div.blog_entry {
     @include single-box-shadow($shadow_color, $shadow_right, $shadow_down, $shadow_weight, 0, true);
     @include border-radius($radius);
 }
-.in_shadow {
-    @include inner_shadowed;
-}
 @mixin entryfont {
 	outline:none;
     font-size: 16pt;
@@ -101,7 +98,15 @@ div.ui-dialog {
 .highlighted {
     border-left: solid 5px $hi2_color;
 }
-
+.in_shadow {
+    @include inner_shadowed;
+}
+div#comments {
+    padding: 1ex;
+}
+div#comment {
+    margin: .3ex;
+}
 li.entry {
     margin-bottom: 0.5ex;
     list-style-type: none;

@@ -68,6 +68,7 @@ class MarkdownPage(drink.ListPage):
         'sort_order': drink.types.Choice('Sort blog entries by', {
                 'default listing order': '',
                 'creation date': 'date',
+                'rating': 'rating',
                 'title\'s alphabetical order': 'title',
             }),
         'creation_date': drink.types.Date("Creation date"),
@@ -184,10 +185,14 @@ add_hook_add_item(reload_page);
             sort_key = lambda x: x.creation_date
         elif self.sort_order == 'title':
             sort_key = lambda x: x.title
+        elif self.sort_order == 'rating':
+            sort_key = lambda x: x.rate()['rating']
         else:
             sort_key = None
+
         if sort_key:
             items.sort(key=sort_key)
+
         htmls = [ u'<h1>%s</h1><div class="blog_entries">'%self.title ]
         htmls.extend(u'<div class="blog_entry">'+i.html+'</div>' for i in reversed(items))
         htmls.append(u'</div>')

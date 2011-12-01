@@ -80,7 +80,7 @@ def init():
         log.info("[Loading %s]", obj)
         try:
             exec('from %s import %s as _imported'%(altern_source, obj))
-        except Exception:
+        except ImportError:
             try:
                 exec('from . import %s as _imported'%obj)
             except Exception:

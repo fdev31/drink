@@ -24,7 +24,6 @@
 	<link rel="stylesheet" href="/static/css/base.css">
 	<link rel="stylesheet" href="/static/css/skeleton.css">
 	<link rel="stylesheet" href="/static/css/layout.css">
-	<link rel="stylesheet" href="/static/css/pikachoose.css">
     <link rel="stylesheet" type="text/css" href="/static/page.css" />
     <link rel="stylesheet" type="text/css" href="/static/css/pygments.css" />
     <link rel="stylesheet" type="text/css" href="/static/smoothness/jquery-ui.custom.css" />
@@ -39,7 +38,6 @@
     <script type="text/javascript" src="/static/js/jquery.min.js"></script>
     <script type="text/javascript" src="/static/js/jquery-ui-1.8.custom.min.js"></script>
     <script type="text/javascript" src="/static/js/jquery.validate.min.js"></script>
-    <script type="text/javascript" src="/static/js/jquery.pikachoose.js"></script>
     <script type="text/javascript" src="/static/js/jquery.dataSelector.js"></script>
     <script type="text/javascript" src="/static/js/fileuploader.js"></script>
 	<script type="text/javascript" src="/static/js/tabs.js"></script>
@@ -107,7 +105,35 @@
                 Please, add some body block or html content...
             {% endif %}
         {% endblock %}
+
+    {% if obj.allow_comments %}
+        <div id="comments">
+        <h6>Comments (current score: {{ obj.rate()['rating'] }})</h6>
+
+        {% if authenticated.id not in (obj._like or []) %}
+            <a href="?like=1" title="I like it!"><img src="/static/actions/plus.png" /></a>
+        {% else %}
+            <a href="?unlike=1" title="I don't like it!"><img src="/static/actions/minus.png" /></a>
+        {% endif %}
+
+        {% if obj._comments %} {% for comment in obj._comments %}
+        <div class="comment">
+        <strong>{{comment['from']}}</strong>:
+        {{comment['message'] | safe }}
+        </div>
+        {% endfor %} {% endif %}
+
+        {% if authenticated and obj.allow_comments in authenticated.access(obj) %}
+        <form id="comment_form" name="comment_form" method="post" action="comment" style="float: left">
+        <textarea rows="3" style="width: 80ex" name="text">Add your comment...</textarea>
+        <input class="submit" type="submit" value="Add my comment"/>
+        </form>
+        {% endif %}
+
+        </div>
+    {% endif %}
 	</div><!-- container -->
+
     {% if 'WebFile' in classes and not embed %}
     <div id="file-uploader" class="row">
         <noscript>

@@ -395,9 +395,7 @@ def log_in():
         </form>
 
         '''%request.params.get('from', '/')
-        return bottle.jinja2_template('main.html', html=html, obj=db.db, css=[], js=[],
-            isstring=lambda x: isinstance(x, basestring),
-            embed='', classes={}, req=request, authenticated=request.identity)
+        return default_view(db.db['pages'], page='main.html', html=html, classes={}, no_auth=True)
 
 
 @route("/logout", method=['GET', 'POST'])
@@ -422,7 +420,7 @@ def glob_index(objpath="/"):
     if t == dict:
         if not request.is_ajax:
             if 'redirect' in o:
-                return rdr(o['redirect'])
+                return rdr(omni(o['redirect']).encode('utf-8'))
             if 'error' in o:
                 return abort(o['code'], o['message'])
         response.content_type = "application/json"
