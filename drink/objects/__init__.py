@@ -75,16 +75,20 @@ def init():
     altern_source = config.get('server', 'objects_source')
     sys.path.insert(0, drink.BASE_DIR)
 
-    log.debug('Trying to load: %s from %r'%(', '.join(objects_to_load), altern_source))
+    log.debug('Trying to load: %s (custom dir: %s)'%(', '.join(objects_to_load), altern_source or 'not defined'))
     for obj in objects_to_load:
         log.info("[Loading %s]", obj)
-        try:
-            exec('from %s import %s as _imported'%(altern_source, obj))
-        except ImportError:
+        _imported = None
+        if altern_source:
+            try:
+                exec('from %s import %s as _imported'%(altern_source, obj))
+            except ImportError:
+                pass
+        if not _imported:
             try:
                 exec('from . import %s as _imported'%obj)
-            except Exception:
-                log.error("Unable to load %s, remove it from config file in [objects] section.", obj)
+            except ImportError:
+                log.error("Unable to find %s, remove it from config file in [objects] section\n. You may also fix server.objects_sources in project's drink.ini file.", obj)
                 continue
 
         for _child in dir(_imported):
