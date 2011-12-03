@@ -47,27 +47,128 @@ make_std_item = function(data) {
     }
     return $('<li class="entry"><img width="32px" src="'+mime+'" /><a class="item_name" href="'+data.path+data.id+'/" title="'+data.description+'">'+(data.title || data.id)+'</a></li>');
 }
+
+var Position = function(default_pos, list_getter, selection_class) {
+    this.position = default_pos;
+    this.lists = list_getter; /* name: children css_selector */
+    this.current_list = list_getter[0];
+    this.current_list_pos = 0;
+    this.selection_class = selection_class;
+    this.wrap = true;
+
+    this._select = function() {
+        l = this.current_list[1];
+        if ( typeof(l) == "string" ) {
+            l = $(l);
+        } else /* function */ {
+            l = l();
+        }
+        return l;
+    }
+    this.clear = function() {
+        $(l[this.position]).removeClass(this.selection_class);
+        this.current_list_pos = 0;
+        this.current_list = this.lists[0];
+        this.position = 0;
+        this.highlight( this._select()[0] );
+    }
+    this.selected_link = function() {
+        var m = this.selected_item();
+        if (m.attr('href')) {
+            m = m.attr('href');
+        } else {
+            m = m.find('a:first').attr('href');
+        }
+        return m;
+    }
+    this.selected_item = function() {
+        return $(this._select()[this.position]);
+    }
+    this.next = function() {
+        l = this._select();
+        if (this.position < l.length-1) {
+            $(l.get(this.position)).removeClass(this.selection_class)
+            this.position += 1;
+            this.highlight( l[this.position] );
+            this.select_next();
+        } else if (this.lists[this.lists.length-1][0] != this.current_list[0]) {
+            try {
+                $(l.get(this.position)).removeClass(this.selection_class)
+            } catch (typeError) {
+            }
+            this.current_list_pos += 1;
+            this.current_list = this.lists[this.current_list_pos];
+            this.highlight( this._select()[0] );
+            this.position = 0;
+        } else { /* end of the cycle */
+            this.clear();
+        }
+    }
+    this.prev = function() {
+        l = this._select();
+        if (this.position > 0) {
+            $(l.get(this.position)).removeClass(this.selection_class)
+            this.position -= 1;
+            this.select_prev();
+            this.highlight( l[this.position] );
+        } else if (this.lists[0][0] != this.current_list[0]) {
+            $(l.get(this.position)).removeClass(this.selection_class);
+            this.current_list_pos -= 1;
+            this.current_list = this.lists[this.current_list_pos];
+            this.highlight( this._select()[this.position] );
+            this.position = 0;
+        } else { /* end of the cycle */
+            $(l[this.position]).removeClass(this.selection_class);
+            this.current_list_pos = this.lists.length-1;
+            this.current_list = this.lists[this.current_list_pos];
+            this.position = 0;
+            this.highlight( this._select()[0] );
+        }
+
+    }
+    this.highlight = function(item) {
+        var item = $(item);
+        item.addClass(this.selection_class)
+        item.focus();
+        item.center();
+    };
+    this.select_prev = $.noop;
+    this.select_next = $.noop;
+    return this;
+}
 ui = new Object({
-        move_current_page: function() {
-            var win = $('<div id="move-confirm" title="Do you really want to move this item ?">Please, type destination path:<input id="move-destination" class="completable" complete_type="objpath"></input></div>');
-            dom_initialize(win);
-            win.dialog({
+        dialog: function(body, buttons, style) {
+            var d = $(body);
+            dom_initialize(d);
+            d.dialog({
                 modal: true,
-                closeOnEscape:true,
-                buttons: {
-                    Move: function() {
-                        $.post($('#move-confirm #move-destination').val()+'/borrow',
-                            {'item': base_path},
-                            function() {
-                                document.location.href = $('#move-confirm #move-destination').val();
-                        }).error(function(){
-                            $('<div title="Error occured">Sorry, something didn\'t work correctly</div>').dialog();
-                       });
-                    },
-                    Cancel: function() {
-                        $( this ).dialog( "close" );
-                    },
-            }});
+                closeOnEscape: true,
+                buttons: buttons,
+                width: '50%',
+            });
+            if (style == 'big') {
+                d.css('width', '100%');
+                d.css('padding', '0');
+                d.css('margin', 'auto');
+                d.css('height', '66%');
+            }
+            return d;
+        },
+        move_current_page: function() {
+            var win = ui.dialog('<div id="move-confirm" title="Do you really want to move this item ?">Please, type destination path:<input id="move-destination" class="completable" complete_type="objpath"></input></div>', {
+                Move: function() {
+                    $.post($('#move-confirm #move-destination').val()+'/borrow',
+                        {'item': base_path},
+                        function() {
+                            document.location.href = $('#move-confirm #move-destination').val();
+                    }).error(function(){
+                        ui.dialog('<div title="Error occured">Sorry, something didn\'t work correctly</div>');
+                   });
+                },
+                Cancel: function() {
+                    $( this ).dialog( "close" );
+                },
+        });
         },
         load_action_list: function(data) {
 
@@ -120,47 +221,44 @@ ui = new Object({
             }
         },
         reload: function() {
-            $.ajax({url: 'struct'}).success(ui.main_list.reload).error(function() {$('<div title="Error occured">Listing can\'t be loaded :(</div>').dialog({closeOnEscape:true})});
+            $.ajax({url: 'struct'}).success(ui.main_list.reload).error(function() {ui.dialog('<div title="Error occured">Listing can\'t be loaded :(</div>')});
         },
         // EDIT
         edit_entry: function(data) {
-           frame = $('<iframe title="Edit object" src="'+base_uri+'/'+data+'/edit?embedded=1">No iframe support :(</iframe>');
-            frame.dialog({modal:true, width:'90%', closeOnEscape:true});
-            frame.css('width', '100%');
-            frame.css('padding', '0');
-            frame.css('margin', 'auto');
-            frame.css('height', '66%');
+           ui.dialog('<iframe title="Edit object" src="'+base_uri+'/'+data+'/edit?embedded=1">No iframe support :(</iframe>', buttons=null, style='big');
+
         },
         // REMOVE
         remove_entry: function(item) {
-            $('<div id="remove-confirm" title="Do you really want to remove this item ?">Please, confirm removal.</div>').dialog({
-                modal: true,
-                closeOnEscape:true,
-                buttons: {
-                    Accept: function() {
-                        $( this ).dialog( "close" );
-                        $.ajax({
-                            url:'rm?name='+encodeURI(item),
-                        }).success(function() {
-                            var safe_name = item.replace( /"/g, '\\"');
+            ui.dialog('<div id="remove-confirm" title="Do you really want to remove this item ?">Please, confirm removal.</div>', {
+                Accept: function() {
+                    $( this ).dialog( "close" );
+                    $.ajax({
+                        url:'rm?name='+encodeURI(item),
+                    }).success(function() {
+                        var safe_name = item.replace( /"/g, '\\"');
 /*
-                            $('#edit_form select option[value="'+safe_name+'"]').remove();
-                            $('#rm_form select option[value="'+safe_name+'"]').remove();
-                            $('#rm_form select option[value="'+safe_name+'"]').remove();
-  */
-                            $('ul > li.entry:data(item='+item+')').slideUp('slow', function() {$(this).remove()});
-                            delete ui.child_items[item];
-                        }).error(function(){
-                            $('<div title="Error occured">Sorry, something didn\'t work correctly</div>').dialog();
-                           });
-                    },
-                    Cancel: function() {
-                        $( this ).dialog( "close" );
-                    }
+                        $('#edit_form select option[value="'+safe_name+'"]').remove();
+                        $('#rm_form select option[value="'+safe_name+'"]').remove();
+                        $('#rm_form select option[value="'+safe_name+'"]').remove();
+*/
+                        $('ul > li.entry:data(item='+item+')').slideUp('slow', function() {$(this).remove()});
+                        delete ui.child_items[item];
+                    }).error(function(){
+                        $('<div title="Error occured">Sorry, something didn\'t work correctly</div>').dialog();
+                       });
+                },
+                Cancel: function() {
+                    $( this ).dialog( "close" );
                 }
-            });
-        },
+        });
+    },
     current_index: -1,
+    current_focus: new Position(-1, [
+        ['items', 'ul > li.entry'],
+        ['actions',  '#commands a.action'],
+    ], 'highlighted'),
+
     child_items: [],
     }
 );
@@ -613,36 +711,16 @@ $(document).ready(function(){
     // init keys
     // Some shortcuts
     add_shortcut('DOWN', function() {
-        if (ui.current_index < $('ul > li.entry').length - 1) {
-            var n = $($('ul > li.entry')[++ui.current_index]);
-            n.addClass('highlighted');
-            n.focus();
-            n.trigger('click');
-            n.center();
-            if (ui.current_index > 0) {
-                $($('ul > li.entry')[ui.current_index-1]).removeClass('highlighted');
-            }
-        }
+        ui.current_focus.next();
     });
     add_shortcut('UP', function() {
-        if (ui.current_index > 0) {
-            var n = $($('ul > li.entry')[--ui.current_index]);
-            n.addClass('highlighted');
-            n.focus();
-            n.trigger('click');
-            n.center();
-            $($('ul > li.entry')[ui.current_index+1]).removeClass('highlighted');
-        }
+        ui.current_focus.prev();
     });
     add_shortcut('ENTER', function() {
-        if (ui.current_index > -1) {
-            window.location = $($('ul > li.entry > a')[ui.current_index]).attr('href');
-        }
+        window.location = ui.current_focus.selected_link();
     });
     add_shortcut('DEL', function() {
-        if (ui.current_index > -1) {
-            ui.remove_entry( $($('ul > .entry')[ui.current_index]).data('item') );
-        }
+        ui.remove_entry( ui.current_focus.selected_item().data('item') );
     });
     add_shortcut('BACK', function() {
         if (window.location.href != base_uri) {
@@ -659,8 +737,7 @@ $(document).ready(function(){
         window.location = base_uri+'edit';
     });
     add_shortcut('ESC', function() {
-        $($('ul > li.entry')[ui.current_index].children[0]).removeClass('highlighted');
-        ui.current_index = -1;
+        ui.current_focus.clear();
     });
     add_shortcut('L', function() {
         window.location = base_uri+'list';
