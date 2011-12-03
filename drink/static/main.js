@@ -78,13 +78,13 @@ var Position = function(default_pos, list_getter, selection_class) {
     this.selected_link = function() {
         var m = this.selected_item();
         if (m.attr('href')) {
-            return m;
+            return m.attr('href');
         } else if (m.attr('onclick')) {
-            return m;
+            return 'js:'+m.attr('onclick');
         } else if (m.find('a:first').attr('href')) {
-            return m.find('a:first');
+            return m.find('a:first').attr('href');
         } else if (m.find('.action:first').attr('onclick')) {
-            return m.find('.action:first');
+            return 'js:'+m.find('.action:first').attr('onclick');
         } else if (m.find('input:first')) {
             return m.find('input:first');
         } else if (m.find('select:first')) {
@@ -730,8 +730,17 @@ $(document).ready(function(){
     add_shortcut('ENTER', function() {
         var link = ui.current_focus.selected_link();
         console.log(link);
-        link.focus();
-        link.trigger('click');
+        if (typeof(link) == 'string') {
+            m = link.match(/^js: *(.*?) *$/);
+            if (m) {
+                eval(m[1]);
+            } else {
+                window.location = link;
+            }
+        } else {
+            link.focus();
+            link.trigger('click');
+        }
     });
     add_shortcut('DEL', function() {
         ui.remove_entry( ui.current_focus.selected_item().data('item') );
