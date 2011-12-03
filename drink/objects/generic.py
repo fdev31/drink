@@ -472,13 +472,13 @@ class Page(drink.Model):
                             form.append('</div>')
                         form.append('<div class="%s_grp">'%current_group)
                     val = getattr(self, field, '')
-                    form.append('<div class="input">%s</div>'%factory.html(field, val))
-                form.append('''</div>
+                    form.append('<li class="entry"><div class="input">%s</div></li>'%factory.html(field, val))
+                form.append('''</li></div></ul>
                 <div class="buttons">
                 <input class="submit" type="submit" value="Save changes please"/>
                 </div></form>''')
                 form.insert(0, '''<form
-                 class="auto_edit_form" id="auto_edit_form" action="edit" %s method="post">'''%(' '.join(form_opts)))
+                 class="auto_edit_form" id="auto_edit_form" action="edit" %s method="post"><ul class="editable_fields">'''%(' '.join(form_opts)))
             return drink.default_view(self, html='\n'.join(form))
 
     def _upload(self, obj):

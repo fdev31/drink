@@ -17,17 +17,20 @@ for (i=65; i<=90; i++) {
     Keys[String.fromCharCode(i)] = i;
 };
 
-page_struct = {
-    classes : [],
-    _perm : 'r',
-    description: '',
-    id: '?',
-    items: [],
-    mime: "none",
-    path:"/",
-    logged_in: false,
-    title:"unk",
-};
+var Page = function () {
+    this.classes = [];
+    this._perm = 'r';
+    this.description = '';
+    this.id = '?';
+    this.items = [];
+    this.mime = "none";
+    this.path = "/";
+    this.logged_in = false;
+    this.title = "unk";
+    return this;
+}
+
+page_struct = new Page()
 
 url_regex = /^(\/|http).+/;
 base_uri = document.location.href.replace(/[^/]*$/, '');
@@ -75,11 +78,20 @@ var Position = function(default_pos, list_getter, selection_class) {
     this.selected_link = function() {
         var m = this.selected_item();
         if (m.attr('href')) {
-            m = m.attr('href');
-        } else {
-            m = m.find('a:first').attr('href');
-        }
-        return m;
+            return m;
+        } else if (m.attr('onclick')) {
+            return m;
+        } else if (m.find('a:first').attr('href')) {
+            return m.find('a:first');
+        } else if (m.find('.action:first').attr('onclick')) {
+            return m.find('.action:first');
+        } else if (m.find('input:first')) {
+            return m.find('input:first');
+        } else if (m.find('select:first')) {
+            return m.find('select:first');
+        } else if (m.find('.input:first')) {
+            return m.find('.input:first');
+        };
     }
     this.selected_item = function() {
         return $(this._select()[this.position]);
@@ -124,7 +136,6 @@ var Position = function(default_pos, list_getter, selection_class) {
             this.position = 0;
             this.highlight( this._select()[0] );
         }
-
     }
     this.highlight = function(item) {
         var item = $(item);
@@ -153,22 +164,6 @@ ui = new Object({
                 d.css('height', '66%');
             }
             return d;
-        },
-        move_current_page: function() {
-            var win = ui.dialog('<div id="move-confirm" title="Do you really want to move this item ?">Please, type destination path:<input id="move-destination" class="completable" complete_type="objpath"></input></div>', {
-                Move: function() {
-                    $.post($('#move-confirm #move-destination').val()+'/borrow',
-                        {'item': base_path},
-                        function() {
-                            document.location.href = $('#move-confirm #move-destination').val();
-                    }).error(function(){
-                        ui.dialog('<div title="Error occured">Sorry, something didn\'t work correctly</div>');
-                   });
-                },
-                Cancel: function() {
-                    $( this ).dialog( "close" );
-                },
-        });
         },
         load_action_list: function(data) {
 
@@ -223,6 +218,23 @@ ui = new Object({
         reload: function() {
             $.ajax({url: 'struct'}).success(ui.main_list.reload).error(function() {ui.dialog('<div title="Error occured">Listing can\'t be loaded :(</div>')});
         },
+        // Move
+        move_current_page: function() {
+            var win = ui.dialog('<div id="move-confirm" title="Do you really want to move this item ?">Please, type destination path:<input id="move-destination" class="completable" complete_type="objpath"></input></div>', {
+                Move: function() {
+                    $.post($('#move-confirm #move-destination').val()+'/borrow',
+                        {'item': base_path},
+                        function() {
+                            document.location.href = $('#move-confirm #move-destination').val();
+                    }).error(function(){
+                        ui.dialog('<div title="Error occured">Sorry, something didn\'t work correctly</div>');
+                   });
+                },
+                Cancel: function() {
+                    $( this ).dialog( "close" );
+                },
+            });
+        },
         // EDIT
         edit_entry: function(data) {
            ui.dialog('<iframe title="Edit object" src="'+base_uri+'/'+data+'/edit?embedded=1">No iframe support :(</iframe>', buttons=null, style='big');
@@ -253,9 +265,8 @@ ui = new Object({
                 }
         });
     },
-    current_index: -1,
     current_focus: new Position(-1, [
-        ['items', 'ul > li.entry'],
+        ['items', 'ul li.entry'],
         ['actions',  '#commands a.action'],
     ], 'highlighted'),
 
@@ -717,7 +728,10 @@ $(document).ready(function(){
         ui.current_focus.prev();
     });
     add_shortcut('ENTER', function() {
-        window.location = ui.current_focus.selected_link();
+        var link = ui.current_focus.selected_link();
+        console.log(link);
+        link.focus();
+        link.trigger('click');
     });
     add_shortcut('DEL', function() {
         ui.remove_entry( ui.current_focus.selected_item().data('item') );
