@@ -538,19 +538,12 @@ function get_matching_elts(path_elt, callback) {
     $.get(url).success(function(data) { callback(data.items, cur_path) } );
 }
 
-/////// INIT/STARTUP STUFF
+MainList = function(id) {
+    this.id = id || "main_list";
+    var me = this;
 
-$(document).ready(function(){
-    // hides some things by default
-    $('.starts_hidden').slideUp(0);
-
-    // some globals
-    ui.main_list = $("#main_list"); // TODO: manage .sortable class
-
-    // add some features to jQuery
-
-   // handle sortables
-    ui.main_list.sortable({
+    this.list = $('#'+this.id);
+    this.list.sortable({
         cursor: 'move',
         distance: 5,
         accept: '.entry',
@@ -559,7 +552,7 @@ $(document).ready(function(){
         revert: true,
         stop: function(event, ui) {
             if ( event.ctrlKey ) {
-                var pat = $('#main_list li').map( function() { return $(this).data('item') } ).get().join('/');
+                var pat = $('#'+this.id+' li').map( function() { return $(this).data('item') } ).get().join('/');
                 $.post('move', {'set': pat});
                 return true;
             } else {
@@ -568,23 +561,23 @@ $(document).ready(function(){
         },
     });
 
+    if ($('#'+this.id).length == 0) {
+        if (debug) console.log('No list with name '+this.id);
+    }
 
-    // sortable
-    $.extend(ui.main_list, {
-        // ACTIONS Loading things
-
-        // ITEM LIST LOADING THINGS
-        reload: function(data, status, req) {
-            // TODO: return actions in struct
-            $.ajax({url: 'actions'}).success(ui.load_action_list).error(function() { $('<div title="Error occured">List of actions failed to load</div>').dialog({closeOnEscape:true});});
+    // ITEM LIST LOADING THINGS
+    this.reload = function(data, status, req) {
+            
+        // TODO: return actions in struct
+        $.ajax({url: 'actions'}).success(ui.load_action_list).error(function() { $('<div title="Error occured">List of actions failed to load</div>').dialog({closeOnEscape:true});});
 
             if(debug) console.log(data);
             if (!data._perm) return;
 
             $.extend(page_struct, data);
 
-            if ('' != ui.main_list.html()) {
-                ui.main_list.html('');
+            if ('' != me.list.html()) {
+                me.list.html('');
             }
 
             // init hooks
@@ -618,85 +611,94 @@ $(document).ready(function(){
                     //console.log('Uploader code not available');
                 }
             };
-        dom_initialize( ui.main_list );
-        }, // End of sortable startup code
+        dom_initialize( me.list );
+    };
+    // ADD an entry
+    this.new_entry_dialog = function() {
+         if ( page_struct.classes.length < 1 ) {
+            w = $('<div title="Ooops!">Nothing can be added here, sorry</div>').dialog({closeOnEscape:true});
+            setTimeout(function(){w.fadeOut(function(){w.dialog('close')})}, 2000);
+            return;
+         };
+        var template = '<div id="new_obj_form"  title="New item informations"><select class="obj_class" class="required" name="class"><option value="" label="Select one item type">Select one item type</option>';
+        var tpl_ftr = '</select><div class="obj_name"><label for="new_obj_name">Name</label><input id="new_obj_name" type="text" name="name" class="obj_name required identifier" minlength="2" /></div></div>';
+        for (t=0; t<page_struct.classes.length; t++) {
+            template += '<option value="{0}" label="{0}">{0}</option>'.replace(/\{0\}/g, page_struct.classes[t]);
+        }
 
+        var new_obj = $(template+tpl_ftr);
 
-        // ADD an entry
-        new_entry_dialog: function() {
-             if ( page_struct.classes.length < 1 ) {
-                w = $('<div title="Ooops!">Nothing can be added here, sorry</div>').dialog({closeOnEscape:true});
-                setTimeout(function(){w.fadeOut(function(){w.dialog('close')})}, 2000);
-                return;
-             };
-            var template = '<div id="new_obj_form"  title="New item informations"><select class="obj_class" class="required" name="class"><option value="" label="Select one item type">Select one item type</option>';
-            var tpl_ftr = '</select><div class="obj_name"><label for="new_obj_name">Name</label><input id="new_obj_name" type="text" name="name" class="obj_name required identifier" minlength="2" /></div></div>';
-            for (t=0; t<page_struct.classes.length; t++) {
-                template += '<option value="{0}" label="{0}">{0}</option>'.replace(/\{0\}/g, page_struct.classes[t]);
+        var check_fn = function(e) {
+            if (e.keyCode == 13) {
+                validate_fn();
             }
+        }
+        var validate_fn = function() {
+            new_obj.dialog("close");
+            var item = {
+                'class': new_obj.find('.obj_class').val(),
+                'name': new_obj.find('input.obj_name').val(),
+            };
+            $.post('add', item, call_hook_add_item);
+        }
 
-            var new_obj = $(template+tpl_ftr);
+        new_obj.find('input.obj_name').keyup(check_fn);
 
-            var check_fn = function(e) {
-                if (e.keyCode == 13) {
-                    validate_fn();
-                }
-            }
-            var validate_fn = function() {
-                new_obj.dialog("close");
-                var item = {
-                    'class': new_obj.find('.obj_class').val(),
-                    'name': new_obj.find('input.obj_name').val(),
-                };
-                $.post('add', item, call_hook_add_item);
-            }
+        new_obj.dialog({
+            closeOnEscape:true,
+            modal: true,
+            buttons: [ {text: 'OK', click: validate_fn} ],
+        });
 
-            new_obj.find('input.obj_name').keyup(check_fn);
-
-            new_obj.dialog({
-                closeOnEscape:true,
-                modal: true,
-                buttons: [ {text: 'OK', click: validate_fn} ],
-            });
-
-            if (page_struct.classes.length == 1) {
-                new_obj.find(".obj_class").val(page_struct.classes[0]).attr('disabled', true);
-                new_obj.find('input.obj_name').trigger('click').focus();
-            }
-        },
+        if (page_struct.classes.length == 1) {
+            new_obj.find(".obj_class").val(page_struct.classes[0]).attr('disabled', true);
+            new_obj.find('input.obj_name').trigger('click').focus();
+        }
+    };
         // ADD
-        add_entry: function(data) {
-            var e = eval(page_struct.items_factory.build)(data);
-            e.data('item', data.id);
-            e.disableSelection();
-            if (page_struct.items_factory.click) {
-                e.click(eval(page_struct.items_factory.click));
-            } else if (page_struct.items_factory.dblclick) {
-                e.dblclick(eval(page_struct.items_factory.dblclick));
+    this.add_entry = function(data) {
+        var e = eval(page_struct.items_factory.build)(data);
+        e.data('item', data.id);
+        e.disableSelection();
+        if (page_struct.items_factory.click) {
+            e.click(eval(page_struct.items_factory.click));
+        } else if (page_struct.items_factory.dblclick) {
+            e.dblclick(eval(page_struct.items_factory.dblclick));
+        }
+        if (page_struct.items_factory.hover) {
+            e.hover(eval(page_struct.items_factory.hover));
+        }
+        if ( !! data._nb_items ) {
+            if ( data._nb_items == 1 ) {
+                e.append($('&nbsp;<span class="infos">(1 item)</span>'));
+            } else {
+                e.append($('&nbsp;<span class="infos">('+data._nb_items+' items)</span>'));
             }
-            if (page_struct.items_factory.hover) {
-                e.hover(eval(page_struct.items_factory.hover));
-            }
-	        if ( !! data._nb_items ) {
-                if ( data._nb_items == 1 ) {
-                    e.append($('&nbsp;<span class="infos">(1 item)</span>'));
-                } else {
-                    e.append($('&nbsp;<span class="infos">('+data._nb_items+' items)</span>'));
-	            }
-	        }
+        }
 
-	        // Html is element is prepared, now inject it
+        // Html is element is prepared, now inject it
 
-            ui.main_list.append(e);
-            $('#edit_form select').append(
-                '<option value="'+data.id+'" label="'+data.id+'">'+data.id+'</option>'
-            );
-            ui.child_items[data.id] = data;
-            e.hide();
-            e.fadeIn('slow');
-            return e;
-        },
-    });
+        ui.main_list.list.append(e);
+        $('#edit_form select').append(
+            '<option value="'+data.id+'" label="'+data.id+'">'+data.id+'</option>'
+        );
+        ui.child_items[data.id] = data;
+        e.hide();
+        e.fadeIn('slow');
+        return e;
+    };
+    return this;
+}
+
+/////// INIT/STARTUP STUFF
+
+$(document).ready(function(){
+    // hides some things by default
+    $('.starts_hidden').slideUp(0);
+
+    // some globals
+    ui.main_list = new MainList();
+
     // add global methods
     $.fn.extend({
         center: function() {
