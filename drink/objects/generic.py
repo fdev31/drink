@@ -24,7 +24,7 @@ def get_struct_from_obj(obj, childs, full):
 
     k = request.params.keys()
     if None == full:
-        full = 'full' in k
+        full = 'full' in k and childs
 
     if 'childs' in k:
         childs = request.params['childs'].lower() in ('yes', 'true')
