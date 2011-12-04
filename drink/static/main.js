@@ -132,6 +132,43 @@ var Position = function(default_pos, list_getter, selection_class) {
     return this;
 }
 ui = new Object({
+    fill_struct: function (data, status, req) {
+        if(debug) console.log(data);
+        $.extend(page_struct, data);
+        if (!data._perm) return;
+        // TODO: return actions in struct
+        $.ajax({url: 'actions'}).success(ui.load_action_list).error(function() { $('<div title="Error occured">List of actions failed to load</div>').dialog({closeOnEscape:true});});
+        // list-item creation fonction
+        if (ui.main_list.list)
+            ui.main_list.reload(data.items);
+
+        if ( page_struct._perm.match(/a/) ) {
+            // Integration of http://valums.com/ajax-upload/
+            try {
+                qq.UploadDropZone.prototype._isValidFileDrag = function(e){ return true; }
+                var uploader = new qq.FileUploader({
+                    element: $('#file-uploader')[0],
+                    action: 'upload',
+                    //debug: true,
+                    showMessage: function(message){ $('<div title="Drop zone">'+message+'</div>'); },
+                    onComplete: function(id, fileName, data){
+                        if ( data.id ) {
+                            call_hook_add_item(data);
+                        }
+                        $('ul.qq-upload-list > li.qq-upload-success').fadeOut('slow', function() {
+                            $(this).remove()
+                            });
+                    },
+                });
+            } catch (ReferenceError) {
+                //console.log('Uploader code not available');
+            }
+        };
+
+    },
+    edit: function(what) {
+        ui.dialog('<div title="Edit"><iframe style="height: 100%" src="'+what+'edit?embedded=1"></iframe></div>');
+    },
         dialog: function(body, buttons, style) {
             var d = $(body);
             d.dialog({
@@ -200,7 +237,7 @@ ui = new Object({
             }
         },
         reload: function() {
-            $.ajax({url: 'struct'}).success(ui.main_list.reload).error(function() {ui.dialog('<div title="Error occured">Listing can\'t be loaded :(</div>')});
+            $.ajax({url: 'struct'}).success(ui.fill_struct).error(function() {ui.dialog('<div title="Error occured">Listing can\'t be loaded :(</div>')});
         },
         // Move
         move_current_page: function() {
@@ -336,6 +373,8 @@ function add_hook_add_item(o) { add_item_hooks.push(o) }
 
 function call_hook_add_item(data) {
    for(i=0; i<add_item_hooks.length; i++) {
+       console.log(i);
+       console.log(add_item_hooks[i]);
         add_item_hooks[i](data);
    }
 }
@@ -563,54 +602,19 @@ MainList = function(id) {
 
     if ($('#'+this.id).length == 0) {
         if (debug) console.log('No list with name '+this.id);
-    }
+    };
 
     // ITEM LIST LOADING THINGS
-    this.reload = function(data, status, req) {
-            
-        // TODO: return actions in struct
-        $.ajax({url: 'actions'}).success(ui.load_action_list).error(function() { $('<div title="Error occured">List of actions failed to load</div>').dialog({closeOnEscape:true});});
+    this.reload = function(items) {
+        if ('' != me.list.html()) {
+            me.list.html('');
+        }
+        for(n=0; n<items.length; n++)
+             ui.main_list.add_entry(items[n]);
 
-            if(debug) console.log(data);
-            if (!data._perm) return;
+        // init hooks
+        add_hook_add_item(function(data) { me.add_entry(data).center() });
 
-            $.extend(page_struct, data);
-
-            if ('' != me.list.html()) {
-                me.list.html('');
-            }
-
-            // init hooks
-            add_hook_add_item(function(data) { ui.main_list.add_entry(data).center() });
-
-           // list-item creation fonction
-
-           for(n=0; n<data.items.length; n++) {
-                ui.main_list.add_entry(data.items[n]);
-           }
-
-            if ( page_struct._perm.match(/a/) ) {
-                // Integration of http://valums.com/ajax-upload/
-                try {
-                    qq.UploadDropZone.prototype._isValidFileDrag = function(e){ return true; }
-                    var uploader = new qq.FileUploader({
-                        element: $('#file-uploader')[0],
-                        action: 'upload',
-                        //debug: true,
-                        showMessage: function(message){ $('<div title="Drop zone">'+message+'</div>'); },
-                        onComplete: function(id, fileName, data){
-                            if ( data.id ) {
-                                ui.main_list.add_entry(data);
-                            }
-                            $('ul.qq-upload-list > li.qq-upload-success').fadeOut('slow', function() {
-                                $(this).remove()
-                                });
-                        },
-                    });
-                } catch (ReferenceError) {
-                    //console.log('Uploader code not available');
-                }
-            };
         dom_initialize( me.list );
     };
     // ADD an entry

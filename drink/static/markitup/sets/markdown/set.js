@@ -106,27 +106,52 @@ mySettings = {
 }
 
 MarkDown = function(uuid) {
+    var me = this;
 	this.uuid = uuid || "markdown";
-	this.edit_html = function(opts) {
-		var o = {'cols': "80", 'rows': "25", 'data': page_struct.content || ''}
-		if (! opts)
-			$.extend(o, opts)
-		var html = $('<textarea cols="'+o.cols+'" rows="'+o.rows+'">'+o.data+'</textarea>');
-        $('#'+this.uuid).html(html);
-        $('#'+this.uuid+' textarea:first').markItUp(mySettings);
+	this.edit_html = function(opts, source) {
+        var o = {'cols': "80", 'rows': "25", 'data': ''}
+        if (! opts)
+            $.extend(o, opts)
+        var apply_editor = function(data) {
+            var html = $('<textarea cols="'+o.cols+'" rows="'+o.rows+'">'+o.data+'</textarea>');
+            $('#'+me.uuid).html(html);
+            $('#'+me.uuid+' textarea:first').markItUp(mySettings);
+        }
+        if (source) {
+            $.post(source+'struct', {'full': '1'}).success(function(data) {apply_editor(data.content)});
+        } else {
+            apply_editor(opts.data || page_struct.content);
+        }
 	}
-    this.load_page = function() {
-        var me = this;
-        $.post('struct', {'full': '1'}).success(function(data) {
-            $.extend(page_struct, data);
-            if (page_struct.subpages_blog) {
-                url = 'blog_content';
+    this.attach = function(obj, source) {
+        obj = $(obj);
+        obj.click( function() { me.edit_html({}, source) } );
+        obj.blur( function() { me.load_page(source) } );
+    }
+    this.load_page = function(source) {
+
+        if (!source) {
+            remote_obj = true;
+            source = '';
+        } else {
+            remote_obj = false;
+        }
+
+        $.post(source+'struct', {'full': '1'}).success(function(data) {
+            if (!remote_obj) $.extend(page_struct, data);
+            else { if(!page_struct.foreigners) page_struct.foreigners = new Object();
+                page_struct.foreigners[source] = data;
+            };
+            if (data.subpages_blog) {
+                url = source+'blog_content';
             } else {
-                url = 'process';
+                url = source+'process';
             };
             $.post(url).success(
                 function(data) { console.log(me); $('#'+me.uuid).html(data) }
-                ).error(function(){ui.dialog('data failed')});
+            ).error(
+                function(){ui.dialog('data failed')}
+            );
         }).error(function(){ui.dialog('struct failed')});
     }
 	return this;
