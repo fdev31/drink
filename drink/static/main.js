@@ -150,7 +150,6 @@ var Position = function(default_pos, list_getter, selection_class) {
 ui = new Object({
         dialog: function(body, buttons, style) {
             var d = $(body);
-            dom_initialize(d);
             d.dialog({
                 modal: true,
                 closeOnEscape: true,
@@ -163,6 +162,7 @@ ui = new Object({
                 d.css('margin', 'auto');
                 d.css('height', '66%');
             }
+            dom_initialize(d);
             return d;
         },
         load_action_list: function(data) {
