@@ -85,7 +85,7 @@ class MarkdownPage(drink.ListPage):
     $(document).ready(function(){
         m = new MarkDown();
         m.load_page();
-        add_hook_add_item(m.load_page);
+        add_hook_add_item(function() {m.load_page});
     });
     ''']
 
