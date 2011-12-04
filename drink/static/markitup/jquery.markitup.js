@@ -466,6 +466,8 @@
 						url: options.previewParserPath,
 						data: options.previewParserVar+'='+encodeURIComponent($$.val()),
 						success: function(data) {
+                            console.log('written things from '+options.previewParserPath);
+                            console.log(data);
 							writeInPreview( localize(data, 1) );
 						}
 					});

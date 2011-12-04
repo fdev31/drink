@@ -200,6 +200,7 @@ class MarkdownPage(drink.ListPage):
 
     def process(self, data=None):
         data = data or drink.request.params.get('data')
+        log.debug(data)
         use_cache = bool(data)
         if not use_cache or not self._v_view_cooked:
             if not hasattr(self, '_v_wikifier_cache'):

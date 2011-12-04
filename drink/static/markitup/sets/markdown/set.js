@@ -11,7 +11,16 @@
 // Feel free to add more tags
 // -------------------------------------------------------------------
 save_doc = function(h) {
-    $("#auto_edit_form").submit();
+    // fixme: use somethin' else
+    var path = $(h.textarea.parentElement.parentElement.parentElement.parentElement).data('path');
+
+    console.log(path);
+    if (path) {
+        console.log(h.textarea.textContent);
+        $.post(path+'edit', {'_dk_fields': 'content', 'content': h.textarea.textContent});
+    } else {
+        $("#auto_edit_form").submit();
+    }
     return false;
 }
 
@@ -109,13 +118,18 @@ MarkDown = function(uuid) {
     var me = this;
 	this.uuid = uuid || "markdown";
 	this.edit_html = function(opts, source) {
+        console.log('edit_html '+source);
         var o = {'cols': "80", 'rows': "25", 'data': ''}
         if (! opts)
             $.extend(o, opts)
         var apply_editor = function(data) {
-            var html = $('<textarea cols="'+o.cols+'" rows="'+o.rows+'">'+o.data+'</textarea>');
+            var html = $('<textarea cols="'+o.cols+'" rows="'+o.rows+'">'+(data || o.data)+'</textarea>');
             $('#'+me.uuid).html(html);
-            $('#'+me.uuid+' textarea:first').markItUp(mySettings);
+            $('#'+me.uuid).addClass('markItUp');
+            var settings = new Object();
+            $.extend(settings, mySettings);
+            settings.previewParserPath = source+'process';
+            $('#'+me.uuid+' textarea:first').markItUp(settings);
         }
         if (source) {
             $.post(source+'struct', {'full': '1'}).success(function(data) {apply_editor(data.content)});
@@ -124,12 +138,16 @@ MarkDown = function(uuid) {
         }
 	}
     this.attach = function(obj, source) {
-        obj = $(obj);
-        obj.click( function() { me.edit_html({}, source) } );
-        obj.blur( function() { me.load_page(source) } );
+        var obj = $(obj);
+        var click = function() { $(this).unbind('click'); me.edit_html({}, source) };
+        obj.data('path', source);
+        obj.bind({
+            'click': click,
+            'focusout': function() { me.load_page(source); $(this).bind('click', click) }
+        });
     }
     this.load_page = function(source) {
-
+        console.log('loadpage '+source);
         if (!source) {
             remote_obj = true;
             source = '';
@@ -138,17 +156,29 @@ MarkDown = function(uuid) {
         }
 
         $.post(source+'struct', {'full': '1'}).success(function(data) {
-            if (!remote_obj) $.extend(page_struct, data);
+            if (!remote_obj) {
+                page_struct.merge(data);
+            }
             else { if(!page_struct.foreigners) page_struct.foreigners = new Object();
                 page_struct.foreigners[source] = data;
             };
             if (data.subpages_blog) {
                 url = source+'blog_content';
+                var is_blog = true;
             } else {
                 url = source+'process';
+                var is_blog = false;
             };
             $.post(url).success(
-                function(data) { console.log(me); $('#'+me.uuid).html(data) }
+                function(data) { console.log(me); $('#'+me.uuid).html(data) ;
+                    if (is_blog) {
+                        $('.blog_entry').each( function(i, e) {
+                            var n = 'blog_entry_'+i;
+                            $(e).attr('id', n);
+                            new MarkDown(n).attach(e, base_path+page_struct.items[i].id+'/');
+                        });
+                    }
+                }
             ).error(
                 function(){ui.dialog('data failed')}
             );

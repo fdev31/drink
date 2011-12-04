@@ -11,6 +11,17 @@ var Page = function () {
     this.path = "/";
     this.logged_in = false;
     this.title = "unk";
+    this.merge = function (d) {
+        $.extend(this, d);
+        this.id_idx_map = new Object();
+        me = this;
+        this.items.forEach( function(e, i) {
+            me.id_idx_map[e.id] = i;
+        })
+    };
+    this.get_by_id = function(child_id) {
+        return this.items[this.id_idx_map[child_id]];
+    };
     return this;
 }
 
@@ -38,7 +49,7 @@ make_std_item = function(data) {
 var Position = function(default_pos, list_getter, selection_class) {
     this.position = default_pos;
     this.lists = list_getter; /* name: children css_selector */
-    this.current_list = list_getter[0];
+    this.current_list = list_getter[0]; /* name , list */
     this.current_list_pos = 0;
     this.selection_class = selection_class;
     this.wrap = true;
@@ -53,7 +64,8 @@ var Position = function(default_pos, list_getter, selection_class) {
         return l;
     }
     this.clear = function() {
-        $(l[this.position]).removeClass(this.selection_class);
+        var i = this.selected_item();
+        i.removeClass(this.selection_class);
         this.current_list_pos = 0;
         this.current_list = this.lists[0];
         this.position = 0;
@@ -122,6 +134,8 @@ var Position = function(default_pos, list_getter, selection_class) {
         }
     }
     this.highlight = function(item) {
+        if (!item)
+            return;
         var item = $(item);
         item.addClass(this.selection_class)
         item.focus();
@@ -134,7 +148,7 @@ var Position = function(default_pos, list_getter, selection_class) {
 ui = new Object({
     fill_struct: function (data, status, req) {
         if(debug) console.log(data);
-        $.extend(page_struct, data);
+        page_struct.merge(data);
         if (!data._perm) return;
         // TODO: return actions in struct
         $.ajax({url: 'actions'}).success(ui.load_action_list).error(function() { $('<div title="Error occured">List of actions failed to load</div>').dialog({closeOnEscape:true});});
@@ -276,7 +290,6 @@ ui = new Object({
                         $('#rm_form select option[value="'+safe_name+'"]').remove();
 */
                         $('ul > li.entry:data(item='+item+')').slideUp('slow', function() {$(this).remove()});
-                        delete ui.child_items[item];
                     }).error(function(){
                         $('<div title="Error occured">Sorry, something didn\'t work correctly</div>').dialog();
                        });
@@ -291,7 +304,6 @@ ui = new Object({
         ['items', 'ul li.entry'],
     ], 'highlighted'),
 
-    child_items: [],
     }
 );
 
@@ -388,7 +400,7 @@ function popup_actions(event) {
             return;
         }
 
-        var elt = ui.child_items[me.data('item')];
+        var elt = page_struct.get_by_id(me.data('item'));
         if (!elt) return;
         if(!elt._perm.match(/w/)) { return; }
 
@@ -436,7 +448,7 @@ function exit_edit_func() {
 }
 
 function enter_edit_func() {
-    var elt = ui.child_items[$(this).data('item')];
+    var elt = page_struct.get_by_id($(this).data('item'));
     if(!elt._perm.match(/w/)) { return; }
     if ( $(this).has('input').length != 0 ) { return; }
 
@@ -686,7 +698,6 @@ MainList = function(id) {
         $('#edit_form select').append(
             '<option value="'+data.id+'" label="'+data.id+'">'+data.id+'</option>'
         );
-        ui.child_items[data.id] = data;
         e.hide();
         e.fadeIn('slow');
         return e;
@@ -702,6 +713,7 @@ $(document).ready(function(){
 
     // some globals
     ui.main_list = new MainList();
+    ui.current_focus.clear();
 
     // add global methods
     $.fn.extend({
@@ -774,7 +786,7 @@ $(document).ready(function(){
         window.location = base_uri+'view';
     });
     keys.add('H', function() {
-        $('<div title="Keyboard shortcuts"><ul><li>[E]dit</li><li>[S]earch / [S]elect first input field</li><li>[L]ist</li><li>[V]iew</li><li>BACKSPACE: one level up</li><li>UP/DOWN: change selection</li><li>[DEL]ete</li><li>[ENTER]</li><li>ESCAPE: close dialogs</li></ul></div>').dialog({width: '40ex', closeOnEscape: true});
+        ui.dialog('<div title="Keyboard shortcuts"><ul><li>[E]dit</li><li>[S]earch / [S]elect first input field</li><li>[L]ist</li><li>[V]iew</li><li>BACKSPACE: one level up</li><li>UP/DOWN: change selection</li><li>[DEL]ete</li><li>[ENTER]</li><li>ESCAPE: close dialogs</li></ul></div>');
     });
 
     dom_initialize($(document));

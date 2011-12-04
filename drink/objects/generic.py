@@ -409,6 +409,7 @@ class Page(drink.Model):
         :_recurse: Special mode applying permissions (only) in a recursive way
 
         """
+
         if 'w' not in request.identity.access(self):
             return drink.unauthorized()
 
