@@ -1,22 +1,6 @@
 // globals
 debug = false;
 
-Keys = {
-    BACK: 8,
-    ENTER: 13,
-    ESC: 27,
-    UP: 38,
-    LEFT: 37,
-    RIGHT: 39,
-    DOWN: 40,
-    INS: 45,
-    DEL: 46,
-};
-
-for (i=65; i<=90; i++) {
-    Keys[String.fromCharCode(i)] = i;
-};
-
 var Page = function () {
     this.classes = [];
     this._perm = 'r';
@@ -197,7 +181,7 @@ ui = new Object({
                         } else { // javascript code
                           var text='<a class="action '+(elt.style || '')+'" title="'+elt.title+'" onclick="'+elt.action+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
                           if (elt.key)
-                            add_shortcut(elt.key, elt.action);
+                            keys.add(elt.key, elt.action);
                         };
                     } else {
                         var text=null;
@@ -266,8 +250,8 @@ ui = new Object({
         });
     },
     current_focus: new Position(-1, [
-        ['items', 'ul li.entry'],
         ['actions',  '#commands a.action'],
+        ['items', 'ul li.entry'],
     ], 'highlighted'),
 
     child_items: [],
@@ -275,47 +259,62 @@ ui = new Object({
 );
 
 // KEYPRESS THINGS
+var KeyHandler = function() {
+    this.hooks = [];
+    this.k = {
+        BACK: 8,
+        ENTER: 13,
+        ESC: 27,
+        UP: 38,
+        LEFT: 37,
+        RIGHT: 39,
+        DOWN: 40,
+        INS: 45,
+        DEL: 46,
+    };
 
-keyup_hooks = new Object();
-
-function call_hook_keyup(e) {
-    var tag = e.target.tagName;
-    if (!e.ctrlKey && !e.altKey && !e.shiftKey && tag != 'INPUT' && tag != 'TEXTAREA' && tag != 'SELECT') {
-       var code = keyup_hooks[e.which];
-       if (!code) {
-           code = keyup_hooks[String.fromCharCode(e.which)];
-       };
-       if (code) {
-            try {
-                if (typeof(code) == 'string') {
-                    eval(code);
-                } else {
-                    code(e);
-                }
-            } catch (x) {
-                if(debug) {console.log(code) ; console.log(x); };
-            };
-            if (debug) console.log('handled '+e.which);
-//            e.preventDefault();
-//            e.stopPropagation();
-//            document.activeElement.blur();
-            return false;
-       } else {
-            if (debug) console.log('nothing to handle for '+e.which);
-            return true;
-       }
-   }
+    for (i=65; i<=90; i++) {
+        this.k[String.fromCharCode(i)] = i;
+    };
+    this.add = function(key, code) {
+        var kcode = this.k[key];
+        if (kcode) {
+            if (debug && this.hooks[kcode]) {
+                alert('Duplicate handler for "'+key+'" key!');
+            }
+            this.hooks[kcode] = code;
+        } else {
+            alert("Unknown keycode: "+key);
+        }
+    };
+    this.call = function(e) {
+        var tag = e.target.tagName;
+        if (!e.ctrlKey && !e.altKey && !e.shiftKey && tag != 'INPUT' && tag != 'TEXTAREA' && tag != 'SELECT') {
+           var code = keys.hooks[e.which];
+           if (!code) {
+               code = keys.hooks[String.fromCharCode(e.which)];
+            }
+           if (code) {
+                try {
+                    if (typeof(code) == 'string') {
+                        eval(code);
+                    } else {
+                        code(e);
+                    }
+                } catch (x) {
+                    if(debug) {console.log(code) ; console.log(x); };
+                };
+                if (debug) console.log('handled '+e.which);
+                return false;
+            } else {
+                if (debug) ui.message("Don't know how to handle"+e);
+            }
+        }
+    };
+    return this;
 }
 
-function add_shortcut(key, code) {
-    var kcode = Keys[key];
-    if (kcode) {
-        if (keyup_hooks[kcode]) alert('Duplicate handler for "'+key+'" key!');
-        keyup_hooks[kcode] = code;
-    } else {
-        alert("Unknown keycode: "+key);
-    }
-}
+keys = new KeyHandler();
 
 // REMOVE ITEM THINGS
 
@@ -714,22 +713,22 @@ $(document).ready(function(){
     }, 'No "$", "%" or "/" and don\' start with a dot or an underscore, please :)');
 
     // Hook all keypresses in window
-    $(document).bind('keydown', null, call_hook_keyup );
+    $(document).bind('keydown', null, keys.call);
 
     // load main content
     ui.reload();
 
     // init keys
     // Some shortcuts
-    add_shortcut('DOWN', function() {
+    keys.add('DOWN', function() {
         ui.current_focus.next();
     });
-    add_shortcut('UP', function() {
+    keys.add('UP', function() {
         ui.current_focus.prev();
     });
-    add_shortcut('ENTER', function() {
+    keys.add('ENTER', function() {
         var link = ui.current_focus.selected_link();
-        console.log(link);
+        if(debug) console.log(link);
         if (typeof(link) == 'string') {
             m = link.match(/^js: *(.*?) *$/);
             if (m) {
@@ -742,33 +741,33 @@ $(document).ready(function(){
             link.trigger('click');
         }
     });
-    add_shortcut('DEL', function() {
+    keys.add('DEL', function() {
         ui.remove_entry( ui.current_focus.selected_item().data('item') );
     });
-    add_shortcut('BACK', function() {
+    keys.add('BACK', function() {
         if (window.location.href != base_uri) {
             window.location = base_uri;
         } else {
             window.location = base_uri+'../';
         }
     });
-    add_shortcut('S', function() {
+    keys.add('S', function() {
         // focus first entry
         $("input:text:visible:first").focus().center();
     });
-    add_shortcut('E', function() {
+    keys.add('E', function() {
         window.location = base_uri+'edit';
     });
-    add_shortcut('ESC', function() {
+    keys.add('ESC', function() {
         ui.current_focus.clear();
     });
-    add_shortcut('L', function() {
+    keys.add('L', function() {
         window.location = base_uri+'list';
     });
-    add_shortcut('V', function() {
+    keys.add('V', function() {
         window.location = base_uri+'view';
     });
-    add_shortcut('H', function() {
+    keys.add('H', function() {
         $('<div title="Keyboard shortcuts"><ul><li>[E]dit</li><li>[S]earch / [S]elect first input field</li><li>[L]ist</li><li>[V]iew</li><li>BACKSPACE: one level up</li><li>UP/DOWN: change selection</li><li>[DEL]ete</li><li>[ENTER]</li><li>ESCAPE: close dialogs</li></ul></div>').dialog({width: '40ex', closeOnEscape: true});
     });
 
