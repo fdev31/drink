@@ -63,7 +63,6 @@ class MarkdownPage(drink.ListPage):
 
     editable_fields = drink.ListPage.editable_fields.copy()
 
-
     editable_fields.update({
         'sort_order': drink.types.Choice('Sort blog entries by', {
                 'default listing order': '',
@@ -82,39 +81,35 @@ class MarkdownPage(drink.ListPage):
 
     js = drink.ListPage.js + ['/static/markitup/jquery.markitup.js',
         '/static/markitup/sets/markdown/set.js',
-        '''
-function reload_page() {
-    /*
-       document.location.reload();
-    */
-
-    if (! document.location.pathname.match(/.*(list|edit)$/) ) {
-        $.post('content').success(function(data) {
-            $.post('process', {data: data}).success(function(data){ jQuery('#main_body').html(data) });
-        });
-    };
-};
-add_hook_add_item(reload_page);
-        '''
-        ]
+    '''
+    $(document).ready(function(){
+        m = new MarkDown();
+        m.load_page();
+        add_hook_add_item(m.load_page);
+    });
+    ''']
 
     css = drink.ListPage.css + ['/static/markitup/sets/markdown/style.css',
      '/static/markitup/skins/markitup/style.css']
 
-    _template = r'''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>Drink! preview template</title>
-</head>
-<body>
-%s
-</body>
-</html>
-'''
+    #    _template = r'''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+    #<html xmlns="http://www.w3.org/1999/xhtml">
+    #<head>
+    #<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    #<title>Drink! preview template</title>
+    #</head>
+    #<body>
+    #%s
+    #</body>
+    #</html>
+    #'''
 
     _v_slide_cooked = ''
     _v_view_cooked = ''
+
+    _actions = drink.ListPage._actions + []
+    if landslide:
+        _actions.append(dict(title="Slide!", action="slide", perm="r", icon="view"))
 
     def __init__(self, name, rootpath=None):
         drink.ListPage.__init__(self, name, rootpath)
@@ -124,17 +119,6 @@ add_hook_add_item(reload_page);
     @property
     def description(self):
         return (l for l in self.content.split('\n') if l.strip()).next()
-
-    @property
-    def actions(self):
-        try:
-            return self._v_actions
-        except AttributeError:
-            a = self._actions + []
-            if landslide:
-                a.append(dict(title="Slide!", action="slide", perm="r", icon="view"))
-            self._v_actions = {'actions': a}
-            return self._v_actions
 
     def slide(self):
         if not self._v_slide_cooked:
@@ -177,7 +161,8 @@ add_hook_add_item(reload_page);
         self._wikilinks = cache
         return ret
 
-    @property
+    html = '''<div id="markdown" class="editable" edit_type="process"></div>'''
+
     def blog_content(self):
         dn = self.drink_name
         items = [i for i in self.itervalues() if i.drink_name == dn]
@@ -194,7 +179,7 @@ add_hook_add_item(reload_page);
             items.sort(key=sort_key)
 
         htmls = [ u'<h1>%s</h1><div class="blog_entries">'%self.title ]
-        htmls.extend(u'<div class="blog_entry">'+i.html+'</div>' for i in reversed(items))
+        htmls.extend(u'<div class="blog_entry">'+i.process()+'</div>' for i in reversed(items))
         htmls.append(u'</div>')
         return u'\n'.join(htmls)
 
@@ -214,7 +199,9 @@ add_hook_add_item(reload_page);
         return drink.ListPage.edit(self, *a, **kw)
 
     def process(self, data=None):
-        if not self._v_view_cooked:
+        data = data or drink.request.params.get('data')
+        use_cache = bool(data)
+        if not use_cache or not self._v_view_cooked:
             if not hasattr(self, '_v_wikifier_cache'):
                 self._v_wikifier_cache = Markdown(
                 extensions = ['tables', 'codehilite', 'wikilinks',
@@ -226,13 +213,14 @@ add_hook_add_item(reload_page);
                     }
                 )
 
-            data = drink.omni(data or drink.request.params.get('data') or self.content)
-            self._v_view_cooked = self._template % self._v_wikifier_cache.convert(data)
-        return self._v_view_cooked
+            data = self._v_wikifier_cache.convert(drink.omni(data or self.content))
 
-    @property
-    def html(self):
-        return self.blog_content if self.subpages_blog else self.process(self.content)
+            if use_cache:
+                self._v_view_cooked = data
+            else:
+                return data
+
+        return self._v_view_cooked
 
     def _upload(self, obj):
         self.content = drink.omni(obj.file.read())

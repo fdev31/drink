@@ -105,6 +105,32 @@ mySettings = {
 	],
 }
 
+MarkDown = function(uuid) {
+	this.uuid = uuid || "markdown";
+	this.edit_html = function(opts) {
+		var o = {'cols': "80", 'rows': "25", 'data': page_struct.content || ''}
+		if (! opts)
+			$.extend(o, opts)
+		var html = $('<textarea cols="'+o.cols+'" rows="'+o.rows+'">'+o.data+'</textarea>');
+        $('#'+this.uuid).html(html);
+        $('#'+this.uuid+' textarea:first').markItUp(mySettings);
+	}
+    this.load_page = function() {
+        var me = this;
+        $.post('struct', {'full': '1'}).success(function(data) {
+            $.extend(page_struct, data);
+            if (page_struct.subpages_blog) {
+                url = 'blog_content';
+            } else {
+                url = 'process';
+            };
+            $.post(url).success(
+                function(data) { console.log(me); $('#'+me.uuid).html(data) }
+                ).error(function(){ui.dialog('data failed')});
+        }).error(function(){ui.dialog('struct failed')});
+    }
+	return this;
+}
 // mIu nameSpace to avoid conflict.
 miu = {
 	markdownTitle: function(markItUp, char) {
