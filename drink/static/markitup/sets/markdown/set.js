@@ -12,7 +12,15 @@
 // -------------------------------------------------------------------
 save_doc = function(h) {
     // fixme: use somethin' else
-    $("#auto_edit_form").submit();
+    console.log('plup');
+    var url = $("#auto_edit_form").attr('action');
+    var text = h.textarea.value;
+    $.post(url, {'_dk_fields': 'content', 'content': text})
+        .success(function() {
+            var m = $('#auto_edit_form').parent().data('mdown');
+            m.load_page(m.source);
+        })
+    console.log(text);
     return false;
 }
 
@@ -108,8 +116,13 @@ mySettings = {
 
 MarkDown = function(uuid) {
     var me = this;
+    this.source = '';
 	this.uuid = uuid || "markdown";
 	this.edit_html = function(opts, source) {
+        if (!source)
+            source = this.source;
+        else
+            this.source = source;
         console.log('edit_html '+source);
         var o = {'cols': "80", 'rows': "25", 'data': ''}
         if (! opts)
@@ -134,6 +147,10 @@ MarkDown = function(uuid) {
     this.attach = function(obj, source) {
         console.log('attaching following object to '+source);
         console.log(obj);
+        if (!source)
+            source = this.source;
+        else
+            this.source = source;
 
         var obj = $(obj);
 
@@ -143,6 +160,7 @@ MarkDown = function(uuid) {
         };
         var click = function() {
             $(this).unbind('click');
+            console.log('EDIT '+source);
             me.edit_html({}, source);
             new KeyHandler(obj, {forced: ['TEXTAREA']}).add('ESC', foc_out);
         };
@@ -157,14 +175,15 @@ MarkDown = function(uuid) {
     this.load_page = function(source) {
         console.log('loadpage '+source);
         if (!source) {
-            remote_obj = true;
-            source = '';
+            source = this.source;
+            me.remote_obj = false;
         } else {
-            remote_obj = false;
+            me.remote_obj = true;
+            me.source = source;
         }
 
         $.post(source+'struct', {'full': '1'}).success(function(data) {
-            if (!remote_obj) {
+            if (!me.remote_obj) {
                 page_struct.merge(data);
             }
             else { if(!page_struct.foreigners) page_struct.foreigners = new Object();
@@ -184,15 +203,23 @@ MarkDown = function(uuid) {
                     e.html(data) ;
                     e.removeClass('markItUp');
                     if (is_blog) {
-                        $('.blog_entry').each( function(i, e) {
+                        console.log('new_blog_entry');
+                        if (!$('.blog_entry:first').attr('id'))
+                            $('.blog_entry').each( function(i, e) {
+                            var e = $(e);
                             var n = 'blog_entry_'+i;
-                            $(e).attr('id', n);
-                            new MarkDown(n).attach(e, base_path+page_struct.items[i].id+'/');
+                            e.attr('id', n);
+                            var m = new MarkDown(n);
+                            m.attach(e, base_path+e.attr('entry_id')+'/');
+                            e.data('mdown', m);
                         });
                     } else {
-                        var e = $('#markdown.editable');
-                        var n = 'markdown.editable';
-                        new MarkDown(n).attach(e, base_path);
+                        console.log('new_editable');
+                        if (!$('#markdown.editable').attr('id')) {
+                            var e = $('#markdown.editable');
+                            var n = 'markdown.editable';
+                            new MarkDown(n).attach(e, base_path);
+                        }
                     }
                 }
             ).error(

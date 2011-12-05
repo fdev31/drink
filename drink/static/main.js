@@ -291,7 +291,7 @@ ui = new Object({
                         $('#rm_form select option[value="'+safe_name+'"]').remove();
                         $('#rm_form select option[value="'+safe_name+'"]').remove();
 */
-                        $('ul > li.entry:data(item='+item+')').slideUp('slow', function() {$(this).remove()});
+                        $('#main_body .entry:data(item='+item+')').slideUp('slow', function() {$(this).remove()});
                     }).error(function(){
                         $('<div title="Error occured">Sorry, something didn\'t work correctly</div>').dialog();
                        });
@@ -302,7 +302,7 @@ ui = new Object({
         });
     },
     selection: new Position(-1, [
-        ['items', 'ul li.entry'],
+        ['items', '#main_body .entry'],
         ['actions',  '#commands a.action'],
     ], 'highlighted'),
 

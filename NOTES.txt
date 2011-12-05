@@ -1,3 +1,4 @@
+JS: Refactor all id's & co with Element item attached to .entry elements
 - HANDLE ITEMS RANGE /items?from=0&to=100
 - Prototype fsQueue usage for long-running tasks (try with a fake process)
 - See if types can be simplified when used from inside (ORM-like ?)

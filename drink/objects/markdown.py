@@ -179,7 +179,7 @@ class MarkdownPage(drink.ListPage):
             items.sort(key=sort_key)
 
         htmls = [ u'<h1>%s</h1><div class="blog_entries">'%self.title ]
-        htmls.extend(u'<div class="blog_entry row" >%s</div>'%(i.process()) for i in reversed(items))
+        htmls.extend(u'<div class="blog_entry entry row" entry_id="%s">%s</div>'%(i.id, i.process()) for i in reversed(items))
         htmls.append(u'</div>')
         return u'\n'.join(htmls)
 
