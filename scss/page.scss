@@ -364,9 +364,11 @@ div.markItUpContainer {
 div.markItUp {
     @include light_shadowed;
     @include border-radius($radius);
+    width: 100%;
 }
 textarea.markItUpEditor {
     border: none !important;
+    width: 95%;
 }
 li.markItUpButton > a {
     @include opacity(.5);

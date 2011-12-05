@@ -12,15 +12,7 @@
 // -------------------------------------------------------------------
 save_doc = function(h) {
     // fixme: use somethin' else
-    var path = $(h.textarea.parentElement.parentElement.parentElement.parentElement).data('path');
-
-    console.log(path);
-    if (path) {
-        console.log(h.textarea.textContent);
-        $.post(path+'edit', {'_dk_fields': 'content', 'content': h.textarea.textContent});
-    } else {
-        $("#auto_edit_form").submit();
-    }
+    $("#auto_edit_form").submit();
     return false;
 }
 
@@ -123,12 +115,14 @@ MarkDown = function(uuid) {
         if (! opts)
             $.extend(o, opts)
         var apply_editor = function(data) {
-            var html = $('<textarea cols="'+o.cols+'" rows="'+o.rows+'">'+(data || o.data)+'</textarea>');
+            console.log('apply');
+            var html = $('<form id="auto_edit_form" action="'+source+'edit" method="post"><input type="hidden" name="_dk_fields" value="content" /><textarea id="md_'+me.uuid+'_editor" name="content" cols="'+o.cols+'" rows="'+o.rows+'">'+(data || o.data)+'</textarea></form>');
             $('#'+me.uuid).html(html);
-            $('#'+me.uuid).addClass('markItUp');
+//            $('#'+me.uuid).addClass('markItUp');
             var settings = new Object();
             $.extend(settings, mySettings);
             settings.previewParserPath = source+'process';
+            console.log($('#'+me.uuid+' textarea'));
             $('#'+me.uuid+' textarea:first').markItUp(settings);
         }
         if (source) {
@@ -138,12 +132,26 @@ MarkDown = function(uuid) {
         }
 	}
     this.attach = function(obj, source) {
+        console.log('attaching following object to '+source);
+        console.log(obj);
+
         var obj = $(obj);
-        var click = function() { $(this).unbind('click'); me.edit_html({}, source) };
+
+        var foc_out = function() {
+            me.load_page(source);
+            $(this).bind('click', click);
+        };
+        var click = function() {
+            $(this).unbind('click');
+            me.edit_html({}, source);
+            new KeyHandler(obj, {forced: ['TEXTAREA']}).add('ESC', foc_out);
+        };
+
         obj.data('path', source);
+
         obj.bind({
             'click': click,
-            'focusout': function() { me.load_page(source); $(this).bind('click', click) }
+            'focusout': foc_out,
         });
     }
     this.load_page = function(source) {
@@ -170,13 +178,21 @@ MarkDown = function(uuid) {
                 var is_blog = false;
             };
             $.post(url).success(
-                function(data) { console.log(me); $('#'+me.uuid).html(data) ;
+                function(data) {
+                    console.log(me);
+                    var e = $('#'+me.uuid);
+                    e.html(data) ;
+                    e.removeClass('markItUp');
                     if (is_blog) {
                         $('.blog_entry').each( function(i, e) {
                             var n = 'blog_entry_'+i;
                             $(e).attr('id', n);
                             new MarkDown(n).attach(e, base_path+page_struct.items[i].id+'/');
                         });
+                    } else {
+                        var e = $('#markdown.editable');
+                        var n = 'markdown.editable';
+                        new MarkDown(n).attach(e, base_path);
                     }
                 }
             ).error(

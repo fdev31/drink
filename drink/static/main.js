@@ -310,23 +310,7 @@ ui = new Object({
 );
 
 // KEYPRESS THINGS
-var KeyHandler = function() {
-    this.hooks = [];
-    this.k = {
-        BACK: 8,
-        ENTER: 13,
-        ESC: 27,
-        UP: 38,
-        LEFT: 37,
-        RIGHT: 39,
-        DOWN: 40,
-        INS: 45,
-        DEL: 46,
-    };
-
-    for (i=65; i<=90; i++) {
-        this.k[String.fromCharCode(i)] = i;
-    };
+var KeyHandler = function(o, options) {
     this.add = function(key, code) {
         var kcode = this.k[key];
         if (kcode) {
@@ -338,12 +322,14 @@ var KeyHandler = function() {
             alert("Unknown keycode: "+key);
         }
     };
-    this.call = function(e) {
+    this.call = function(e, options) {
+        console.log('call', e, options);
         var tag = e.target.tagName;
-        if (!e.ctrlKey && !e.altKey && !e.shiftKey && tag != 'INPUT' && tag != 'TEXTAREA' && tag != 'SELECT') {
-           var code = keys.hooks[e.which];
+        var accept = !e.ctrlKey && !e.altKey && !e.shiftKey && tag != 'INPUT' && tag != 'TEXTAREA' && tag != 'SELECT';
+        if (accept || me.options.forced.some(function(e) {return e == tag}) ) {
+           var code = me.hooks[e.which];
            if (!code) {
-               code = keys.hooks[String.fromCharCode(e.which)];
+               code = me.hooks[String.fromCharCode(e.which)];
             }
            if (code) {
                 try {
@@ -362,6 +348,30 @@ var KeyHandler = function() {
             }
         }
     };
+    var me = this;
+    var apply_on = $(o || document);
+    this.hooks = [];
+    this.options = {'forced': []}
+    if (options)
+        $.extend(this.options, options);
+    this.k = {
+        BACK: 8,
+        ENTER: 13,
+        ESC: 27,
+        UP: 38,
+        LEFT: 37,
+        RIGHT: 39,
+        DOWN: 40,
+        INS: 45,
+        DEL: 46,
+    };
+
+    for (i=65; i<=90; i++) {
+        this.k[String.fromCharCode(i)] = i;
+    };
+    // Hook all keypresses in window
+    $(document).bind('keyup', null, this.call);
+
     return this;
 }
 
@@ -472,6 +482,10 @@ function enter_edit_func() {
 }
 
 function dom_initialize(dom) {
+
+    // hides some things by default
+    dom.find('.starts_hidden').slideUp(0);
+
     // sumbit forms on Ctrl+Enter press
     dom.find('#auto_edit_form').keypress( function(ev, elt) {
         if ( ev.ctrlKey && ev.charCode == 10 ) {
@@ -710,12 +724,6 @@ MainList = function(id) {
 /////// INIT/STARTUP STUFF
 
 $(document).ready(function(){
-    // hides some things by default
-    $('.starts_hidden').slideUp(0);
-
-    // some globals
-    ui.main_list = new MainList();
-    ui.selection.clear();
 
     // add global methods
     $.fn.extend({
@@ -726,14 +734,15 @@ $(document).ready(function(){
         }
     );
 
+    // some globals
+    ui.main_list = new MainList();
+    ui.selection.clear();
+
     // extend validator (forms)
 
     $.validator.addMethod("identifier", function(value, element) {
         return this.optional(element) || !/^[._$%/][$%/]*/i.test(value);
     }, 'No "$", "%" or "/" and don\' start with a dot or an underscore, please :)');
-
-    // Hook all keypresses in window
-    $(document).bind('keydown', null, keys.call);
 
     // load main content
     ui.reload();
