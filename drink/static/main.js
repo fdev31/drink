@@ -68,7 +68,7 @@ var Position = function(default_pos, list_getter, selection_class) {
         i.removeClass(this.selection_class);
         this.current_list_pos = 0;
         this.current_list = this.lists[0];
-        this.position = 0;
+        this.position = -1;
         this.highlight( this._select()[0] );
     }
     this.selected_link = function() {
@@ -94,12 +94,12 @@ var Position = function(default_pos, list_getter, selection_class) {
     }
     this.next = function() {
         l = this._select();
-        if (this.position < l.length-1) {
+        if (this.position < l.length-1) { // simple case
             $(l.get(this.position)).removeClass(this.selection_class)
             this.position += 1;
             this.highlight( l[this.position] );
             this.select_next();
-        } else if (this.lists[this.lists.length-1][0] != this.current_list[0]) {
+        } else if (this.lists[this.lists.length-1][0] != this.current_list[0]) { /* boundary limit, change the list */
             try {
                 $(l.get(this.position)).removeClass(this.selection_class)
             } catch (typeError) {
@@ -114,12 +114,12 @@ var Position = function(default_pos, list_getter, selection_class) {
     }
     this.prev = function() {
         l = this._select();
-        if (this.position > 0) {
+        if (this.position > 0) { // simple case
             $(l.get(this.position)).removeClass(this.selection_class)
             this.position -= 1;
             this.select_prev();
             this.highlight( l[this.position] );
-        } else if (this.lists[0][0] != this.current_list[0]) {
+        } else if (this.lists[0][0] != this.current_list[0]) { // boundary limit, change the list
             $(l.get(this.position)).removeClass(this.selection_class);
             this.current_list_pos -= 1;
             this.current_list = this.lists[this.current_list_pos];
@@ -145,6 +145,8 @@ var Position = function(default_pos, list_getter, selection_class) {
     this.select_next = $.noop;
     return this;
 }
+
+// UI Object
 ui = new Object({
     fill_struct: function (data, status, req) {
         if(debug) console.log(data);
@@ -299,9 +301,9 @@ ui = new Object({
                 }
         });
     },
-    current_focus: new Position(-1, [
-        ['actions',  '#commands a.action'],
+    selection: new Position(-1, [
         ['items', 'ul li.entry'],
+        ['actions',  '#commands a.action'],
     ], 'highlighted'),
 
     }
@@ -713,7 +715,7 @@ $(document).ready(function(){
 
     // some globals
     ui.main_list = new MainList();
-    ui.current_focus.clear();
+    ui.selection.clear();
 
     // add global methods
     $.fn.extend({
@@ -739,13 +741,13 @@ $(document).ready(function(){
     // init keys
     // Some shortcuts
     keys.add('DOWN', function() {
-        ui.current_focus.next();
+        ui.selection.next();
     });
     keys.add('UP', function() {
-        ui.current_focus.prev();
+        ui.selection.prev();
     });
     keys.add('ENTER', function() {
-        var link = ui.current_focus.selected_link();
+        var link = ui.selection.selected_link();
         if(debug) console.log(link);
         if (typeof(link) == 'string') {
             m = link.match(/^js: *(.*?) *$/);
@@ -760,7 +762,7 @@ $(document).ready(function(){
         }
     });
     keys.add('DEL', function() {
-        ui.remove_entry( ui.current_focus.selected_item().data('item') );
+        ui.remove_entry( ui.selection.selected_item().data('item') );
     });
     keys.add('BACK', function() {
         if (window.location.href != base_uri) {
@@ -777,7 +779,7 @@ $(document).ready(function(){
         window.location = base_uri+'edit';
     });
     keys.add('ESC', function() {
-        ui.current_focus.clear();
+        ui.selection.clear();
     });
     keys.add('L', function() {
         window.location = base_uri+'list';
