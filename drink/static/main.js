@@ -1,6 +1,203 @@
 // globals
 debug = false;
 
+var Entry = function(data) {
+    var me = this;
+    // ADD an entry Popup
+    this.popup_add = function() {
+         if ( page_struct.classes.length < 1 ) {
+            w = $('<div title="Ooops!">Nothing can be added here, sorry</div>').dialog({closeOnEscape:true});
+            setTimeout(function(){w.fadeOut(function(){w.dialog('close')})}, 2000);
+            return;
+         };
+        var template = '<div id="new_obj_form"  title="New item informations"><select class="obj_class" class="required" name="class"><option value="" label="Select one item type">Select one item type</option>';
+        var tpl_ftr = '</select><div class="obj_name"><label for="new_obj_name">Name</label><input id="new_obj_name" type="text" name="name" class="obj_name required identifier" minlength="2" /></div></div>';
+        for (t=0; t<page_struct.classes.length; t++) {
+            template += '<option value="{0}" label="{0}">{0}</option>'.replace(/\{0\}/g, page_struct.classes[t]);
+        }
+
+        var new_obj = $(template+tpl_ftr);
+
+        var check_fn = function(e) {
+            if (e.keyCode == 13) {
+                validate_fn();
+            }
+        }
+        var validate_fn = function() {
+            new_obj.dialog("close");
+            var item = {
+                'class': new_obj.find('.obj_class').val(),
+                'name': new_obj.find('input.obj_name').val(),
+            };
+            $.post('add', item, call_hook_add_item);
+        }
+
+        new_obj.find('input.obj_name').keyup(check_fn);
+
+        new_obj.dialog({
+            closeOnEscape:true,
+            modal: true,
+            buttons: [ {text: 'OK', click: validate_fn} ],
+        });
+
+        if (page_struct.classes.length == 1) {
+            new_obj.find(".obj_class").val(page_struct.classes[0]).attr('disabled', true);
+            new_obj.find('input.obj_name').trigger('click').focus();
+        }
+    };
+
+    // edit_entry
+    this.edit = function(data) {
+       ui.dialog('<iframe title="Edit object" src="'+base_uri+'/'+data+'/edit?embedded=1">No iframe support :(</iframe>', buttons=null, style='big');
+    },
+    // remove_entry
+    this.remove = function(item) {
+        ui.dialog('<div id="remove-confirm" title="Do you really want to remove this item ?">Please, confirm removal.</div>', {
+            Accept: function() {
+                $( this ).dialog( "close" );
+                $.ajax({
+                    url:'rm?name='+encodeURI(item),
+                }).success(function() {
+                    var safe_name = item.replace( /"/g, '\\"');
+/*
+                    $('#edit_form select option[value="'+safe_name+'"]').remove();
+                    $('#rm_form select option[value="'+safe_name+'"]').remove();
+                    $('#rm_form select option[value="'+safe_name+'"]').remove();
+*/
+                    $('#main_body .entry:data(item='+item+')').slideUp('slow', function() {$(this).remove()});
+                }).error(function(){
+                    $('<div title="Error occured">Sorry, something didn\'t work correctly</div>').dialog();
+                   });
+            },
+            Cancel: function() {
+                $( this ).dialog( "close" );
+            }
+        });
+    },
+
+    /* Popup actions for items */
+    this.popup_actions = function (event) {
+        if (event.type == "mouseenter") {
+            var me = $(this);
+            if ( me.data('edit_called') ) {
+                return;
+            }
+
+            var elt = page_struct.get_by_id(me.data('item'));
+            if (!elt) return;
+            if(!elt._perm.match(/w/)) { return; }
+
+            $(this).data('edit_called', setTimeout(function() {
+                var item_name = me.data('item');
+                var edit_span = $('<span class="actions"></span>');
+                edit_span.append('<a title="Edit" onclick="ui.edit_entry(\''+item_name+'\')"><img class="minicon" src="/static/actions/edit.png" /></a>');
+                edit_span.append('<a title="Delete" onclick="ui.remove_entry(\''+item_name+'\')" ><img class="minicon" src="/static/actions/delete.png" /></a>');
+                edit_span.fadeIn('slow');
+                me.append(edit_span);
+
+                }, 500));
+        } else if (event.type == "mouseleave") {
+            clearTimeout($(this).data('edit_called'));
+            $(this).data('edit_called', false);
+            $(this).find('.actions').fadeOut('slow', function() {$(this).remove()});
+        }
+    }
+
+    // handle inline title edition
+    this._blur_on_validate = function (e) {
+        if (e.keyCode == 27) {
+             $(this).data('canceled', true);
+             $(this).trigger('blur');
+        } else if (e.keyCode == 13) {
+             $(this).trigger('blur');
+        }
+
+    }
+
+    this._exit_edit_func = function () {
+        var txt = null;
+        uid = $(this).parent().data('item');
+        if (uid == undefined ) { return; }
+
+        if ( $(this).data('canceled') != true && $(this).val() != $(this).data('orig_text') ) {
+            txt = $(this).val().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            $.post(''+encodeURI(uid)+'/edit', {title: txt} );
+        } else {
+            txt = $(this).data('orig_text');
+        }
+
+        $(this).replaceWith($('<a class="item_name" href="./'+encodeURI(uid)+'/">'+txt+'</a>'));
+        $(this).parent().dblclick(me._enter_edit_func);
+    }
+
+    this.edit_popup = function () {
+        if(!me.elt._perm.match(/w/)) { return; }
+        if ( me.elt.has('input').length != 0 ) { return; }
+
+        var orig = me.elt.find('a.item_name').first();
+        // set an input field up, with focus
+        var inp = $("<input class=\"inline_edit\" value='"+orig.text()+"' />");
+        inp.data('orig_text', orig.text());
+
+        // replace second children
+        orig.replaceWith(inp);
+        inp = me.elt.find("input");
+        inp.select();
+
+        // on entry input blur
+        inp.blur(me._exit_edit_func)
+
+        // trigger blur on ENTER keyup
+        inp.keyup(me._blur_on_validate);
+    }
+
+    /* construtor */
+    this.default_factory = function(data) {
+        // builds li element around an item object
+        var mime = "";
+        if ( data.mime ) {
+            if ( data.mime.match( url_regex )) {
+                mime = data.mime;
+            } else {
+                mime = "/static/mime/"+data.mime+".png";
+            }
+        } else {
+            mime = "/static/mime/page.png";
+        }
+        return $('<li class="entry"><img width="32px" src="'+mime+'" /><a class="item_name" href="'+data.path+data.id+'/" title="'+data.description+'">'+(data.title || data.id)+'</a></li>');
+    }
+
+    $.extend(this, data);
+
+    // make html entry
+    var e = eval(page_struct.items_factory.entry_factory)(data);
+    e.disableSelection();
+    if (page_struct.items_factory.click) {
+        e.click(eval(page_struct.items_factory.click));
+    } else if (page_struct.items_factory.dblclick) {
+        e.dblclick(eval(page_struct.items_factory.dblclick));
+    }
+    if (page_struct.items_factory.hover) {
+        e.hover(eval(page_struct.items_factory.hover));
+    }
+    if ( !! data._nb_items ) {
+        if ( data._nb_items == 1 ) {
+            e.append($('&nbsp;<span class="infos">(1 item)</span>'));
+        } else {
+            e.append($('&nbsp;<span class="infos">('+data._nb_items+' items)</span>'));
+        }
+    }
+
+    // Html is element is prepared, now inject it
+    e.data('item', data.id);
+    e.data('item_url', data.path+data.id);
+    // add itself to main_list
+    ui.main_list.list.append(e);
+    e.hide();
+    e.fadeIn('slow');
+    return this;
+};
+
 var Page = function () {
     this.classes = [];
     this._perm = 'r';
@@ -18,6 +215,7 @@ var Page = function () {
         this.items.forEach( function(e, i) {
             me.id_idx_map[e.id] = i;
         })
+        this.entries = d.items.map(function(x) {return new Entry(x)});
     };
     this.get_by_id = function(child_id) {
         return this.items[this.id_idx_map[child_id]];
@@ -30,21 +228,6 @@ page_struct = new Page()
 url_regex = /^(\/|http).+/;
 base_uri = document.location.href.replace(/[^/]*$/, '');
 base_path = base_uri.replace(/http?:\/\/[^/]*/, '');
-
-make_std_item = function(data) {
-    // builds li element around an item object
-    var mime = "";
-    if ( data.mime ) {
-        if ( data.mime.match( url_regex )) {
-            mime = data.mime;
-        } else {
-            mime = "/static/mime/"+data.mime+".png";
-        }
-    } else {
-        mime = "/static/mime/page.png";
-    }
-    return $('<li class="entry"><img width="32px" src="'+mime+'" /><a class="item_name" href="'+data.path+data.id+'/" title="'+data.description+'">'+(data.title || data.id)+'</a></li>');
-}
 
 var Position = function(default_pos, list_getter, selection_class) {
     this.position = default_pos;
@@ -155,8 +338,6 @@ ui = new Object({
         // TODO: return actions in struct
         $.ajax({url: 'actions'}).success(ui.load_action_list).error(function() { $('<div title="Error occured">List of actions failed to load</div>').dialog({closeOnEscape:true});});
         // list-item creation fonction
-        if (ui.main_list.list)
-            ui.main_list.reload(data.items);
 
         if ( page_struct._perm.match(/a/) ) {
             // Integration of http://valums.com/ajax-upload/
@@ -272,35 +453,6 @@ ui = new Object({
                 },
             });
         },
-        // EDIT
-        edit_entry: function(data) {
-           ui.dialog('<iframe title="Edit object" src="'+base_uri+'/'+data+'/edit?embedded=1">No iframe support :(</iframe>', buttons=null, style='big');
-
-        },
-        // REMOVE
-        remove_entry: function(item) {
-            ui.dialog('<div id="remove-confirm" title="Do you really want to remove this item ?">Please, confirm removal.</div>', {
-                Accept: function() {
-                    $( this ).dialog( "close" );
-                    $.ajax({
-                        url:'rm?name='+encodeURI(item),
-                    }).success(function() {
-                        var safe_name = item.replace( /"/g, '\\"');
-/*
-                        $('#edit_form select option[value="'+safe_name+'"]').remove();
-                        $('#rm_form select option[value="'+safe_name+'"]').remove();
-                        $('#rm_form select option[value="'+safe_name+'"]').remove();
-*/
-                        $('#main_body .entry:data(item='+item+')').slideUp('slow', function() {$(this).remove()});
-                    }).error(function(){
-                        $('<div title="Error occured">Sorry, something didn\'t work correctly</div>').dialog();
-                       });
-                },
-                Cancel: function() {
-                    $( this ).dialog( "close" );
-                }
-        });
-    },
     selection: new Position(-1, [
         ['items', '#main_body .entry'],
         ['actions',  '#commands a.action'],
@@ -393,7 +545,6 @@ function call_hook_remove_item(o) {
 
 add_item_hooks = [];
 
-function add_hook_add_item(o) { add_item_hooks.push(o) }
 
 function call_hook_add_item(data) {
    for(i=0; i<add_item_hooks.length; i++) {
@@ -403,83 +554,6 @@ function call_hook_add_item(data) {
    }
 }
 
-// Popup actions for items
-
-function popup_actions(event) {
-    if (event.type == "mouseenter") {
-        var me = $(this);
-        if ( me.data('edit_called') ) {
-            return;
-        }
-
-        var elt = page_struct.get_by_id(me.data('item'));
-        if (!elt) return;
-        if(!elt._perm.match(/w/)) { return; }
-
-        $(this).data('edit_called', setTimeout(function() {
-            var item_name = me.data('item');
-            var edit_span = $('<span class="actions"></span>');
-            edit_span.append('<a title="Edit" onclick="ui.edit_entry(\''+item_name+'\')"><img class="minicon" src="/static/actions/edit.png" /></a>');
-            edit_span.append('<a title="Delete" onclick="ui.remove_entry(\''+item_name+'\')" ><img class="minicon" src="/static/actions/delete.png" /></a>');
-            edit_span.fadeIn('slow');
-            me.append(edit_span);
-
-            }, 500));
-    } else if (event.type == "mouseleave") {
-        clearTimeout($(this).data('edit_called'));
-        $(this).data('edit_called', false);
-        $(this).find('.actions').fadeOut('slow', function() {$(this).remove()});
-    }
-}
-
-// handle inline title edition
-function blur_on_validate(e) {
-    if (e.keyCode == 27) {
-         $(this).data('canceled', true);
-         $(this).trigger('blur');
-    } else if (e.keyCode == 13) {
-         $(this).trigger('blur');
-    }
-
-}
-
-function exit_edit_func() {
-    var txt = null;
-	uid = $(this).parent().data('item');
-	if (uid == undefined ) { return; }
-
-    if ( $(this).data('canceled') != true && $(this).val() != $(this).data('orig_text') ) {
-        txt = $(this).val().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-	    $.post(''+encodeURI(uid)+'/edit', {title: txt} );
-    } else {
-        txt = $(this).data('orig_text');
-    }
-
-	$(this).replaceWith($('<a class="item_name" href="./'+encodeURI(uid)+'/">'+txt+'</a>'));
-	$(this).parent().dblclick(enter_edit_func);
-}
-
-function enter_edit_func() {
-    var elt = page_struct.get_by_id($(this).data('item'));
-    if(!elt._perm.match(/w/)) { return; }
-    if ( $(this).has('input').length != 0 ) { return; }
-
-    var orig = $(this).find('a.item_name').first();
-	// set an input field up, with focus
-    var inp = $("<input class=\"inline_edit\" value='"+orig.text()+"' />");
-    inp.data('orig_text', orig.text());
-
-    // replace second children
-    orig.replaceWith(inp);
-	inp = $(this).find("input");
-    inp.select();
-
-    // on entry input blur
-    inp.blur(exit_edit_func)
-
-    // trigger blur on ENTER keyup
-    inp.keyup(blur_on_validate);
-}
 
 function dom_initialize(dom) {
 
@@ -638,85 +712,9 @@ MainList = function(id) {
             me.list.html('');
         }
         for(n=0; n<items.length; n++)
-             ui.main_list.add_entry(items[n]);
-
-        // init hooks
-        add_hook_add_item(function(data) { me.add_entry(data).center() });
+            new Entry(items[n]);
 
         dom_initialize( me.list );
-    };
-    // ADD an entry
-    this.new_entry_dialog = function() {
-         if ( page_struct.classes.length < 1 ) {
-            w = $('<div title="Ooops!">Nothing can be added here, sorry</div>').dialog({closeOnEscape:true});
-            setTimeout(function(){w.fadeOut(function(){w.dialog('close')})}, 2000);
-            return;
-         };
-        var template = '<div id="new_obj_form"  title="New item informations"><select class="obj_class" class="required" name="class"><option value="" label="Select one item type">Select one item type</option>';
-        var tpl_ftr = '</select><div class="obj_name"><label for="new_obj_name">Name</label><input id="new_obj_name" type="text" name="name" class="obj_name required identifier" minlength="2" /></div></div>';
-        for (t=0; t<page_struct.classes.length; t++) {
-            template += '<option value="{0}" label="{0}">{0}</option>'.replace(/\{0\}/g, page_struct.classes[t]);
-        }
-
-        var new_obj = $(template+tpl_ftr);
-
-        var check_fn = function(e) {
-            if (e.keyCode == 13) {
-                validate_fn();
-            }
-        }
-        var validate_fn = function() {
-            new_obj.dialog("close");
-            var item = {
-                'class': new_obj.find('.obj_class').val(),
-                'name': new_obj.find('input.obj_name').val(),
-            };
-            $.post('add', item, call_hook_add_item);
-        }
-
-        new_obj.find('input.obj_name').keyup(check_fn);
-
-        new_obj.dialog({
-            closeOnEscape:true,
-            modal: true,
-            buttons: [ {text: 'OK', click: validate_fn} ],
-        });
-
-        if (page_struct.classes.length == 1) {
-            new_obj.find(".obj_class").val(page_struct.classes[0]).attr('disabled', true);
-            new_obj.find('input.obj_name').trigger('click').focus();
-        }
-    };
-        // ADD
-    this.add_entry = function(data) {
-        var e = eval(page_struct.items_factory.build)(data);
-        e.data('item', data.id);
-        e.disableSelection();
-        if (page_struct.items_factory.click) {
-            e.click(eval(page_struct.items_factory.click));
-        } else if (page_struct.items_factory.dblclick) {
-            e.dblclick(eval(page_struct.items_factory.dblclick));
-        }
-        if (page_struct.items_factory.hover) {
-            e.hover(eval(page_struct.items_factory.hover));
-        }
-        if ( !! data._nb_items ) {
-            if ( data._nb_items == 1 ) {
-                e.append($('&nbsp;<span class="infos">(1 item)</span>'));
-            } else {
-                e.append($('&nbsp;<span class="infos">('+data._nb_items+' items)</span>'));
-            }
-        }
-
-        // Html is element is prepared, now inject it
-
-        ui.main_list.list.append(e);
-        $('#edit_form select').append(
-            '<option value="'+data.id+'" label="'+data.id+'">'+data.id+'</option>'
-        );
-        e.hide();
-        e.fadeIn('slow');
-        return e;
     };
     return this;
 }
@@ -724,6 +722,8 @@ MainList = function(id) {
 /////// INIT/STARTUP STUFF
 
 $(document).ready(function(){
+    // init hooks
+    add_item_hooks.push(function(data) { new Entry(data).elt.center() });
 
     // add global methods
     $.fn.extend({
