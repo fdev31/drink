@@ -106,6 +106,8 @@
             {% endif %}
         {% endblock %}
 
+	</div><!-- container -->
+    <div id="footers">
     {% if obj.allow_comments %}
         <div id="comments">
         <h6>Comments (current score: {{ obj.rate()['rating'] }})</h6>
@@ -132,7 +134,6 @@
 
         </div>
     {% endif %}
-	</div><!-- container -->
 
     {% if 'WebFile' in classes and not embed %}
     <div id="file-uploader" class="row">
@@ -142,6 +143,7 @@
         </noscript>
     </div>
     {% endif %}
+    </div>
 <!-- End Document
 ================================================== -->
 </body>
