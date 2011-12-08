@@ -3,70 +3,17 @@ debug = false;
 
 var Entry = function(data) {
     var me = this;
-    // ADD an entry Popup
-    this.popup_add = function() {
-         if ( page_struct.classes.length < 1 ) {
-            w = $('<div title="Ooops!">Nothing can be added here, sorry</div>').dialog({closeOnEscape:true});
-            setTimeout(function(){w.fadeOut(function(){w.dialog('close')})}, 2000);
-            return;
-         };
-        var template = '<div id="new_obj_form"  title="New item informations"><select class="obj_class" class="required" name="class"><option value="" label="Select one item type">Select one item type</option>';
-        var tpl_ftr = '</select><div class="obj_name"><label for="new_obj_name">Name</label><input id="new_obj_name" type="text" name="name" class="obj_name required identifier" minlength="2" /></div></div>';
-        for (t=0; t<page_struct.classes.length; t++) {
-            template += '<option value="{0}" label="{0}">{0}</option>'.replace(/\{0\}/g, page_struct.classes[t]);
-        }
-
-        var new_obj = $(template+tpl_ftr);
-
-        var check_fn = function(e) {
-            if (e.keyCode == 13) {
-                validate_fn();
-            }
-        }
-        var validate_fn = function() {
-            new_obj.dialog("close");
-            var item = {
-                'class': new_obj.find('.obj_class').val(),
-                'name': new_obj.find('input.obj_name').val(),
-            };
-            $.post('add', item, call_hook_add_item);
-        }
-
-        new_obj.find('input.obj_name').keyup(check_fn);
-
-        new_obj.dialog({
-            closeOnEscape:true,
-            modal: true,
-            buttons: [ {text: 'OK', click: validate_fn} ],
-        });
-
-        if (page_struct.classes.length == 1) {
-            new_obj.find(".obj_class").val(page_struct.classes[0]).attr('disabled', true);
-            new_obj.find('input.obj_name').trigger('click').focus();
-        }
-    };
-
-    // edit_entry
-    this.edit = function(data) {
-       ui.dialog('<iframe title="Edit object" src="'+base_uri+'/'+data+'/edit?embedded=1">No iframe support :(</iframe>', buttons=null, style='big');
-    },
     // remove_entry
     this.remove = function(item) {
         ui.dialog('<div id="remove-confirm" title="Do you really want to remove this item ?">Please, confirm removal.</div>', {
             Accept: function() {
                 $( this ).dialog( "close" );
                 $.ajax({
-                    url:'rm?name='+encodeURI(item),
+                    url: me.path+'rm?name='+me.id,
                 }).success(function() {
-                    var safe_name = item.replace( /"/g, '\\"');
-/*
-                    $('#edit_form select option[value="'+safe_name+'"]').remove();
-                    $('#rm_form select option[value="'+safe_name+'"]').remove();
-                    $('#rm_form select option[value="'+safe_name+'"]').remove();
-*/
-                    $('#main_body .entry:data(item='+item+')').slideUp('slow', function() {$(this).remove()});
+                    me.elt.slideUp('slow', function() {$(this).remove()});
                 }).error(function(){
-                    $('<div title="Error occured">Sorry, something didn\'t work correctly</div>').dialog();
+                    ui.dialog('<div title="Error occured">Sorry, something didn\'t work correctly</div>');
                    });
             },
             Cancel: function() {
@@ -89,9 +36,10 @@ var Entry = function(data) {
 
             $(this).data('edit_called', setTimeout(function() {
                 var item_name = me.data('item');
+                console.log(item_name);
                 var edit_span = $('<span class="actions"></span>');
-                edit_span.append('<a title="Edit" onclick="ui.edit_entry(\''+item_name+'\')"><img class="minicon" src="/static/actions/edit.png" /></a>');
-                edit_span.append('<a title="Delete" onclick="ui.remove_entry(\''+item_name+'\')" ><img class="minicon" src="/static/actions/delete.png" /></a>');
+                edit_span.append('<a title="Edit" onclick="page_struct.get_ent(\''+item_name+'\').edit()"><img class="minicon" src="/static/actions/edit.png" /></a>');
+                edit_span.append('<a title="Delete" onclick="page_struct.get_ent(\''+item_name+'\').remove()" ><img class="minicon" src="/static/actions/delete.png" /></a>');
                 edit_span.fadeIn('slow');
                 me.append(edit_span);
 
@@ -114,7 +62,7 @@ var Entry = function(data) {
 
     }
 
-    this._exit_edit_func = function () {
+    this._exit_edit_title = function () {
         var txt = null;
         uid = $(this).parent().data('item');
         if (uid == undefined ) { return; }
@@ -129,9 +77,15 @@ var Entry = function(data) {
         $(this).replaceWith($('<a class="item_name" href="./'+encodeURI(uid)+'/">'+txt+'</a>'));
         $(this).parent().dblclick(me._enter_edit_func);
     }
+    // edit_entry
+    this.edit = function() {
+       ui.dialog('<iframe title="'+me.title+'\'s properties" src="'+me.path+me.id+'/edit?embedded=1">No iframe support :(</iframe>', buttons=null, style='big');
+    },
 
-    this.edit_popup = function () {
-        if(!me.elt._perm.match(/w/)) { return; }
+    this.edit_title = function () {
+        console.log(me);
+        console.log(this);
+        if(!me._perm.match(/w/)) { return; }
         if ( me.elt.has('input').length != 0 ) { return; }
 
         var orig = me.elt.find('a.item_name').first();
@@ -145,7 +99,7 @@ var Entry = function(data) {
         inp.select();
 
         // on entry input blur
-        inp.blur(me._exit_edit_func)
+        inp.blur(me._exit_edit_title)
 
         // trigger blur on ENTER keyup
         inp.keyup(me._blur_on_validate);
@@ -167,10 +121,16 @@ var Entry = function(data) {
         return $('<li class="entry"><img width="32px" src="'+mime+'" /><a class="item_name" href="'+data.path+data.id+'/" title="'+data.description+'">'+(data.title || data.id)+'</a></li>');
     }
 
+    console.log('xxxxxxxxx');
+    console.log(this, data);
+
     $.extend(this, data);
 
     // make html entry
     var e = eval(page_struct.items_factory.entry_factory)(data);
+    // add itself to main_list
+    ui.main_list.list.append(e);
+    me.elt = e;
     e.disableSelection();
     if (page_struct.items_factory.click) {
         e.click(eval(page_struct.items_factory.click));
@@ -191,14 +151,13 @@ var Entry = function(data) {
     // Html is element is prepared, now inject it
     e.data('item', data.id);
     e.data('item_url', data.path+data.id);
-    // add itself to main_list
-    ui.main_list.list.append(e);
     e.hide();
     e.fadeIn('slow');
     return this;
 };
 
 var Page = function () {
+    var me = this;
     this.classes = [];
     this._perm = 'r';
     this.description = '';
@@ -209,16 +168,62 @@ var Page = function () {
     this.logged_in = false;
     this.title = "unk";
     this.merge = function (d) {
-        $.extend(this, d);
-        this.id_idx_map = new Object();
-        me = this;
-        this.items.forEach( function(e, i) {
+        $.extend(me, d);
+        me.id_idx_map = new Object();
+        me.items.forEach( function(e, i) {
             me.id_idx_map[e.id] = i;
         })
         this.entries = d.items.map(function(x) {return new Entry(x)});
     };
+    this.get_ent = function(child_id) {
+        return this.entries[this.id_idx_map[child_id]];
+    }
     this.get_by_id = function(child_id) {
         return this.items[this.id_idx_map[child_id]];
+    };
+    this.add_item = function(data) {
+        console.log(data);
+        var e = new Entry(data);
+        me.id_idx_map[data.id] = me.entries.length;
+        me.entries.push( e );
+        me.items.push( data );
+        e.elt.center();
+        call_hook_add_item(data);
+    };
+    this._fill = function (data, status, req) {
+        if(debug) console.log(data);
+        me.merge(data);
+        if (!data._perm) return;
+        // TODO: return actions in struct
+        $.ajax({url: 'actions'}).success(ui.load_action_list).error(function() { $('<div title="Error occured">List of actions failed to load</div>').dialog({closeOnEscape:true});});
+        // list-item creation fonction
+
+        if ( me._perm.match(/a/) ) {
+            // Integration of http://valums.com/ajax-upload/
+            try {
+                qq.UploadDropZone.prototype._isValidFileDrag = function(e){ return true; }
+                var uploader = new qq.FileUploader({
+                    element: $('#file-uploader')[0],
+                    action: 'upload',
+                    //debug: true,
+                    showMessage: function(message){ $('<div title="Drop zone">'+message+'</div>'); },
+                    onComplete: function(id, fileName, data){
+                        if ( data.id ) {
+                            ui.add_item(data);
+                        }
+                        $('ul.qq-upload-list > li.qq-upload-success').fadeOut('slow', function() {
+                            $(this).remove()
+                            });
+                    },
+                });
+            } catch (ReferenceError) {
+                //console.log('Uploader code not available');
+            }
+        };
+
+    };
+    this.reload = function() {
+        $.ajax({url: 'struct'}).success(me._fill).error(function() {ui.dialog('<div title="Error occured">Listing can\'t be loaded :(</div>')});
     };
     return this;
 }
@@ -331,38 +336,49 @@ var Position = function(default_pos, list_getter, selection_class) {
 
 // UI Object
 ui = new Object({
-    fill_struct: function (data, status, req) {
-        if(debug) console.log(data);
-        page_struct.merge(data);
-        if (!data._perm) return;
-        // TODO: return actions in struct
-        $.ajax({url: 'actions'}).success(ui.load_action_list).error(function() { $('<div title="Error occured">List of actions failed to load</div>').dialog({closeOnEscape:true});});
-        // list-item creation fonction
+    // ADD an entry Popup
+    'add_entry' : function() {
+         if ( page_struct.classes.length < 1 ) {
+            w = $('<div title="Ooops!">Nothing can be added here, sorry</div>').dialog({closeOnEscape:true});
+            setTimeout(function(){w.fadeOut(function(){w.dialog('close')})}, 2000);
+            return;
+         };
+        var template = '<div id="new_obj_form"  title="New item informations"><select class="obj_class" class="required" name="class"><option value="" label="Select one item type">Select one item type</option>';
+        var tpl_ftr = '</select><div class="obj_name"><label for="new_obj_name">Name</label><input id="new_obj_name" type="text" name="name" class="obj_name required identifier" minlength="2" /></div></div>';
+        for (t=0; t<page_struct.classes.length; t++) {
+            template += '<option value="{0}" label="{0}">{0}</option>'.replace(/\{0\}/g, page_struct.classes[t]);
+        }
 
-        if ( page_struct._perm.match(/a/) ) {
-            // Integration of http://valums.com/ajax-upload/
-            try {
-                qq.UploadDropZone.prototype._isValidFileDrag = function(e){ return true; }
-                var uploader = new qq.FileUploader({
-                    element: $('#file-uploader')[0],
-                    action: 'upload',
-                    //debug: true,
-                    showMessage: function(message){ $('<div title="Drop zone">'+message+'</div>'); },
-                    onComplete: function(id, fileName, data){
-                        if ( data.id ) {
-                            call_hook_add_item(data);
-                        }
-                        $('ul.qq-upload-list > li.qq-upload-success').fadeOut('slow', function() {
-                            $(this).remove()
-                            });
-                    },
-                });
-            } catch (ReferenceError) {
-                //console.log('Uploader code not available');
+        var new_obj = $(template+tpl_ftr);
+
+        var check_fn = function(e) {
+            if (e.keyCode == 13) {
+                validate_fn();
             }
-        };
+        }
+        var validate_fn = function() {
+            new_obj.dialog("close");
+            var item = {
+                'class': new_obj.find('.obj_class').val(),
+                'name': new_obj.find('input.obj_name').val(),
+            };
+            $.post('add', item).success(page_struct.add_item);
+        }
 
+        new_obj.find('input.obj_name').keyup(check_fn);
+
+        new_obj.dialog({
+            closeOnEscape:true,
+            modal: true,
+            buttons: [ {text: 'OK', click: validate_fn} ],
+        });
+
+        if (page_struct.classes.length == 1) {
+            new_obj.find(".obj_class").val(page_struct.classes[0]).attr('disabled', true);
+            new_obj.find('input.obj_name').trigger('click').focus();
+        }
     },
+
     edit: function(what) {
         ui.dialog('<div title="Edit"><iframe style="height: 100%" src="'+what+'edit?embedded=1"></iframe></div>');
     },
@@ -432,9 +448,6 @@ ui = new Object({
             } else {
                 setTimeout(function(){ $('#header_bar').slideDown('slow') }, 1000 );
             }
-        },
-        reload: function() {
-            $.ajax({url: 'struct'}).success(ui.fill_struct).error(function() {ui.dialog('<div title="Error occured">Listing can\'t be loaded :(</div>')});
         },
         // Move
         move_current_page: function() {
@@ -722,8 +735,6 @@ MainList = function(id) {
 /////// INIT/STARTUP STUFF
 
 $(document).ready(function(){
-    // init hooks
-    add_item_hooks.push(function(data) { new Entry(data).elt.center() });
 
     // add global methods
     $.fn.extend({
@@ -735,6 +746,7 @@ $(document).ready(function(){
     );
 
     // some globals
+    page_struct.reload();
     ui.main_list = new MainList();
     ui.selection.clear();
 
@@ -745,7 +757,6 @@ $(document).ready(function(){
     }, 'No "$", "%" or "/" and don\' start with a dot or an underscore, please :)');
 
     // load main content
-    ui.reload();
 
     // init keys
     // Some shortcuts

@@ -187,7 +187,7 @@ class Page(drink.Model):
         dict(title="View/Reload", action="document.location.href = base_uri+'/view'", icon="view", perm='r'),
         dict(title="Edit", style="edit_form", action="edit", icon="edit", perm='w'),
         dict(title="List content", action="list", icon="open", perm='r'),
-        dict(title="Add object", condition="page_struct.classes.length!=0", style="add_form", action="ui.main_list.new_entry_dialog()", key='INS', icon="new", perm='a'),
+        dict(title="Add object", condition="page_struct.classes.length!=0", style="add_form", action="ui.add_entry()", key='INS', icon="new", perm='a'),
         dict(title="Move", style="move_form", action="ui.move_current_page()", icon="move", perm='o'),
         dict(title="Image gallery", style="move_form", action="gallery", icon="view", perm='r'),
         #dict(title="Remove object", onclick="ui.main_list.remove_entry()", icon="delete", perm='w'),
@@ -286,7 +286,7 @@ class Page(drink.Model):
     #: A map of <html/js event>: <js function>, used to hook items interactions
 
     items_factory = {
-        'dblclick': "this.edit_popup",
+        'dblclick': "this.edit_title",
         'hover': "this.popup_actions",
         'entry_factory': "this.default_factory",
     }
