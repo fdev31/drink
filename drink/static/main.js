@@ -760,10 +760,10 @@ $(document).ready(function(){
 
     // init keys
     // Some shortcuts
-    keys.add('DOWN', function() {
+    keys.add('J', function() {
         ui.selection.next();
     });
-    keys.add('UP', function() {
+    keys.add('K', function() {
         ui.selection.prev();
     });
     keys.add('ENTER', function() {
