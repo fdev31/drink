@@ -288,12 +288,19 @@ class Duration(Text):
         elif val.endswith('w'):
             val = float(val[:-1])*24*7
         float(val) # validates float
-        setattr(obj, name, val)
+        Text.set(self, obj, name, val)
 
+from hashlib import sha1
+import re
+hex_re = re.compile('[0-9a-f]{40}')
 
 class Password(Text):
     _template = r'''<input type="password" size="%(size)d" id="%(id)s" name="%(name)s" value="%(value)s" />'''
 
+    def set(self, obj, name, val):
+        if not hex_re.match(val):
+            val = sha1(val).hexdigest()
+        setattr(obj, name, val)
 
 class File(_Editable):
     _template = '<input name="%(name)s" id="%(id)s" type="file" />'

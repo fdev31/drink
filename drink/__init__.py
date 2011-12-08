@@ -30,6 +30,7 @@ log = logging.getLogger('core')
 
 from drink.config import config, BASE_DIR
 import bottle
+from hashlib import sha1
 
 #: All kind of drink objects as a ``{"name": Page_class}`` mapping.
 
@@ -288,20 +289,19 @@ bottle.server_names['drink'] = DrinkServer
 class Authenticator(object):
     """ Authentication class, handles user's identity """
 
-    __slots__ = ['user', 'success', 'groups', 'admin', 'id']
+    __slots__ = ['user', 'success', 'session', 'groups', 'admin', 'id']
 
     def __init__(self):
-        login = request.get_cookie('login', 'drink')
-        # TODO: handle basic http auth digest
-        try:
-            #: current user object
-            self.user = db.db['users'][login]
-        except KeyError:
-            #: is the user authenticated ?
-            self.success = False
+        self.session = session = bottle.request.environ.get('beaker.session')
+        logged_in = session.get('logged_in', '')
+        if logged_in:
+            self.user = db.db['users'][session['login']]
+            ok = self.user.password == logged_in
+            if not ok:
+                self.user = None
+            self.success = ok
         else:
-            password = request.get_cookie('password', 'drink')
-            self.success = self.user.password == password
+            self.success = False
 
         if self.success:
             #: set of current user's groups
@@ -375,13 +375,13 @@ def login_actions():
 @route("/login", method=['GET', 'POST'])
 def log_in():
     request.identity = Authenticator()
-
     if request.forms.get('login_name', ''):
         a = 15552000 # 6*30*24*60*60
-        response.set_cookie('password', request.forms.get('login_password', ''), 'drink', max_age=a)
-        response.set_cookie('login', request.forms.get('login_name', ''), 'drink', max_age=a)
-        url = request.params.get('from', '/')
-        rdr(url)
+        session = request.identity.session
+        session['logged_in'] = sha1(request.forms.get('login_password', '')).hexdigest()
+        session['login'] = request.forms.get('login_name', '')
+        session.save()
+        return rdr(request.params.get('from', '/'))
     else:
         html='''
         <h1>Connect to drink</h1>
@@ -400,8 +400,9 @@ def log_in():
 
 @route("/logout", method=['GET', 'POST'])
 def log_out():
-    response.set_cookie('password', '', 'drink')
-    rdr('/')
+    session = bottle.request.environ.get('beaker.session')
+    session['logged_in'] = ''
+    return rdr('/')
 
 # generic dispatcher method
 @route("/:objpath#.+#", method=['GET', 'POST'])
@@ -768,6 +769,8 @@ For static files changes, no restart is needed.
         with db as root:
             set_trace()
 
+from beaker.middleware import SessionMiddleware
+
 def make_app(full=False):
     """ Returns Drink WSGI application """
     global reset_required
@@ -803,6 +806,14 @@ def make_app(full=False):
     config.async = async
 
     app = bottle.app()
+    session_opts = {
+        'session.type': 'memory',
+        'session.cookie_expires': 300,
+        #'session.data_dir':  DB_PATH,
+        'session.auto': True
+    }
+    app = SessionMiddleware(app, session_opts)
+
     if not full:
         return app
 

@@ -1,4 +1,5 @@
 JS: finish Refactor all id's & co with Element item attached to .entry elements
+- tabs.js is conflicting query.ui
 - trouver bidouille pour avoir des classes en markdown (+ propre que blog)
 - HANDLE ITEMS RANGE /items?from=0&to=100
 - Prototype fsQueue usage for long-running tasks (try with a fake process)
