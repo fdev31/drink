@@ -286,9 +286,9 @@ class Page(drink.Model):
     #: A map of <html/js event>: <js function>, used to hook items interactions
 
     items_factory = {
-        'dblclick': "this.edit_title",
-        'hover': "this.popup_actions",
-        'entry_factory': "this.default_factory",
+        'dblclick': "edit_title",
+        'hover': "popup_actions",
+        'entry_factory': "default_factory",
     }
 
     def struct(self, childs=True, full=None):
@@ -672,7 +672,7 @@ class ListPage(Page):
         if request.is_ajax:
             self.forced_order = unquote(request.params.get('set')).decode('utf-8').split('/')
         else:
-            html = '<input class="completable" complete_type="objpath"></input>'
+            html = '<input type="text" class="completable" complete_type="objpath" value="/pages/"></input>'
             return self.view(html=html)
 
     def itervalues(self):

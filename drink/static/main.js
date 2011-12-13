@@ -83,8 +83,6 @@ var Entry = function(data) {
     },
 
     this.edit_title = function () {
-        console.log(me);
-        console.log(this);
         if(!me._perm.match(/w/)) { return; }
         if ( me.elt.has('input').length != 0 ) { return; }
 
@@ -106,51 +104,29 @@ var Entry = function(data) {
     }
 
     /* construtor */
-    this.default_factory = function(data) {
+    this.default_factory = function() {
         // builds li element around an item object
         var mime = "";
-        if ( data.mime ) {
-            if ( data.mime.match( url_regex )) {
-                mime = data.mime;
+        if ( me.mime ) {
+            if ( me.mime.match( url_regex )) {
+                mime = me.mime;
             } else {
-                mime = "/static/mime/"+data.mime+".png";
+                mime = "/static/mime/"+me.mime+".png";
             }
         } else {
             mime = "/static/mime/page.png";
         }
-        return $('<li class="entry"><img width="32px" src="'+mime+'" /><a class="item_name" href="'+data.path+data.id+'/" title="'+data.description+'">'+(data.title || data.id)+'</a></li>');
+        return $('<li class="entry"><img width="32px" src="'+mime+'" /><a class="item_name" href="'+me.path+me.id+'/" title="'+me.description+'">'+(me.title || me.id)+'</a></li>');
     }
 
-    console.log('xxxxxxxxx');
-    console.log(this, data);
-
     $.extend(this, data);
-
     // make html entry
-    var e = eval(page_struct.items_factory.entry_factory)(data);
+    var e = page_struct.get_html_entry(me);
+    console.log('coing');
     // add itself to main_list
     ui.main_list.list.append(e);
     me.elt = e;
     e.disableSelection();
-    if (page_struct.items_factory.click) {
-        e.click(eval(page_struct.items_factory.click));
-    } else if (page_struct.items_factory.dblclick) {
-        e.dblclick(eval(page_struct.items_factory.dblclick));
-    }
-    if (page_struct.items_factory.hover) {
-        e.hover(eval(page_struct.items_factory.hover));
-    }
-    if ( !! data._nb_items ) {
-        if ( data._nb_items == 1 ) {
-            e.append($('&nbsp;<span class="infos">(1 item)</span>'));
-        } else {
-            e.append($('&nbsp;<span class="infos">('+data._nb_items+' items)</span>'));
-        }
-    }
-
-    // Html is element is prepared, now inject it
-    e.data('item', data.id);
-    e.data('item_url', data.path+data.id);
     e.hide();
     e.fadeIn('slow');
     return this;
@@ -168,12 +144,17 @@ var Page = function () {
     this.logged_in = false;
     this.title = "unk";
     this.merge = function (d) {
-        $.extend(me, d);
         me.id_idx_map = new Object();
-        me.items.forEach( function(e, i) {
-            me.id_idx_map[e.id] = i;
-        })
-        this.entries = d.items.map(function(x) {return new Entry(x)});
+        $.extend(me, d);
+        me.items = [];
+        me.entries = [];
+        if (d.items) {
+            for (var i=0 ; i<d.items.length ; i++)
+                me.add_item(d.items[i]);
+        } else {
+            me.items = me.entries = [];
+        }
+        console.log(me);
     };
     this.get_ent = function(child_id) {
         return this.entries[this.id_idx_map[child_id]];
@@ -181,6 +162,34 @@ var Page = function () {
     this.get_by_id = function(child_id) {
         return this.items[this.id_idx_map[child_id]];
     };
+    this.get_from_factory = function(which, what) {
+        return me[which+'_factory'][what+'_factory'];
+    }
+    this.get_html_entry = function(data) {
+        var expr = me.get_from_factory('items', 'entry');
+        if (!!!expr.match(/.*\./))
+            expr = "data."+expr;
+        var e = eval(expr)(data);
+        if (me.get_from_factory('items', 'click')) {
+            e.live('click', me.get_from_factory('items', 'click'));
+        } else if (me.get_from_factory('items', 'dblclick')) {
+            e.live('dblclick', me.get_from_factory('items', 'dblclick'));
+        };
+        if (me.get_from_factory('items', 'hover')) {
+            e.live('hover', me.get_from_factory('items', 'hover'));
+        };
+        if ( !! data._nb_items ) {
+            if ( data._nb_items == 1 ) {
+                e.append($('&nbsp;<span class="infos">(1 item)</span>'));
+            } else {
+                e.append($('&nbsp;<span class="infos">('+data._nb_items+' items)</span>'));
+            }
+        };
+        // Html is element is prepared, now inject it
+        e.data('item', data.id);
+        e.data('item_url', data.path+data.id);
+        return e;
+    }
     this.add_item = function(data) {
         console.log(data);
         var e = new Entry(data);
@@ -451,7 +460,7 @@ ui = new Object({
         },
         // Move
         move_current_page: function() {
-            var win = ui.dialog('<div id="move-confirm" title="Do you really want to move this item ?">Please, type destination path:<input id="move-destination" class="completable" complete_type="objpath"></input></div>', {
+            var win = ui.dialog('<div id="move-confirm" title="Do you really want to move this item ?">Please, type destination path:<input style="width: 90%" type="text" id="move-destination" class="completable" complete_type="objpath" value="/pages/"></input></div>', {
                 Move: function() {
                     $.post($('#move-confirm #move-destination').val()+'/borrow',
                         {'item': base_path},
@@ -581,7 +590,7 @@ function dom_initialize(dom) {
         };
     });
     dom.find('input.completable[complete_type=objpath]').keyup(function(e) {
-        if (1 ||debug) { console.log('match'); console.log(e) };
+        if (debug) { console.log('match'); console.log(e) };
         var o = $(this);
         if (e.which == 13) {
             o.parent().parent().find('button:first').trigger('click');
