@@ -286,9 +286,10 @@ class Page(drink.Model):
     #: A map of <html/js event>: <js function>, used to hook items interactions
 
     items_factory = {
+            # TODO: make it really generic, not just look-a-like
         'dblclick': "edit_title",
         'hover': "popup_actions",
-        'entry_factory': "default_factory",
+        'entry': "default_factory",
     }
 
     def struct(self, childs=True, full=None):

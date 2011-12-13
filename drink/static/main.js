@@ -102,6 +102,32 @@ var Entry = function(data) {
         // trigger blur on ENTER keyup
         inp.keyup(me._blur_on_validate);
     }
+    this._get_html = function() {
+        /* FIXME: ugly code */
+        var expr = page_struct.get_from_factory('items', 'entry');
+        var e = eval(expr)(me);
+        ui.main_list.list.append(e);
+        if (page_struct.get_from_factory('items', 'click')) {
+            e.bind('click', page_struct.get_from_factory('items', 'click'));
+        } else if (page_struct.get_from_factory('items', 'dblclick')) {
+            e.bind('dblclick', eval(page_struct.get_from_factory('items', 'dblclick')));
+        };
+        // Html is element is prepared, now inject it
+        e.data('item', me.id);
+        e.data('item_url', me.path+me.id);
+        console.log('hover');
+        if (page_struct.get_from_factory('items', 'hover')) {
+            e.bind('mouseenter mouseleave', eval(page_struct.get_from_factory('items', 'hover')));
+        };
+        if ( !! me._nb_items ) {
+            if ( me._nb_items == 1 ) {
+                e.append($('&nbsp;<span class="infos">(1 item)</span>'));
+            } else {
+                e.append($('&nbsp;<span class="infos">('+me._nb_items+' items)</span>'));
+            }
+        };
+        return e;
+    };
 
     /* construtor */
     this.default_factory = function() {
@@ -118,17 +144,31 @@ var Entry = function(data) {
         }
         return $('<li class="entry"><img width="32px" src="'+mime+'" /><a class="item_name" href="'+me.path+me.id+'/" title="'+me.description+'">'+(me.title || me.id)+'</a></li>');
     }
+    this.image_factory = function() {
+        // builds li element around an item object
+        var mime = "";
+        if ( me.mime ) {
+            if ( me.mime.match( url_regex )) {
+                mime = me.mime;
+            } else {
+                mime = "/static/mime/"+me.mime+".png";
+            }
+        } else {
+            mime = "/static/mime/page.png";
+        }
+        return $('<li class="entry"><img width="32px" src="'+mime+'" /><a class="item_name" href="'+me.path+me.id+'/" title="'+me.description+'"><img src="'+me.path+me.id+'/raw" /><div class="caption">'+(me.title || me.id)+'</a></div></li>');
+    }
 
     $.extend(this, data);
     // make html entry
-    var e = page_struct.get_html_entry(me);
-    console.log('coing');
-    // add itself to main_list
-    ui.main_list.list.append(e);
+    var e = me._get_html();
+    console.log(e);
     me.elt = e;
+    // add itself to main_list
     e.disableSelection();
     e.hide();
     e.fadeIn('slow');
+    console.log(this.id);
     return this;
 };
 
@@ -163,35 +203,12 @@ var Page = function () {
         return this.items[this.id_idx_map[child_id]];
     };
     this.get_from_factory = function(which, what) {
-        return me[which+'_factory'][what+'_factory'];
-    }
-    this.get_html_entry = function(data) {
-        var expr = me.get_from_factory('items', 'entry');
-        if (!!!expr.match(/.*\./))
-            expr = "data."+expr;
-        var e = eval(expr)(data);
-        if (me.get_from_factory('items', 'click')) {
-            e.live('click', me.get_from_factory('items', 'click'));
-        } else if (me.get_from_factory('items', 'dblclick')) {
-            e.live('dblclick', me.get_from_factory('items', 'dblclick'));
-        };
-        if (me.get_from_factory('items', 'hover')) {
-            e.live('hover', me.get_from_factory('items', 'hover'));
-        };
-        if ( !! data._nb_items ) {
-            if ( data._nb_items == 1 ) {
-                e.append($('&nbsp;<span class="infos">(1 item)</span>'));
-            } else {
-                e.append($('&nbsp;<span class="infos">('+data._nb_items+' items)</span>'));
-            }
-        };
-        // Html is element is prepared, now inject it
-        e.data('item', data.id);
-        e.data('item_url', data.path+data.id);
-        return e;
+        var val = me[which+'_factory'][what];
+        if (val && !!!val.match(/.*\./))
+            val = "me."+val;
+        return val;
     }
     this.add_item = function(data) {
-        console.log(data);
         var e = new Entry(data);
         me.id_idx_map[data.id] = me.entries.length;
         me.entries.push( e );
@@ -728,6 +745,7 @@ MainList = function(id) {
         if (debug) console.log('No list with name '+this.id);
     };
 
+    /*
     // ITEM LIST LOADING THINGS
     this.reload = function(items) {
         if ('' != me.list.html()) {
@@ -738,6 +756,7 @@ MainList = function(id) {
 
         dom_initialize( me.list );
     };
+    */
     return this;
 }
 
