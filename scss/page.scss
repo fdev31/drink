@@ -156,6 +156,12 @@ button {
     vertical-align: 105%;
     align: 105%;
 }
+div.input {
+    > ul {
+        padding: 0;
+        margin: 1ex;
+    }
+}
 span.page_nr_cur {
     padding: 0.1ex 0.5ex 0.1ex 0.5ex;
     background: $background;
