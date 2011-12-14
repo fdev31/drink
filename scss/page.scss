@@ -197,16 +197,13 @@ b.match {
     }
 }
 div.togglable {
-    @include light_shadowed;
     padding: 0 1ex 0 1ex;
-    @include background-image(linear-gradient(#fff  5%, #ddd 30%, #eee 90%, $background 100%));
 }
 span.toggler {
     cursor: pointer;
     margin-right: 1ex;
     @include border-radius($radius);
     padding: 0 0.5ex 0 0.5ex;
-
 }
 span.selected {
     border: solid white 1px;
@@ -380,6 +377,18 @@ li.markItUpButton > a {
 .error_message {
     font-size: 300%;
     color: #a55;
+}
+a > img.icon {
+    opacity:0.5;
+    filter:progid:DXImageTransform.Microsoft.Alpha(opacity=50);
+    -moz-opacity:0.5;
+    -khtml-opacity:0.5;
+}
+a > img.icon:hover {
+    opacity:1.0;
+    filter:progid:DXImageTransform.Microsoft.Alpha(opacity=100);
+    -moz-opacity:1.0;
+    -khtml-opacity:1;
 }
 .icon {
     width: 32px;
