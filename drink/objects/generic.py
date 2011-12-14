@@ -183,10 +183,10 @@ class Page(drink.Model):
     #: actions
     _actions = [
         dict(title="Help", action="/pages/help/", perm="r", icon="help"),
-        dict(title="Back", action="if(!!document.location.pathname.match(/\/$/)) {document.location.href='../'} else{document.location.href='./'}", perm="r", icon="undo"),
-        dict(title="View/Reload", action="document.location.href = base_uri+'/view'", icon="view", perm='r'),
-        dict(title="Edit", style="edit_form", action="edit", icon="edit", perm='w'),
-        dict(title="List content", action="list", icon="open", perm='r'),
+        dict(title="Back", action="ui.go_back()", perm="r", icon="undo"),
+        dict(title="View/Reload", action="ui.goto_object(undefined, 'view')", icon="view", perm='r'),
+        dict(title="Edit", style="edit_form", action="ui.goto_object_(undefined, 'edit')", icon="edit", perm='w'),
+        dict(title="List content", action="ui.goto_object(undefined, 'list')", icon="open", perm='r'),
         dict(title="Add object", condition="page_struct.classes.length!=0", style="add_form", action="ui.add_entry()", key='INS', icon="new", perm='a'),
         dict(title="Move", style="move_form", action="ui.move_current_page()", icon="move", perm='o'),
         dict(title="Image gallery", style="move_form", action="gallery", icon="view", perm='r'),
