@@ -18,7 +18,11 @@ save_doc = function(h) {
     $.post(url, {'_dk_fields': 'content', 'content': text})
         .success(function() {
             var m = $('#auto_edit_form').parent().data('mdown');
-            m.load_page(m.source);
+            if (m) { // children entry
+                m.load_page(m.source);
+            } else { /* main document edition */
+                ui.goto_object();
+            };
         })
     console.log(text);
     return false;

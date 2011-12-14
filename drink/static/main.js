@@ -359,11 +359,61 @@ var Position = function(default_pos, list_getter, selection_class) {
     this.select_next = $.noop;
     return this;
 }
+MainList = function(id) {
+    this.id = id || "main_list";
+    var me = this;
+
+    this.list = $('#'+this.id);
+    this.list.sortable({
+        cursor: 'move',
+        distance: 5,
+        accept: '.entry',
+        tolerence: 'pointer',
+        helper: 'original',
+        revert: true,
+        stop: function(event, ui) {
+            if ( event.ctrlKey ) {
+                var pat = $('#'+this.id+' li').map( function() { return $(this).data('item') } ).get().join('/');
+                $.post('move', {'set': pat});
+                return true;
+            } else {
+                return false;
+            }
+        },
+    });
+
+    if ($('#'+this.id).length == 0) {
+        if (debug) console.log('No list with name '+this.id);
+    };
+
+    return this;
+}
 
 // UI Object
 ui = new Object({
+  main_list: new MainList(),
+  go_back: function() {
+    /*
+        if(!!document.location.pathname.match(/\/$/)) {document.location.href='../'} else{document.location.href='./'}
+      */
+
+        if (window.location.href != base_uri) {
+            window.location = base_uri;
+        } else {
+            window.location = base_uri+'../';
+        };
+    },
+  goto_object: function(obj, view) {
+        if(!!!view)
+            view = '';
+        if (!!!obj) {
+            window.location = base_uri+view;
+        } else {
+            window.location = obj.path+obj.id+'/'+view;
+        };
+    },
     // ADD an entry Popup
-    'add_entry' : function() {
+    add_entry: function() {
          if ( page_struct.classes.length < 1 ) {
             w = $('<div title="Ooops!">Nothing can be added here, sorry</div>').dialog({closeOnEscape:true});
             setTimeout(function(){w.fadeOut(function(){w.dialog('close')})}, 2000);
@@ -448,7 +498,7 @@ ui = new Object({
                         (page_struct._perm.match('w') || page_struct._perm.match(elt.perm))
                         ) {
                         // if plain link
-                        if (elt.action.match(/^[a-zA-Z0-9/]+$/)) {
+                        if (elt.action.match(/^[^\(\)\[\] ;]+$/)) {
                             if(!!elt.action.match(/\/$/)) {
                                 var text='<a class="action '+(elt.style || '')+'"  title="'+elt.title+'" href="'+elt.action+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
                             } else {
@@ -665,6 +715,7 @@ function dom_initialize(dom) {
         }
     });
 
+
     // the old rm_form was droppable, FIXME: replace with a trash icon or something
     dom.find('.rm_form').droppable({
         drop: function(event, ui) {
@@ -718,47 +769,6 @@ function get_matching_elts(path_elt, callback) {
     $.get(url).success(function(data) { callback(data.items, cur_path) } );
 }
 
-MainList = function(id) {
-    this.id = id || "main_list";
-    var me = this;
-
-    this.list = $('#'+this.id);
-    this.list.sortable({
-        cursor: 'move',
-        distance: 5,
-        accept: '.entry',
-        tolerence: 'pointer',
-        helper: 'original',
-        revert: true,
-        stop: function(event, ui) {
-            if ( event.ctrlKey ) {
-                var pat = $('#'+this.id+' li').map( function() { return $(this).data('item') } ).get().join('/');
-                $.post('move', {'set': pat});
-                return true;
-            } else {
-                return false;
-            }
-        },
-    });
-
-    if ($('#'+this.id).length == 0) {
-        if (debug) console.log('No list with name '+this.id);
-    };
-
-    /*
-    // ITEM LIST LOADING THINGS
-    this.reload = function(items) {
-        if ('' != me.list.html()) {
-            me.list.html('');
-        }
-        for(n=0; n<items.length; n++)
-            new Entry(items[n]);
-
-        dom_initialize( me.list );
-    };
-    */
-    return this;
-}
 
 /////// INIT/STARTUP STUFF
 
@@ -774,9 +784,8 @@ $(document).ready(function(){
     );
 
     // some globals
-    page_struct.reload();
     ui.main_list = new MainList();
-    ui.selection.clear();
+    page_struct.reload();
 
     // extend validator (forms)
 
@@ -813,27 +822,24 @@ $(document).ready(function(){
         ui.remove_entry( ui.selection.selected_item().data('item') );
     });
     keys.add('BACK', function() {
-        if (window.location.href != base_uri) {
-            window.location = base_uri;
-        } else {
-            window.location = base_uri+'../';
-        }
+        ui.go_back();
+
     });
     keys.add('S', function() {
         // focus first entry
         $("input:text:visible:first").focus().center();
     });
-    keys.add('E', function() {
-        window.location = base_uri+'edit';
-    });
     keys.add('ESC', function() {
         ui.selection.clear();
     });
+    keys.add('E', function() {
+        ui.goto_object(undefined, 'edit');
+    });
     keys.add('L', function() {
-        window.location = base_uri+'list';
+        ui.goto_object(undefined, 'list');
     });
     keys.add('V', function() {
-        window.location = base_uri+'view';
+        ui.goto_object(undefined, 'view');
     });
     keys.add('H', function() {
         ui.dialog('<div title="Keyboard shortcuts"><ul><li>[E]dit</li><li>[S]earch / [S]elect first input field</li><li>[L]ist</li><li>[V]iew</li><li>BACKSPACE: one level up</li><li>UP/DOWN: change selection</li><li>[DEL]ete</li><li>[ENTER]</li><li>ESCAPE: close dialogs</li></ul></div>');

@@ -15,6 +15,9 @@ $hi2_color: #fa5;
 $hi3_color: #ffd;
 $contour: #eed;
 $main_color: #093E56;
+$fast_d: 180ms;
+$std_d: 350ms;
+$slow_d: 800ms;
 $background: #eed;
 
 /* mixins */
@@ -34,7 +37,7 @@ $background: #eed;
     border: none;
     padding: 0 1ex 0 1ex;
     background: $hi3_color;
-    @include transition-duration(300ms);
+    @include transition-duration($slow_d);
 
     &:hover {
         color: black;
@@ -42,10 +45,11 @@ $background: #eed;
     }
     &:focus {
         background: white;
+        @include transition-duration($slow_d);
     }
 }
 @mixin general_hover {
-    @include transition-duration(300ms);
+    @include transition-duration($std_d);
     &:hover {
         border-bottom: solid 3px $hi2_color;
         color: black;
@@ -113,7 +117,7 @@ div#comment {
 li.entry {
     margin-bottom: 0.5ex;
     list-style-type: none;
-    @include transition-duration(200ms);
+    @include transition-duration($fast_d);
 
     > span.actions {
       margin-left: 1em;
@@ -144,11 +148,11 @@ li.entry {
     vertical-align: 1ex;
 }
 button {
-    @include transition-duration(300ms);
+    @include transition-duration($fast_d);
     @include light_shadowed;
 }
 .button {
-    @include transition-duration(300ms);
+    @include transition-duration($fast_d);
     vertical-align: 105%;
     align: 105%;
 }
@@ -229,7 +233,7 @@ label.autoform {
     padding: 0 1ex 0 0;
 }
 .option {
-    @include transition-duration(300ms);
+    @include transition-duration($std_d);
     cursor: pointer;
     margin: 0;
     &:hover {
@@ -350,8 +354,8 @@ input.submit, .button, span.page_nr {
     cursor: pointer;
     top: 0.5ex;
     bottom: 0.5ex;
-    
-    @include transition-duration(300ms);
+
+    @include transition-duration($std_d);
     @include background-image(linear-gradient(#fff  10%, #eda 30%, $background 100%));
     &:hover {
         top: .7ex;
@@ -363,25 +367,25 @@ input.submit, .button, span.page_nr {
 }
 div.markItUpContainer {
     @include border-radius($radius);
-    @include transition-duration(300ms);
+    @include transition-duration($std_d);
     &:hover {
         border: solid 1px $hi_color;
     }
 }
 div.markItUp {
-    @include transition-duration(300ms);
+    @include transition-duration($std_d);
     @include light_shadowed;
     @include border-radius($radius);
     width: 100%;
 }
 textarea.markItUpEditor {
-    @include transition-duration(300ms);
+    @include transition-duration($std_d);
     border: none !important;
     width: 95%;
 }
 li.markItUpButton > a {
     @include opacity(.5);
-    @include transition-duration(300ms);
+    @include transition-duration($std_d);
     &:hover {
         border: none;
         @include opacity(1);
@@ -393,7 +397,7 @@ li.markItUpButton > a {
 }
 /* action icons */
 a > img.icon {
-    @include transition-duration(300ms);
+    @include transition-duration($std_d);
     opacity:0.5;
     filter:progid:DXImageTransform.Microsoft.Alpha(opacity=50);
     -moz-opacity:0.5;
@@ -424,7 +428,7 @@ div.toc {
         padding: 0;
     }
     a {
-        @include transition-duration(300ms);
+        @include transition-duration($std_d);
         color: #022;
         &:hover {
             font-weight: bold;
@@ -576,7 +580,7 @@ fileuploader
 .qq-uploader { position:relative; width: 90%; padding: 0 1ex; margin: 0 auto;}
 .qq-upload-button {
     display:block; /* or inline-block */
-    @include transition-duration(500ms);
+    @include transition-duration($slow_d);
     width: 100%;
     font-size: 20pt;
     font-weight: bold;
@@ -594,7 +598,7 @@ fileuploader
 .qq-upload-drop-area {
     position:absolute; top:0; left:0; width:100%; height:100%; min-height: 70px; z-index:2;
     @include inner_shadowed;
-    
+
     font-family: "helvetica";
     background: $background;
     color: black;
