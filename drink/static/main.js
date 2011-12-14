@@ -36,7 +36,6 @@ var Entry = function(data) {
 
             $(this).data('edit_called', setTimeout(function() {
                 var item_name = me.data('item');
-                console.log(item_name);
                 var edit_span = $('<span class="actions"></span>');
                 edit_span.append('<a title="Edit" onclick="page_struct.get_ent(\''+item_name+'\').edit()"><img class="minicon" src="/static/actions/edit.png" /></a>');
                 edit_span.append('<a title="Delete" onclick="page_struct.get_ent(\''+item_name+'\').remove()" ><img class="minicon" src="/static/actions/delete.png" /></a>');
@@ -115,7 +114,6 @@ var Entry = function(data) {
         // Html is element is prepared, now inject it
         e.data('item', me.id);
         e.data('item_url', me.path+me.id);
-        console.log('hover');
         if (page_struct.get_from_factory('items', 'hover')) {
             e.bind('mouseenter mouseleave', eval(page_struct.get_from_factory('items', 'hover')));
         };
@@ -162,13 +160,11 @@ var Entry = function(data) {
     $.extend(this, data);
     // make html entry
     var e = me._get_html();
-    console.log(e);
     me.elt = e;
     // add itself to main_list
     e.disableSelection();
     e.hide();
     e.fadeIn('slow');
-    console.log(this.id);
     return this;
 };
 
@@ -194,7 +190,6 @@ var Page = function () {
         } else {
             me.items = me.entries = [];
         }
-        console.log(me);
     };
     this.get_ent = function(child_id) {
         return this.entries[this.id_idx_map[child_id]];
@@ -564,7 +559,6 @@ var KeyHandler = function(o, options) {
         }
     };
     this.call = function(e, options) {
-        console.log('call', e, options);
         var tag = e.target.tagName;
         var accept = !e.ctrlKey && !e.altKey && !e.shiftKey && tag != 'INPUT' && tag != 'TEXTAREA' && tag != 'SELECT';
         if (accept || me.options.forced.some(function(e) {return e == tag}) ) {
@@ -637,8 +631,6 @@ add_item_hooks = [];
 
 function call_hook_add_item(data) {
    for(i=0; i<add_item_hooks.length; i++) {
-       console.log(i);
-       console.log(add_item_hooks[i]);
         add_item_hooks[i](data);
    }
 }
