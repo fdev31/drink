@@ -1,3 +1,6 @@
+- Directory vs Pages
+   - Page = little content, live edition, kind of "wiki" like (aggregation & so)
+   - Directory = huge list of archives, with little friendlyness but possibility to make reports from its content easily
 - broken:
     - editing some markdown in view mode
     - ctrl+save in edit mode for markdown
