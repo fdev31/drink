@@ -1,3 +1,8 @@
+- broken:
+    - editing some markdown in view mode
+    - ctrl+save in edit mode for markdown
+    - 'live' markdown preview in edit mode
+    - comments & ratings are partially broken and the behavior is horrible, switch to ajaj !!
 JS: finish Refactor all id's & co with Element item attached to .entry elements
 - tabs.js is conflicting query.ui
 - trouver bidouille pour avoir des classes en markdown (+ propre que blog)
