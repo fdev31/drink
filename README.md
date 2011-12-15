@@ -1,4 +1,4 @@
-<a href="http://github.com/you"><img style="position: absolute; top: 0; left: 0; border: 0;" src="https://a248.e.akamai.net/assets.github.com/img/ce742187c818c67d98af16f96ed21c00160c234a/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f677261795f3664366436642e706e67" alt="Fork me on GitHub"></a>
+<a href="https://github.com/fdev31/drink"><img style="position: absolute; top: 0; left: 0; border: 0;" src="https://a248.e.akamai.net/assets.github.com/img/ce742187c818c67d98af16f96ed21c00160c234a/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f677261795f3664366436642e706e67" alt="Fork me on GitHub"></a>
 
 # Drink
 
@@ -6,28 +6,24 @@ Alpha Web framework & sample mini CMS.
 
 Aims to be quite generic *all-in-one-but-minimalistic* web+database high-level framework.
 
-Take a look at the (WIP) [documentation at drink.rtfd.org](http://drink.readthedocs.org/en/latest/).
+- [Documentation]
+- [Bugtracker]
+- [GitHub page]
 
 ## Dependencies
 
-Use "easy_install" or "pip" to get 'jinja2', 'markdown', 'ZODB3' and 'whoosh' installed on your system.
-Additionally you can install *paste* or *gevent* for better performances.
+Additionally you can install *paste* or *gevent* for better performances,
+the fastest backend will be used by default.
+For "production" setups, I recommand using uwsgi, helper scripts are provided.
 
-Example (at the DOS/Console/Shell prompt):
+For the full dependencies list, open the [requirements.txt](https://github.com/fdev31/drink/blob/master/requirements.txt) file. Note that some requirements are not mandatory.
 
-     easy_install -U markdown
+- ZODB has a fallback allowing you to test drink without any C extension.
+- setproctitle can be missing
+- repoze.debug and weberror are only developer's requirement and may be dropped in the future
+- Paste guaranties a good experience, but uwsgi + nginx is definitely the killer combination
 
- or, alternatively:
-
-     pip install -U markdown
-
-Dependencies list:
-
-- markdown
-- jinja2
-- ZODB3
-- whoosh
-- fs
+Even if it should be portable, Drink is currently only tested on Linux.
 
 ### Install
 
@@ -36,16 +32,61 @@ Just fetch the source archive and unpack it:
      wget http://pypi.python.org/packages/source/d/drink/drink-DRINK_VERSION.tar.bz2
      tar jxvf drink-DRINK_VERSION.tar.bz2
 
-### Running
-
-Just go into the unpacked drink directory and execute the "manage" script:
+Then install it (as root/admin):
 
      cd drink-DRINK_VERSION
-     ./manage
+     python setup.py install
+
+Alternatively, if you prefer to not install drink on your system, unix users will find a *make_project.sh* script at the root of the sources folder, more experienced users can just use *virtualenv*:
+
+    cd drink-DRINK_VERSION
+    virtualenv --no-site-packages drink_test_folder
+    . drink_test_folder/bin/activate
+    python setup.py install
+
+### Create and run your drink project
+
+Wherever you are on the virtual environment or directly accessing your system,
+go to a folder of your choice (like "My Web Projects") and then type:
+
+    drink make
+
+Follow the instructions, here is a sample session:
+
+    Project folder: my-cms
+    Additional python package with drink objects
+    (can contain dots): cms_extensions
+    Ip to use (just ENTER to allow all):
+    HTTP port number (ex: "80"), by default 0.0.0.0:5000 will be used:
+    Objects to activate:
+    a gtd-like tasklist - tasks : y
+    a wiki-like web page in markdown format - markdown : y
+    a tool to find objects in database - finder : y
+    a filesystem proxy, allow sharing of arbitrary folder or static websites - filesystem : y
+    Additional root item name (just ENTER to finish): Private
+     0 - Folder index
+     1 - WebFile
+    Select the desired type index: 1
+    Additional root item name (just ENTER to finish):
+    Project created successfuly.
+
+    You can now go into the /tmp/my-cms folder and run
+
+    - drink db (to start the database daemon)
+    - drink run (to start the web server)
+
+    If you run with DEBUG=1 in environment, templates and python code should reload automatically when changed.
+    For static files changes, no restart is needed.
+
+
+
+To start drink application, the easiest way it to type:
+
+    drink start
 
 If you run into troubles, try:
 
-     DEBUG=1 ./manage
+     DEBUG=1 drink start
 
 ## Getting sources/Contributing
 
@@ -205,4 +246,5 @@ Fixes:
 
 
   [GitHub page]: http://github.com/fdev31/drink
-
+  [Documentation]: http://drink.readthedocs.org/en/latest/
+  [Bugtracker]: https://github.com/fdev31/drink/issues
