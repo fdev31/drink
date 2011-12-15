@@ -1,6 +1,12 @@
 #!/bin/sh
 VENV=virtualenv
-PY=python
+
+echo -n "What is your python-2.x executable ? (defaults to 'python') "
+read PY
+
+if [ -z $PY ]; then
+    PY=python
+fi
 
 DEST="$1"
 
@@ -20,25 +26,20 @@ echo "DEST: $DEST"
 $VENV -p $PY --no-site-packages "$DEST"
 
 . "$DEST/bin/activate"
-
-cp -r drink "$DEST/drink"
-cp -r scss "$DEST/scss"
-mkdir -p "$DEST/database/cache"
-mkdir -p "$DEST/database/blobs"
-cp database/*.conf "$DEST/database/"
+EPY="$DEST/bin/python"
 
 if [ "x$yn" = "xy" ] ; then
-    grep -vE 'ZODB|error|debug|proctitle' requirements.txt > requirements_test.txt
-    $DEST/bin/pip install -r requirements_test.txt
-else
-    $DEST/bin/pip install -r requirements.txt
+    mv requirements.txt _requirements
+    grep -vE 'ZODB|error|debug|proctitle' _requirements > requirements.txt
 fi
 
-for script in manage start_standard.sh start_uwsgi.sh; do
-    script_name="$DEST/$script"
-    sed -e "s#^P=\$#P=./bin/python#" -e "s#^H=\$#H=$DEST/#" < "$script" > $script_name
-    chmod +x $script_name
-done
+$EPY setup.py install
+
+if [ -f _requirements ]; then
+    mv _requirements requirements.txt
+fi
+
+(cd $VIRTUAL_ENV && ./bin/drink make)
 
 echo "Generating tarball..."
 (cd `dirname "$DEST"` && tar cvf - `basename "$DEST"` | bzip2 -9 > `basename "$DEST"`.tbz) >/dev/null 2>&1
