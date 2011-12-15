@@ -147,6 +147,7 @@ good base for a lightweight web CMS / Intranet / Forum / etc!
 
 -   Css update, uses skeleton as base
 -   uWSGI integration
+-   Real passwords using hashing
 -   D&Drop form is more integrated
 -   Jquery updated, also Whoosh > 2.0 is required now
 -   Introduction of a simple generic actions framework
