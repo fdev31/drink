@@ -20,14 +20,13 @@ class _Mock(object): pass
 def get_type(filename):
     return guess_type(filename)[0] or 'application/octet-stream'
 
-def get_struct_from_obj(obj, childs, full):
+def get_struct_from_obj(obj, childs=None, full=None):
 
-    k = request.params.keys()
-    if None == full:
-        full = 'full' in k and childs
+    if full is None:
+        full = 'full' in request.params and childs
 
-    if 'childs' in k:
-        childs = request.params['childs'].lower() in ('yes', 'true')
+    if childs is None:
+        childs = request.params.get('childs', '').lower() in ('yes', 'true')
 
     a = request.identity.access
 
@@ -38,7 +37,7 @@ def get_struct_from_obj(obj, childs, full):
         d['id'] = quote(obj.id.encode('utf-8'))
         d['title'] = obj.title
         d['description'] = obj.description
-        d['logged_in'] = request.identity.success
+        #d['logged_in'] = request.identity.success
         d['path'] = quote(obj.rootpath.encode('utf-8'))
         d['mime'] = obj.mime
         d['_perm'] = auth
@@ -61,16 +60,23 @@ def get_struct_from_obj(obj, childs, full):
                     v = "N/A"
                 d[k] = v
 
+            d['i_like'] = request.identity.id in obj._like if obj._like else False
+
+            try:
+                d['score'] = len(obj._like) - len(obj._unlike)
+            except TypeError:
+                d['score'] = 0
+
+            d['actions'] = obj._actions
         if childs:
             items = []
             for v in obj.itervalues():
-                auth = a(v)
-                if 'r' in auth:
-                    c = v.struct(childs=False)
-                    c['_perm'] = auth
+                c = v.struct(childs=False, full=False)
+                if c:
                     items.append(c)
             d['items'] = items
             d['items_factory'] = obj.items_factory
+            d['classes'] = obj.classes.keys()
         else:
             d['_nb_items'] = len(obj)
 
@@ -175,10 +181,6 @@ class Page(drink.Model):
             for child in self.keys():
                 c.append((child, self[child].serialize()))
         return d
-
-    @property
-    def actions(self):
-        return {'actions' : self._actions}
 
     #: actions
     _actions = [
@@ -294,11 +296,7 @@ class Page(drink.Model):
 
     def struct(self, childs=True, full=None):
         """ returns this item as a json structure """
-
-        o =  get_struct_from_obj(self, childs, full)
-        if o:
-            o['classes'] = self.classes.keys()
-        return o
+        return get_struct_from_obj(self, childs, full)
 
     _like = None
     _unlike = None
@@ -336,7 +334,7 @@ class Page(drink.Model):
             if not self._comments:
                 self._comments = []
             self._comments.append( {'from': request.identity.id, 'message': txt} )
-        drink.transaction.commit()
+            drink.transaction.commit()
         return {'comments': self._comments or [], 'redirect': self.path}
 
     @property

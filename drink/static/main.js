@@ -216,11 +216,34 @@ var Page = function () {
         if(debug) console.log(data);
         me.merge(data);
         if (!data._perm) return;
-        // TODO: return actions in struct
-        $.ajax({url: 'actions'}).success(ui.load_action_list).error(function() { $('<div title="Error occured">List of actions failed to load</div>').dialog({closeOnEscape:true});});
-        // list-item creation fonction
 
+        //setTimeout(ui.load_action_list, 500, data.actions);
+        ui.load_action_list(data.actions);
+
+        // list-item creation fonction
+        var foot = $('#footers');
+
+        if (me._perm.match(/r/)) {
+            if (me.i_like) {
+                foot.append( $("<button>I don't like anymore</button>") );
+            } else {
+                foot.append( $("<button>I like it!</button>") );
+            }
+            foot.append( $('<div id="comments" />') );
+            $.post('comment').success( function(data) {
+                if(data.comments.length === 0) {
+                    $('#comments').append('<span>No comment yet</span>');
+                } else {
+                    $('#comments').append('<div>Comments:</div>');
+                    for (i=0; i<data.comments.length; i++) {
+                        $('#comments').append($('<div><strong>'+data.comments[i].from+':</strong>&nbsp;'+data.comments[i].message+'</div>'));
+                    }
+                }
+            });
+        }
         if ( me._perm.match(/a/) ) {
+            foot.append( $('<div id="file-uploader" class="row"></div>') );
+
             // Integration of http://valums.com/ajax-upload/
             try {
                 qq.UploadDropZone.prototype._isValidFileDrag = function(e){
@@ -244,7 +267,10 @@ var Page = function () {
         }
     };
     this.reload = function() {
-        $.ajax({url: 'struct'}).success(me._fill).error(function() {ui.dialog('<div title="Error occured">Listing can\'t be loaded :(</div>');});
+        $.post('struct', {'childs': true, 'full': true})
+            .success(me._fill).error(function() {
+            ui.dialog('<div title="Error occured">Listing can\'t be loaded :(</div>');
+        });
     };
     return this;
 };
@@ -468,19 +494,17 @@ ui = new Object({
             dom_initialize(d);
             return d;
         },
-        load_action_list: function(data) {
+        load_action_list: function(actions) {
 
-            if ( !data || !data.actions && !data.types  )  {
+            if ( !!!actions  )  {
                 $('#header_bar').slideUp();
                 return;
             }
             var pa = $('#page_actions');
             var html = [];
 
-            data = data.actions;
-
-            for (i=0 ; i<data.length ; i++) {
-                elt = data[i];
+            for (i=0 ; i<actions.length ; i++) {
+                elt = actions[i];
                 if (typeof(elt) == "string") {
                     var text=elt;
                 } else {
@@ -509,7 +533,7 @@ ui = new Object({
             pa.html(html.join(''));
             dom_initialize( pa );
 
-            if (data.length === 0) {
+            if (actions.length === 0) {
                 $('#header_bar').slideUp();
             } else {
                 setTimeout(function(){ $('#header_bar').slideDown('slow'); }, 1000 );
