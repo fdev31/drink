@@ -4,7 +4,7 @@ debug = false;
 var Entry = function(data) {
     var me = this;
     // remove_entry
-    this.remove = function(item) {
+    this.popup_remove = function(item) {
         ui.dialog('<div id="remove-confirm" title="Do you really want to remove this item ?">Please, confirm removal.</div>', {
             Accept: function() {
                 $( this ).dialog( "close" );
@@ -36,8 +36,8 @@ var Entry = function(data) {
             $(this).data('edit_called', setTimeout(function() {
                 var item_name = me.data('item');
                 var edit_span = $('<span class="actions"></span>');
-                edit_span.append('<a title="Edit" onclick="page_struct.get_ent(\''+item_name+'\').edit()"><img class="minicon" src="/static/actions/edit.png" /></a>');
-                edit_span.append('<a title="Delete" onclick="page_struct.get_ent(\''+item_name+'\').remove()" ><img class="minicon" src="/static/actions/delete.png" /></a>');
+                edit_span.append('<a title="Edit" onclick="page_struct.get_ent(\''+item_name+'\').popup_edit()"><img class="minicon" src="/static/actions/edit.png" /></a>');
+                edit_span.append('<a title="Delete" onclick="page_struct.get_ent(\''+item_name+'\').popup_remove()" ><img class="minicon" src="/static/actions/delete.png" /></a>');
                 edit_span.fadeIn('slow');
                 me.append(edit_span);
 
@@ -76,7 +76,7 @@ var Entry = function(data) {
     };
 
     // edit_entry
-    this.edit = function() {
+    this.popup_edit = function() {
        ui.dialog('<iframe title="'+me.title+'\'s properties" src="'+me.path+me.id+'/edit?embedded=1">No iframe support :(</iframe>', buttons=null, style='big');
     };
 
