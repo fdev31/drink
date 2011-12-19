@@ -224,7 +224,7 @@ var Page = function () {
 
         if (me._perm.match(/r/)) {
             if (me.i_like) {
-                foot.append( $('<span id="dk_rate_btn" class="button" onclick="page_struct.change_rate()">I don\'t like anymore</span>') );
+                foot.append( $('<span id="dk_rate_btn" class="button" onclick="page_struct.change_rate()">I don\'t like it!</span>') );
             } else {
                 foot.append( $('<span id="dk_rate_btn" class="button" onclick="page_struct.change_rate()">I like it!</span>') );
             }
@@ -263,7 +263,7 @@ var Page = function () {
             var text="I like it!";
             var d={'unlike': 1};
         } else {
-            var text="I don't like it anymore.";
+            var text="I don't like it !";
             var d={'like': 1};
         }
         page_struct.i_like = ! page_struct.i_like;
@@ -284,17 +284,21 @@ var Page = function () {
         if(comments.length !== 0) {
             $('#comments').append('<div>Comments:</div>');
             for (i=0; i<comments.length; i++) {
-                $('#comments').append($('<div><strong>'+comments[i].from+':</strong>&nbsp;'+comments[i].message+'</div>'));
+                var e = $('<div><strong>'+comments[i].from+':</strong>&nbsp;'+comments[i].message+'</div>');
+                e.hide();
+                e.fadeIn()
+                $('#comments').append(e);
             }
         }
-        $('#comments').append('<span class="button" onclick="page_struct.add_comment()" >Add a comment!</span>');
-    };
-    this.add_comment = function() {
-        if ( $('#comments > span').length === 2 ) { // No comments
-            $('#comments > span:first').remove();
-        }
-        $('#comments > span:last').remove();
-        $('div#comments').append('<form><textarea action="#" method="post" class="edited_comment" /><span class="button" onclick="page_struct.validate_comment()">Add!</span></form>');
+        $('#comments').append('<form id="dk_comment"  action="#" method="post" />');
+        var text = $('<textarea class="edited_comment">Your comment here...</textarea>');
+        $('#comments #dk_comment').append(text);
+        text.click(function(e) {
+            var txt = $(e.target);
+            txt.unbind();
+            txt.parent().append($('<span class="button" onclick="page_struct.validate_comment()">Send!</span>'));
+            txt.attr('value', '');
+        });
     };
     this.reload = function() {
         $.post('struct', {'childs': true, 'full': true}).
