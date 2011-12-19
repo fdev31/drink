@@ -267,9 +267,10 @@ var Page = function () {
         }
     };
     this.reload = function() {
-        $.post('struct', {'childs': true, 'full': true})
-            .success(me._fill).error(function() {
-            ui.dialog('<div title="Error occured">Listing can\'t be loaded :(</div>');
+        $.post('struct', {'childs': true, 'full': true}).
+            success(me._fill).
+            error(function() {
+                ui.dialog('<div title="Error occured">Listing can\'t be loaded :(</div>');
         });
     };
     return this;
