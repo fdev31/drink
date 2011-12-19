@@ -246,6 +246,7 @@ class Page(drink.Model):
             if name is not None:
                 self.data.update(name)
             name = u'/'
+            #: Unique id
             self.id = u'.'
         else:
             if not name or name[0] in r'/.$%_':
@@ -395,7 +396,7 @@ class Page(drink.Model):
                 database['search']._update_object(self)
 
     def _edit(self):
-        """ Implementation of public :meth:`#drink.Page.edit` method,
+        """ Implementation of public :meth:`~drink.Page.edit` method,
         only looks at http environment for now (no useable parameter).
 
         .. note::  Use :meth:`.set_field` to set some editable field value.
@@ -591,10 +592,13 @@ class Page(drink.Model):
             return drink.rdr(o.quoted_path+'edit')
 
     def borrow(self, item=None):
+        """ Borrow an external item """
         if not item:
             item = drink.get_object(drink.db.db, request.POST['item'])
         if item.id in self:
             return drink.unauthorized("An object with the same id stands here!")
+        if self.path in item.path:
+            return drink.unauthorized("Can't move an object to one if it's children!")
         try:
             parent = drink.get_object(drink.db.db, item.rootpath)
         except Exception, e:
