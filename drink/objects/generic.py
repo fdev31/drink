@@ -119,6 +119,12 @@ def default_view(self, page='main.html', obj=None, css=None, js=None, html=None,
 
     drink.response.content_type = "text/html; charset=utf-8"
 
+    if request.is_ajax:
+        return {'html': html or self.html,
+            'js': js or self.js,
+            'css': css or self.css,
+            }
+
     return bottle.template(page,
             template_adapter=bottle.Jinja2Template,
             obj=obj or self,
