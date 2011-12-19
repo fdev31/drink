@@ -10,7 +10,6 @@ drink.types
    .. autofunction:: dt2str
    .. autofunction:: dt2ts
    .. autofunction:: mktime
-   .. autofunction:: omni
    .. autofunction:: str2d
    .. autofunction:: str2dt
    .. autofunction:: strptime
@@ -37,10 +36,4 @@ drink.types
       Password
       Text
       TextArea
-   
-   
-
-   
-   
-   
    
