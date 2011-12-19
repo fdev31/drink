@@ -331,6 +331,7 @@ class EasyPermissions(_Editable):
     def html(self, name, value, _template=None):
         return """
         <script type="text/javascript">
+        $(document).ready (function() {
         $(function() {
             $.toggle_perm( $('#perm_fr_r'), '%(id)s', 'r', true);
             $.toggle_perm( $('#perm_fr_w'), '%(id)s', 'w', true);
@@ -377,6 +378,7 @@ class EasyPermissions(_Editable):
                 }
 
         }});
+        });
         </script>
         <ul id="ez_perm_list">
         <strong>Friends can:</strong>

@@ -424,12 +424,30 @@ ui = new Object({
         } else {
             window.location = base_uri+'../';
         }
-    },
+  },
+  load_html_content: function(data) {
+    for (var n=0; n<data.js.length; n++) {
+        var tmp_js = data.js[n];
+        if ( tmp_js[0] == '/') {
+            tmp_js = '<script type="text/javascript" src="'+tmp_js+'"></script>';
+        } else {
+            tmp_js = '<script type="text/javascript" >'+tmp_js+'</script>';
+        }
+        $('head').append($(tmp_js));
+    }
+    $('#main_body').html(data.html);
+    dom_initialize($('#main_body'));
+  },
   goto_object: function(obj, view) {
         if(!!!view)
             view = '';
         if (!!!obj) {
-            window.location = base_uri+view;
+            $.get(view).
+                success(function(data) {
+                    console.log('coin coin');
+                    ui.load_html_content(data);
+                });
+            //window.location = base_uri+view;
         } else {
             window.location = obj.path+obj.id+'/'+view;
         }

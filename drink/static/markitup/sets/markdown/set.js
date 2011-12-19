@@ -12,7 +12,6 @@
 // -------------------------------------------------------------------
 save_doc = function(h) {
     // fixme: use somethin' else
-    console.log('plup');
     var url = $("#auto_edit_form").attr('action');
     var text = h.textarea.value;
     $.post(url, {'_dk_fields': 'content', 'content': text})
