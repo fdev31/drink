@@ -316,7 +316,7 @@ class Authenticator(object):
 
         self.groups.add('anonymous')
 
-        #: `id` of the user (same as :obj:`.user.id`)
+        #: `id` of the user (Current :data:`~drink.objects.users.User.id`)
         self.id = self.user.id
 
     def access(self, obj):

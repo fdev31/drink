@@ -36,22 +36,13 @@ To render file sizes as readable strings for humans, just use :func:`drink.bytes
    apis/drink.omni
    apis/drink.bytes2human
 
-Classes
--------
-
-.. autosummary::
-   :toctree: apis
-
-   drink.Page
-   drink.ListPage
-
 Base Page types
 ---------------
 
 .. autosummary::
     :toctree: apis
 
-    drink.objects.generic
+    drink
     drink.objects.filesystem
     drink.objects.finder
     drink.objects.tasks
