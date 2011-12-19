@@ -68,6 +68,7 @@ Base functions & data
    make_app
    classes
    get_object
+   omni
    default_view
    add_upload_handler
    request
