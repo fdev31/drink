@@ -281,15 +281,13 @@ var Page = function () {
         $('#comments').html('');
     };
     this.draw_comments = function(comments) {
-        if(comments.length === 0) {
-            $('#comments').append('<span>No comment yet</span>');
-        } else {
+        if(comments.length !== 0) {
             $('#comments').append('<div>Comments:</div>');
             for (i=0; i<comments.length; i++) {
                 $('#comments').append($('<div><strong>'+comments[i].from+':</strong>&nbsp;'+comments[i].message+'</div>'));
             }
         }
-        $('#comments').append('<span class="button alpha" onclick="page_struct.add_comment()" >Add a comment!</span>');
+        $('#comments').append('<span class="button" onclick="page_struct.add_comment()" >Add a comment!</span>');
     };
     this.add_comment = function() {
         if ( $('#comments > span').length === 2 ) { // No comments

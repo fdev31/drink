@@ -155,6 +155,7 @@ button {
     @include transition-duration($fast_d);
     vertical-align: 105%;
     align: 105%;
+    margin: 1ex auto 0 .5ex;
 }
 div.input {
     > ul {
