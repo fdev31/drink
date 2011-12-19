@@ -193,7 +193,7 @@ class Page(drink.Model):
         dict(title="Help", action="/pages/help/", perm="r", icon="help"),
         dict(title="Back", action="ui.go_back()", perm="r", icon="undo"),
         dict(title="View/Reload", action="ui.goto_object(undefined, 'view')", icon="view", perm='r'),
-        dict(title="Edit", style="edit_form", action="ui.goto_object_(undefined, 'edit')", icon="edit", perm='w'),
+        dict(title="Edit", style="edit_form", action="ui.goto_object(undefined, 'edit')", icon="edit", perm='w'),
         dict(title="List content", action="ui.goto_object(undefined, 'list')", icon="open", perm='r'),
         dict(title="Add object", condition="page_struct.classes.length!=0", style="add_form", action="ui.add_entry()", key='INS', icon="new", perm='a'),
         dict(title="Move", style="move_form", action="ui.move_current_page()", icon="move", perm='o'),
