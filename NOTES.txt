@@ -1,4 +1,14 @@
-JS: Refactor all id's & co with Element item attached to .entry elements
+- Directory vs Pages
+   - Page = little content, live edition, kind of "wiki" like (aggregation & so)
+   - Directory = huge list of archives, with little friendlyness but possibility to make reports from its content easily
+- broken:
+    - editing some markdown in view mode
+    - ctrl+save in edit mode for markdown
+    - 'live' markdown preview in edit mode
+    - comments & ratings are partially broken and the behavior is horrible, switch to ajaj !!
+JS: finish Refactor all id's & co with Element item attached to .entry elements
+- tabs.js is conflicting query.ui
+- trouver bidouille pour avoir des classes en markdown (+ propre que blog)
 - HANDLE ITEMS RANGE /items?from=0&to=100
 - Prototype fsQueue usage for long-running tasks (try with a fake process)
 - See if types can be simplified when used from inside (ORM-like ?)

@@ -20,14 +20,13 @@ class _Mock(object): pass
 def get_type(filename):
     return guess_type(filename)[0] or 'application/octet-stream'
 
-def get_struct_from_obj(obj, childs, full):
+def get_struct_from_obj(obj, childs=None, full=None):
 
-    k = request.params.keys()
-    if None == full:
-        full = 'full' in k and childs
+    if full is None:
+        full = 'full' in request.params and childs
 
-    if 'childs' in k:
-        childs = request.params['childs'].lower() in ('yes', 'true')
+    if childs is None:
+        childs = request.params.get('childs', '').lower() in ('yes', 'true')
 
     a = request.identity.access
 
@@ -38,7 +37,7 @@ def get_struct_from_obj(obj, childs, full):
         d['id'] = quote(obj.id.encode('utf-8'))
         d['title'] = obj.title
         d['description'] = obj.description
-        d['logged_in'] = request.identity.success
+        #d['logged_in'] = request.identity.success
         d['path'] = quote(obj.rootpath.encode('utf-8'))
         d['mime'] = obj.mime
         d['_perm'] = auth
@@ -61,16 +60,23 @@ def get_struct_from_obj(obj, childs, full):
                     v = "N/A"
                 d[k] = v
 
+            d['i_like'] = request.identity.id in obj._like if obj._like else False
+
+            try:
+                d['score'] = len(obj._like) - len(obj._unlike)
+            except TypeError:
+                d['score'] = 0
+
+            d['actions'] = obj._actions
         if childs:
             items = []
             for v in obj.itervalues():
-                auth = a(v)
-                if 'r' in auth:
-                    c = v.struct(childs=False)
-                    c['_perm'] = auth
+                c = v.struct(childs=False, full=False)
+                if c:
                     items.append(c)
             d['items'] = items
             d['items_factory'] = obj.items_factory
+            d['classes'] = obj.classes.keys()
         else:
             d['_nb_items'] = len(obj)
 
@@ -176,18 +182,14 @@ class Page(drink.Model):
                 c.append((child, self[child].serialize()))
         return d
 
-    @property
-    def actions(self):
-        return {'actions' : self._actions}
-
     #: actions
     _actions = [
         dict(title="Help", action="/pages/help/", perm="r", icon="help"),
-        dict(title="Back", action="if(!!document.location.pathname.match(/\/$/)) {document.location.href='../'} else{document.location.href='./'}", perm="r", icon="undo"),
-        dict(title="View/Reload", action="document.location.href = base_uri+'/view'", icon="view", perm='r'),
-        dict(title="Edit", style="edit_form", action="edit", icon="edit", perm='w'),
-        dict(title="List content", action="list", icon="open", perm='r'),
-        dict(title="Add object", condition="page_struct.classes.length!=0", style="add_form", action="ui.main_list.new_entry_dialog()", key='INS', icon="new", perm='a'),
+        dict(title="Back", action="ui.go_back()", perm="r", icon="undo"),
+        dict(title="View/Reload", action="ui.goto_object(undefined, 'view')", icon="view", perm='r'),
+        dict(title="Edit", style="edit_form", action="ui.goto_object_(undefined, 'edit')", icon="edit", perm='w'),
+        dict(title="List content", action="ui.goto_object(undefined, 'list')", icon="open", perm='r'),
+        dict(title="Add object", condition="page_struct.classes.length!=0", style="add_form", action="ui.add_entry()", key='INS', icon="new", perm='a'),
         dict(title="Move", style="move_form", action="ui.move_current_page()", icon="move", perm='o'),
         dict(title="Image gallery", style="move_form", action="gallery", icon="view", perm='r'),
         #dict(title="Remove object", onclick="ui.main_list.remove_entry()", icon="delete", perm='w'),
@@ -286,18 +288,15 @@ class Page(drink.Model):
     #: A map of <html/js event>: <js function>, used to hook items interactions
 
     items_factory = {
-        'dblclick': "this.edit_popup",
-        'hover': "this.popup_actions",
-        'entry_factory': "this.default_factory",
+            # TODO: make it really generic, not just look-a-like
+        'dblclick': "edit_title",
+        'hover': "popup_actions",
+        'entry': "default_factory",
     }
 
     def struct(self, childs=True, full=None):
         """ returns this item as a json structure """
-
-        o =  get_struct_from_obj(self, childs, full)
-        if o:
-            o['classes'] = self.classes.keys()
-        return o
+        return get_struct_from_obj(self, childs, full)
 
     _like = None
     _unlike = None
@@ -335,7 +334,7 @@ class Page(drink.Model):
             if not self._comments:
                 self._comments = []
             self._comments.append( {'from': request.identity.id, 'message': txt} )
-        drink.transaction.commit()
+            drink.transaction.commit()
         return {'comments': self._comments or [], 'redirect': self.path}
 
     @property
@@ -672,7 +671,7 @@ class ListPage(Page):
         if request.is_ajax:
             self.forced_order = unquote(request.params.get('set')).decode('utf-8').split('/')
         else:
-            html = '<input class="completable" complete_type="objpath"></input>'
+            html = '<input type="text" class="completable" complete_type="objpath" value="/pages/"></input>'
             return self.view(html=html)
 
     def itervalues(self):

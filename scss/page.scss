@@ -15,6 +15,9 @@ $hi2_color: #fa5;
 $hi3_color: #ffd;
 $contour: #eed;
 $main_color: #093E56;
+$fast_d: 180ms;
+$std_d: 350ms;
+$slow_d: 800ms;
 $background: #eed;
 
 /* mixins */
@@ -25,6 +28,7 @@ $background: #eed;
 @import "compass/utilities";
 @import "compass/css3/opacity";
 @import "compass/css3/images";
+@import "compass/css3/transition";
 
 @mixin editable {
     margin: 0 0 0.7ex 0;
@@ -33,6 +37,7 @@ $background: #eed;
     border: none;
     padding: 0 1ex 0 1ex;
     background: $hi3_color;
+    @include transition-duration($slow_d);
 
     &:hover {
         color: black;
@@ -40,9 +45,11 @@ $background: #eed;
     }
     &:focus {
         background: white;
+        @include transition-duration($slow_d);
     }
 }
 @mixin general_hover {
+    @include transition-duration($std_d);
     &:hover {
         border-bottom: solid 3px $hi2_color;
         color: black;
@@ -110,6 +117,8 @@ div#comment {
 li.entry {
     margin-bottom: 0.5ex;
     list-style-type: none;
+    @include transition-duration($fast_d);
+
     > span.actions {
       margin-left: 1em;
       vertical-align: 5px;
@@ -139,11 +148,19 @@ li.entry {
     vertical-align: 1ex;
 }
 button {
+    @include transition-duration($fast_d);
     @include light_shadowed;
 }
 .button {
+    @include transition-duration($fast_d);
     vertical-align: 105%;
     align: 105%;
+}
+div.input {
+    > ul {
+        padding: 0;
+        margin: 1ex;
+    }
 }
 span.page_nr_cur {
     padding: 0.1ex 0.5ex 0.1ex 0.5ex;
@@ -197,16 +214,13 @@ b.match {
     }
 }
 div.togglable {
-    @include light_shadowed;
     padding: 0 1ex 0 1ex;
-    @include background-image(linear-gradient(#fff  5%, #ddd 30%, #eee 90%, $background 100%));
 }
 span.toggler {
     cursor: pointer;
     margin-right: 1ex;
     @include border-radius($radius);
     padding: 0 0.5ex 0 0.5ex;
-
 }
 span.selected {
     border: solid white 1px;
@@ -225,6 +239,7 @@ label.autoform {
     padding: 0 1ex 0 0;
 }
 .option {
+    @include transition-duration($std_d);
     cursor: pointer;
     margin: 0;
     &:hover {
@@ -345,7 +360,8 @@ input.submit, .button, span.page_nr {
     cursor: pointer;
     top: 0.5ex;
     bottom: 0.5ex;
-    
+
+    @include transition-duration($std_d);
     @include background-image(linear-gradient(#fff  10%, #eda 30%, $background 100%));
     &:hover {
         top: .7ex;
@@ -357,21 +373,25 @@ input.submit, .button, span.page_nr {
 }
 div.markItUpContainer {
     @include border-radius($radius);
+    @include transition-duration($std_d);
     &:hover {
         border: solid 1px $hi_color;
     }
 }
 div.markItUp {
+    @include transition-duration($std_d);
     @include light_shadowed;
     @include border-radius($radius);
     width: 100%;
 }
 textarea.markItUpEditor {
+    @include transition-duration($std_d);
     border: none !important;
     width: 95%;
 }
 li.markItUpButton > a {
     @include opacity(.5);
+    @include transition-duration($std_d);
     &:hover {
         border: none;
         @include opacity(1);
@@ -380,6 +400,20 @@ li.markItUpButton > a {
 .error_message {
     font-size: 300%;
     color: #a55;
+}
+/* action icons */
+a > img.icon {
+    @include transition-duration($std_d);
+    opacity:0.5;
+    filter:progid:DXImageTransform.Microsoft.Alpha(opacity=50);
+    -moz-opacity:0.5;
+    -khtml-opacity:0.5;
+    &:hover {
+        opacity:1.0;
+        filter:progid:DXImageTransform.Microsoft.Alpha(opacity=100);
+        -moz-opacity:1.0;
+        -khtml-opacity:1;
+    }
 }
 .icon {
     width: 32px;
@@ -400,6 +434,7 @@ div.toc {
         padding: 0;
     }
     a {
+        @include transition-duration($std_d);
         color: #022;
         &:hover {
             font-weight: bold;
@@ -551,6 +586,7 @@ fileuploader
 .qq-uploader { position:relative; width: 90%; padding: 0 1ex; margin: 0 auto;}
 .qq-upload-button {
     display:block; /* or inline-block */
+    @include transition-duration($slow_d);
     width: 100%;
     font-size: 20pt;
     font-weight: bold;
@@ -568,7 +604,7 @@ fileuploader
 .qq-upload-drop-area {
     position:absolute; top:0; left:0; width:100%; height:100%; min-height: 70px; z-index:2;
     @include inner_shadowed;
-    
+
     font-family: "helvetica";
     background: $background;
     color: black;

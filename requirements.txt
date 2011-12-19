@@ -1,9 +1,10 @@
 jinja2
 markdown
+Beaker>=1.6.0
 ZODB3
 whoosh>=2.2
 fs>=0.4
-bottle>=0.9.6
+bottle>=0.10.3
 setproctitle
 repoze.debug
 weberror

@@ -8,9 +8,9 @@ function editEvent(eventId) {
 }
 function deleteEvent(eventId) {
     $.ajax({
-            url:'rm?name='+encodeURI(eventId),
+        url:'rm?name='+encodeURI(eventId)
     }).success(function() {
-              $('#calendar').fullCalendar('removeEvents', eventId);
+        $('#calendar').fullCalendar('removeEvents', eventId);
     });
 }
 
@@ -65,26 +65,25 @@ $(document).ready(function() {
             console.log(event);
 */
             form = {
-                '_dk_fields': 'duration',
                 'duration': (event.end.getTime()-event.start.getTime())/3600.0/1000,
-            }
+                '_dk_fields': 'duration'
+            };
             $.post(event.id+"/edit", form);
-
         },
         eventDrop: function( event, dayDelta, minuteDelta, allDay, revertFunc, jsEvent, ui, view ) {
         /*
             var text = ''+dayDelta+' Days (all day: '+allDay+'), '+minuteDelta+' min.';
             $('<div>'+text+'</div>').appendTo('body').dialog();
 */
-            form = {'_dk_fields': 'all_day/date/start_time'}
+            form = {'_dk_fields': 'all_day/date/start_time'};
 
-            if (allDay) { form.all_day = 1 }
+            if (allDay) { form.all_day = 1; }
 
             form.date = event.start.getDate()+'/'+(1+event.start.getMonth())+'/'+event.start.getFullYear();
 
-            form.start_time = event.start.getHours()+':'+event.start.getMinutes()
+            form.start_time = event.start.getHours()+':'+event.start.getMinutes();
 
             $.post(event.id+"/edit", form);
-        },
+        }
     });
 });
