@@ -152,6 +152,17 @@ class Page(drink.Model):
     }
 
 
+    """
+    def _p_resolveConflict(self, oldState, savedState, newState):
+
+        # Figure out how each state is different:
+        savedDiff= savedState['count'] - oldState['count']
+        newDiff= newState['count']- oldState['count']
+
+        # Apply both sets of changes to old state:
+        return oldState['count'] + savedDiff + newDiff
+"""
+
     #: fields that are only editable by the owner (appear in edit panel)
 
     owner_fields = {
