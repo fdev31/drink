@@ -23,7 +23,6 @@ save_doc = function(h) {
                 ui.goto_object();
             };
         })
-    console.log(text);
     return false;
 }
 
@@ -126,19 +125,16 @@ MarkDown = function(uuid) {
             source = this.source;
         else
             this.source = source;
-        console.log('edit_html '+source);
         var o = {'cols': "80", 'rows': "25", 'data': ''}
         if (! opts)
             $.extend(o, opts)
         var apply_editor = function(data) {
-            console.log('apply');
             var html = $('<form id="auto_edit_form" action="'+source+'edit" method="post"><input type="hidden" name="_dk_fields" value="content" /><textarea id="md_'+me.uuid+'_editor" name="content" cols="'+o.cols+'" rows="'+o.rows+'">'+(data || o.data)+'</textarea></form>');
             $('#'+me.uuid).html(html);
 //            $('#'+me.uuid).addClass('markItUp');
             var settings = new Object();
             $.extend(settings, mySettings);
             settings.previewParserPath = source+'process';
-            console.log($('#'+me.uuid+' textarea'));
             $('#'+me.uuid+' textarea:first').markItUp(settings);
         }
         if (source) {
@@ -148,8 +144,6 @@ MarkDown = function(uuid) {
         }
 	}
     this.attach = function(obj, source) {
-        console.log('attaching following object to '+source);
-        console.log(obj);
         if (!source)
             source = this.source;
         else
@@ -163,7 +157,6 @@ MarkDown = function(uuid) {
         };
         var click = function() {
             $(this).unbind('click');
-            console.log('EDIT '+source);
             me.edit_html({}, source);
             new KeyHandler(obj, {forced: ['TEXTAREA']}).add('ESC', foc_out);
         };
@@ -176,7 +169,6 @@ MarkDown = function(uuid) {
         });
     }
     this.load_page = function(source) {
-        console.log('loadpage '+source);
         if (!source) {
             source = this.source;
             me.remote_obj = false;
@@ -201,12 +193,10 @@ MarkDown = function(uuid) {
             };
             $.post(url).success(
                 function(data) {
-                    console.log(me);
                     var e = $('#'+me.uuid);
                     e.html(data) ;
                     e.removeClass('markItUp');
                     if (is_blog) {
-                        console.log('new_blog_entry');
                         if (!$('.blog_entry:first').attr('id'))
                             $('.blog_entry').each( function(i, e) {
                             var e = $(e);
@@ -217,7 +207,6 @@ MarkDown = function(uuid) {
                             e.data('mdown', m);
                         });
                     } else {
-                        console.log('new_editable');
                         if (!$('#markdown.editable').attr('id')) {
                             var e = $('#markdown.editable');
                             var n = 'markdown.editable';

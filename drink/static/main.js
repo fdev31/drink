@@ -79,7 +79,6 @@ var Entry = function(data) {
     this.popup_edit = function() {
        ui.dialog('<iframe title="'+me.title+'\'s properties" src="'+me.path+me.id+'/edit?embedded=1">No iframe support :(</iframe>', buttons=null, style='big');
     };
-
     this.edit_title = function () {
         if(!me._perm.match(/w/)) { return; }
         if ( me.elt.has('input').length !== 0 ) { return; }
@@ -225,20 +224,13 @@ var Page = function () {
 
         if (me._perm.match(/r/)) {
             if (me.i_like) {
-                foot.append( $("<button>I don't like anymore</button>") );
+                foot.append( $('<span id="dk_rate_btn" class="button" onclick="page_struct.change_rate()">I don\'t like anymore</span>') );
             } else {
-                foot.append( $("<button>I like it!</button>") );
+                foot.append( $('<span id="dk_rate_btn" class="button" onclick="page_struct.change_rate()">I like it!</span>') );
             }
             foot.append( $('<div id="comments" />') );
             $.post('comment').success( function(data) {
-                if(data.comments.length === 0) {
-                    $('#comments').append('<span>No comment yet</span>');
-                } else {
-                    $('#comments').append('<div>Comments:</div>');
-                    for (i=0; i<data.comments.length; i++) {
-                        $('#comments').append($('<div><strong>'+data.comments[i].from+':</strong>&nbsp;'+data.comments[i].message+'</div>'));
-                    }
-                }
+                page_struct.draw_comments(data.comments);
             });
         }
         if ( me._perm.match(/a/) ) {
@@ -265,6 +257,46 @@ var Page = function () {
                 //console.log('Uploader code not available');
             }
         }
+    };
+    this.change_rate = function() {
+        if (page_struct.i_like) {
+            var text="I like it!";
+            var d={'unlike': 1};
+        } else {
+            var text="I don't like it anymore.";
+            var d={'like': 1};
+        }
+        page_struct.i_like = ! page_struct.i_like;
+        $('#dk_rate_btn').text(text);
+        console.log(text, d);
+        $.post('rate', d);
+    };
+    this.validate_comment = function() {
+        var e = $('#comments textarea');
+        var txt = e.attr('value');
+        $.post('comment', {text: txt}).
+            success(function(d) {
+                page_struct.draw_comments(d.comments);
+            });
+        $('#comments').html('');
+    };
+    this.draw_comments = function(comments) {
+        if(comments.length === 0) {
+            $('#comments').append('<span>No comment yet</span>');
+        } else {
+            $('#comments').append('<div>Comments:</div>');
+            for (i=0; i<comments.length; i++) {
+                $('#comments').append($('<div><strong>'+comments[i].from+':</strong>&nbsp;'+comments[i].message+'</div>'));
+            }
+        }
+        $('#comments').append('<span class="button alpha" onclick="page_struct.add_comment()" >Add a comment!</span>');
+    };
+    this.add_comment = function() {
+        if ( $('#comments > span').length === 2 ) { // No comments
+            $('#comments > span:first').remove();
+        }
+        $('#comments > span:last').remove();
+        $('div#comments').append('<form><textarea action="#" method="post" class="edited_comment" /><span class="button" onclick="page_struct.validate_comment()">Add!</span></form>');
     };
     this.reload = function() {
         $.post('struct', {'childs': true, 'full': true}).
@@ -492,7 +524,6 @@ ui = new Object({
             new_obj.find('input.obj_name').trigger('click').focus();
         }
     },
-
     edit: function(what) {
         ui.dialog('<div title="Edit"><iframe style="height: 100%" src="'+what+'edit?embedded=1"></iframe></div>');
     },
