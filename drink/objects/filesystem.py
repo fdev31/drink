@@ -87,7 +87,10 @@ class PyFile(object):
         if not self.o.fd or self.o.fd.isfile(self.realpath):
             return []
         else:
-            return self.o.fd.listdir(self.realpath)
+            try:
+                return self.o.fd.listdir(self.realpath)
+            except fs.errors.ResourceNotFoundError:
+                return []
 
     iterkeys = keys
 
@@ -152,7 +155,10 @@ class Filesystem(drink.ListPage, PyFile):
 
     def keys(self):
         if self.fd:
-            return self.fd.listdir()
+            try:
+                return self.fd.listdir()
+            except fs.errors.ResourceNotFoundError:
+                return []
         else:
             return []
 
