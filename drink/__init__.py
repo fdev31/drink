@@ -380,7 +380,6 @@ def log_in():
         session = request.identity.session
         session['logged_in'] = sha1(request.forms.get('login_password', '')).hexdigest()
         session['login'] = request.forms.get('login_name', '')
-        session.save()
         return rdr(request.params.get('from', '/'))
     else:
         html='''
@@ -807,9 +806,9 @@ def make_app(full=False):
 
     app = bottle.app()
     session_opts = {
-        'session.type': 'memory',
+        'session.type': 'file',
         'session.cookie_expires': 300,
-        #'session.data_dir':  DB_PATH,
+        'session.data_dir':  DB_PATH,
         'session.auto': True
     }
     app = SessionMiddleware(app, session_opts)
