@@ -617,6 +617,15 @@ ui = new Object({
 
 // KEYPRESS THINGS
 var KeyHandler = function(o, options) {
+  /*
+    keypress(function(ev, dom) {
+    console.log(ev);
+        if ((!!!mod['shift'] || ev.shiftKey) && (!!!mod['ctrl'] || ev.ctrlKey) && (!!!mod['alt'] || ev.metaKey) && ev.keyCode == kcode ) {
+            func(ev, dom, elt);
+        }
+    });
+    */
+
     this.add = function(key, code) {
         var kcode = this.k[key];
         if (kcode) {
@@ -704,8 +713,7 @@ function call_hook_add_item(data) {
    for(i=0; i<add_item_hooks.length; i++) {
         add_item_hooks[i](data);
    }
-}
-
+};
 
 function dom_initialize(dom) {
 
@@ -719,6 +727,7 @@ function dom_initialize(dom) {
             return true;
         }
     });
+    // autocomplete paths
     dom.find('input.completable[complete_type=objpath]').keyup(function(e) {
         if (debug) { console.log('match'); console.log(e); }
         var o = $(this);
