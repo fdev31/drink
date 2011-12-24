@@ -209,7 +209,6 @@ class Page(drink.Model):
         dict(title="Add object", condition="page_struct.classes.length!=0", style="add_form", action="ui.add_entry()", key='INS', icon="new", perm='a'),
         dict(title="Move", style="move_form", action="ui.move_current_page()", icon="move", perm='o'),
         dict(title="Image gallery", style="move_form", action="gallery", icon="view", perm='r'),
-        #dict(title="Remove object", onclick="ui.main_list.remove_entry()", icon="delete", perm='w'),
     ]
 
     #: fields that are only editable by the admin (appear in edit panel)

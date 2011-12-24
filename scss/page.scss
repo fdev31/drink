@@ -126,12 +126,13 @@ li.entry {
     span.infos {
         margin-left: 1ex;
     }
-    > input {
+    input.inline {
         @include border-radius($radius);
         @include entryfont;
         @include editable;
         margin: 0;
         width: 66%;
+        text-align: left;
     }
     a {
         @include entryfont;
@@ -145,7 +146,7 @@ li.entry {
 }
 .inline {
     display: inline;
-    vertical-align: 1ex;
+    vertical-align: -100%;
 }
 button {
     @include transition-duration($fast_d);

@@ -1,453 +1,10 @@
 // globals
 debug = false;
 
-var Entry = function(data) {
-    var me = this;
-    // remove_entry
-    this.popup_remove = function(item) {
-        ui.dialog('<div id="remove-confirm" title="Do you really want to remove this item ?">Please, confirm removal.</div>', {
-            Accept: function() {
-                $( this ).dialog( "close" );
-                $.ajax({
-                    url: me.path+'rm?name='+me.id
-                }).success(function() {
-                    me.elt.slideUp('slow', function() {$(this).remove();});
-                }).error(function(){
-                    ui.dialog('<div title="Error occured">Sorry, something didn\'t work correctly</div>');
-                   });
-            },
-            Cancel: function() {
-                $( this ).dialog( "close" );
-            }
-        });
-    };
-    /* Popup actions for items */
-    this.popup_actions = function (event) {
-        if (event.type == "mouseenter") {
-            var me = $(this);
-            if ( me.data('edit_called') ) {
-                return;
-            }
-
-            var elt = page_struct.get_by_id(me.data('item'));
-            if (!elt) return;
-            if(!elt._perm.match(/w/)) { return; }
-
-            $(this).data('edit_called', setTimeout(function() {
-                var item_name = me.data('item');
-                var edit_span = $('<span class="actions"></span>');
-                edit_span.append('<a title="Edit" onclick="page_struct.get_ent(\''+item_name+'\').popup_edit()"><img class="minicon" src="/static/actions/edit.png" /></a>');
-                edit_span.append('<a title="Delete" onclick="page_struct.get_ent(\''+item_name+'\').popup_remove()" ><img class="minicon" src="/static/actions/delete.png" /></a>');
-                edit_span.fadeIn('slow');
-                me.append(edit_span);
-
-                }, 500));
-        } else if (event.type == "mouseleave") {
-            clearTimeout($(this).data('edit_called'));
-            $(this).data('edit_called', false);
-            $(this).find('.actions').fadeOut('slow', function() {$(this).remove();});
-        }
-    };
-
-    // handle inline title edition
-    this._blur_on_validate = function (e) {
-        if (e.keyCode == 27) {
-             $(this).data('canceled', true);
-             $(this).trigger('blur');
-        } else if (e.keyCode == 13) {
-             $(this).trigger('blur');
-        }
-    };
-
-    this._exit_edit_title = function () {
-        var txt = null;
-        uid = $(this).parent().data('item');
-        if (uid == undefined ) { return; }
-
-        if ( !!!$(this).data('canceled') && $(this).val() != $(this).data('orig_text') ) {
-            txt = $(this).val().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            $.post(''+encodeURI(uid)+'/edit', {title: txt} );
-        } else {
-            txt = $(this).data('orig_text');
-        }
-
-        $(this).replaceWith($('<a class="item_name" href="./'+encodeURI(uid)+'/">'+txt+'</a>'));
-        $(this).parent().dblclick(me._enter_edit_func);
-    };
-
-    // edit_entry
-    this.popup_edit = function() {
-       ui.dialog('<iframe title="'+me.title+'\'s properties" src="'+me.path+me.id+'/edit?embedded=1">No iframe support :(</iframe>', buttons=null, style='big');
-    };
-    this.edit_title = function () {
-        if(!me._perm.match(/w/)) { return; }
-        if ( me.elt.has('input').length !== 0 ) { return; }
-
-        var orig = me.elt.find('a.item_name').first();
-        // set an input field up, with focus
-        var inp = $("<input class=\"inline_edit\" value='"+orig.text()+"' />");
-        inp.data('orig_text', orig.text());
-
-        // replace second children
-        orig.replaceWith(inp);
-        inp = me.elt.find("input");
-        inp.select();
-
-        // on entry input blur
-        inp.blur(me._exit_edit_title);
-
-        // trigger blur on ENTER keyup
-        inp.keyup(me._blur_on_validate);
-    };
-
-    this._get_html = function() {
-        /* FIXME: ugly code */
-        var expr = page_struct.get_from_factory('items', 'entry');
-        var e = eval(expr)(me);
-        ui.main_list.list.append(e);
-        if (page_struct.get_from_factory('items', 'click')) {
-            e.bind('click', page_struct.get_from_factory('items', 'click'));
-        } else if (page_struct.get_from_factory('items', 'dblclick')) {
-            e.bind('dblclick', eval(page_struct.get_from_factory('items', 'dblclick')));
-        }
-        // Html is element is prepared, now inject it
-        e.data('item', me.id);
-        e.data('item_url', me.path+me.id);
-        if (page_struct.get_from_factory('items', 'hover')) {
-            e.bind('mouseenter mouseleave', eval(page_struct.get_from_factory('items', 'hover')));
-        }
-        if ( !! me._nb_items ) {
-            if ( me._nb_items == 1 ) {
-                e.append($('&nbsp;<span class="infos">(1 item)</span>'));
-            } else {
-                e.append($('&nbsp;<span class="infos">('+me._nb_items+' items)</span>'));
-            }
-        }
-        return e;
-    };
-
-    /* construtor */
-    this.default_factory = function() {
-        // builds li element around an item object
-        var mime = "";
-        if ( me.mime ) {
-            if ( me.mime.match( url_regex )) {
-                mime = me.mime;
-            } else {
-                mime = "/static/mime/"+me.mime+".png";
-            }
-        } else {
-            mime = "/static/mime/page.png";
-        }
-        return $('<li class="entry"><img width="32px" src="'+mime+'" /><a class="item_name" href="'+me.path+me.id+'/" title="'+me.description+'">'+(me.title || me.id)+'</a></li>');
-    };
-
-    this.image_factory = function() {
-        // builds li element around an item object
-        var mime = "";
-        if ( me.mime ) {
-            if ( me.mime.match( url_regex )) {
-                mime = me.mime;
-            } else {
-                mime = "/static/mime/"+me.mime+".png";
-            }
-        } else {
-            mime = "/static/mime/page.png";
-        }
-        return $('<li class="entry"><img width="32px" src="'+mime+'" /><a class="item_name" href="'+me.path+me.id+'/" title="'+me.description+'"><img src="'+me.path+me.id+'/raw" /><div class="caption">'+(me.title || me.id)+'</a></div></li>');
-    };
-
-    $.extend(this, data);
-    // make html entry
-    var e = me._get_html();
-    me.elt = e;
-    // add itself to main_list
-    e.disableSelection();
-    e.hide();
-    e.fadeIn('slow');
-    return this;
-};
-
-var Page = function () {
-    var me = this;
-    this.classes = [];
-    this._perm = 'r';
-    this.description = '';
-    this.id = '?';
-    this.items = [];
-    this.mime = "none";
-    this.path = "/";
-    this.logged_in = false;
-    this.title = "unk";
-    this.merge = function (d) {
-        me.id_idx_map = new Object();
-        $.extend(me, d);
-        me.items = [];
-        me.entries = [];
-        if (d.items) {
-            for (var i=0 ; i<d.items.length ; i++)
-                me.add_item(d.items[i]);
-        } else {
-            me.items = me.entries = [];
-        }
-    };
-    this.get_ent = function(child_id) {
-        return this.entries[this.id_idx_map[child_id]];
-    };
-    this.get_by_id = function(child_id) {
-        return this.items[this.id_idx_map[child_id]];
-    };
-    this.get_from_factory = function(which, what) {
-        var val = me[which+'_factory'][what];
-        if (val && !!!val.match(/.*\./))
-            val = "me."+val;
-        return val;
-    };
-    this.add_item = function(data) {
-        var e = new Entry(data);
-        me.id_idx_map[data.id] = me.entries.length;
-        me.entries.push( e );
-        me.items.push( data );
-        e.elt.center();
-        call_hook_add_item(data);
-    };
-    this._fill = function (data, status, req) {
-        if(debug) console.log(data);
-        me.merge(data);
-        if (!data._perm) return;
-
-        //setTimeout(ui.load_action_list, 500, data.actions);
-        ui.load_action_list(data.actions);
-
-        // list-item creation fonction
-        var foot = $('#footers');
-
-        if (me._perm.match(/r/)) {
-            if (me.i_like) {
-                foot.append( $('<span id="dk_rate_btn" class="button" onclick="page_struct.change_rate()">I don\'t like it!</span>') );
-            } else {
-                foot.append( $('<span id="dk_rate_btn" class="button" onclick="page_struct.change_rate()">I like it!</span>') );
-            }
-            foot.append( $('<div id="comments" />') );
-            $.post('comment').success( function(data) {
-                page_struct.draw_comments(data.comments);
-            });
-        }
-        if ( me._perm.match(/a/) ) {
-            foot.append( $('<div id="file-uploader" class="row"></div>') );
-
-            // Integration of http://valums.com/ajax-upload/
-            try {
-                qq.UploadDropZone.prototype._isValidFileDrag = function(e){
-                    return true;
-                };
-                var uploader = new qq.FileUploader({
-                    element: $('#file-uploader')[0],
-                    action: 'upload',
-                    //debug: true,
-                    showMessage: function(message){ $('<div title="Drop zone">'+message+'</div>'); },
-                    onComplete: function(id, fileName, data){
-                        if ( data.id ) {
-                            ui.add_item(data);
-                        }
-                        $('ul.qq-upload-list > li.qq-upload-success').fadeOut('slow',
-                            function() { $(this).remove(); });
-                    }});
-            } catch (ReferenceError) {
-                //console.log('Uploader code not available');
-            }
-        }
-    };
-    this.change_rate = function() {
-        if (page_struct.i_like) {
-            var text="I like it!";
-            var d={'unlike': 1};
-        } else {
-            var text="I don't like it !";
-            var d={'like': 1};
-        }
-        page_struct.i_like = ! page_struct.i_like;
-        $('#dk_rate_btn').text(text);
-        console.log(text, d);
-        $.post('rate', d);
-    };
-    this.validate_comment = function() {
-        var e = $('#comments textarea');
-        var txt = e.attr('value');
-        $.post('comment', {text: txt}).
-            success(function(d) {
-                page_struct.draw_comments(d.comments);
-            });
-        $('#comments').html('');
-    };
-    this.draw_comments = function(comments) {
-        if(comments.length !== 0) {
-            $('#comments').append('<div>Comments:</div>');
-            for (i=0; i<comments.length; i++) {
-                var e = $('<div><strong>'+comments[i].from+':</strong>&nbsp;'+comments[i].message+'</div>');
-                e.hide();
-                e.fadeIn()
-                $('#comments').append(e);
-            }
-        }
-        $('#comments').append('<form id="dk_comment"  action="#" method="post" />');
-        var text = $('<textarea class="edited_comment">Your comment here...</textarea>');
-        $('#comments #dk_comment').append(text);
-        text.click(function(e) {
-            var txt = $(e.target);
-            txt.unbind();
-            txt.parent().append($('<span class="button" onclick="page_struct.validate_comment()">Send!</span>'));
-            txt.attr('value', '');
-        });
-    };
-    this.reload = function() {
-        $.post('struct', {'childs': true, 'full': true}).
-            success(me._fill).
-            error(function() {
-                ui.dialog('<div title="Error occured">Listing can\'t be loaded :(</div>');
-        });
-    };
-    return this;
-};
-
 page_struct = new Page();
-
-url_regex = /^(\/|http).+/;
-base_uri = document.location.href.replace(RegExp('[^/]*$'), '');
-base_path = base_uri.replace(RegExp('http?://[^/]*'), '');
-
-var Position = function(default_pos, list_getter, selection_class) {
-    this.position = default_pos;
-    this.lists = list_getter; /* name: children css_selector */
-    this.current_list = list_getter[0]; /* name , list */
-    this.current_list_pos = 0;
-    this.selection_class = selection_class;
-    this.wrap = true;
-
-    this._select = function() {
-        l = this.current_list[1];
-        if ( typeof(l) == "string" ) {
-            l = $(l);
-        } else /* function */ {
-            l = l();
-        }
-        return l;
-    };
-    this.clear = function() {
-        var i = this.selected_item();
-        i.removeClass(this.selection_class);
-        this.current_list_pos = 0;
-        this.current_list = this.lists[0];
-        this.position = -1;
-        this.highlight( this._select()[0] );
-    };
-    this.selected_link = function() {
-        var m = this.selected_item();
-        if (m.attr('href')) {
-            return m.attr('href');
-        } else if (m.attr('onclick')) {
-            return 'js:'+m.attr('onclick');
-        } else if (m.find('a:first').attr('href')) {
-            return m.find('a:first').attr('href');
-        } else if (m.find('.action:first').attr('onclick')) {
-            return 'js:'+m.find('.action:first').attr('onclick');
-        } else if (m.find('input:first')) {
-            return m.find('input:first');
-        } else if (m.find('select:first')) {
-            return m.find('select:first');
-        } else if (m.find('.input:first')) {
-            return m.find('.input:first');
-        }
-    };
-    this.selected_item = function() {
-        return $(this._select()[this.position]);
-    };
-    this.next = function() {
-        l = this._select();
-        if (this.position < l.length-1) { // simple case
-            $(l.get(this.position)).removeClass(this.selection_class);
-            this.position += 1;
-            this.highlight( l[this.position] );
-            this.select_next();
-        } else if (this.lists[this.lists.length-1][0] != this.current_list[0]) { /* boundary limit, change the list */
-            try {
-                $(l.get(this.position)).removeClass(this.selection_class);
-            } catch (typeError) {
-            }
-            this.current_list_pos += 1;
-            this.current_list = this.lists[this.current_list_pos];
-            this.highlight( this._select()[0] );
-            this.position = 0;
-        } else { /* end of the cycle */
-            this.clear();
-        }
-    };
-    this.prev = function() {
-        l = this._select();
-        if (this.position > 0) { // simple case
-            $(l.get(this.position)).removeClass(this.selection_class);
-            this.position -= 1;
-            this.select_prev();
-            this.highlight( l[this.position] );
-        } else if (this.lists[0][0] != this.current_list[0]) { // boundary limit, change the list
-            $(l.get(this.position)).removeClass(this.selection_class);
-            this.current_list_pos -= 1;
-            this.current_list = this.lists[this.current_list_pos];
-            this.highlight( this._select()[this.position] );
-            this.position = 0;
-        } else { /* end of the cycle */
-            $(l[this.position]).removeClass(this.selection_class);
-            this.current_list_pos = this.lists.length-1;
-            this.current_list = this.lists[this.current_list_pos];
-            this.position = 0;
-            this.highlight( this._select()[0] );
-        }
-    };
-    this.highlight = function(item) {
-        if (!item)
-            return;
-        var item = $(item);
-        item.addClass(this.selection_class);
-        item.focus();
-        item.center();
-    };
-    this.select_prev = $.noop;
-    this.select_next = $.noop;
-    return this;
-};
-
-MainList = function(id) {
-    this.id = id || "main_list";
-    var me = this;
-
-    this.list = $('#'+this.id);
-    this.list.sortable({
-        cursor: 'move',
-        distance: 50,
-        accept: '.entry',
-        //tolerence: 'pointer',
-        helper: 'original',
-        revert: true,
-        stop: function(event, ui) {
-            if ( event.ctrlKey ) {
-                var pat = $('#'+this.id+' li').map( function() { return $(this).data('item'); } ).get().join('/');
-                $.post('move', {'set': pat});
-                return true;
-            } else {
-                return false;
-            }
-        }
-    });
-
-    if ($('#'+this.id).length === 0) {
-        if (debug) console.log('No list with name '+this.id);
-    }
-    return this;
-};
 
 // UI Object
 ui = new Object({
-  main_list: new MainList(),
   go_back: function() {
     /*
         if(!!document.location.pathname.match(/\/$/)) {document.location.href='../'} else{document.location.href='./'}
@@ -608,7 +165,7 @@ ui = new Object({
                 }
             });
         },
-    selection: new Position(-1, [
+    focus: new Position(-1, [
         ['items', '#main_body .entry'],
         ['actions',  '#commands a.action']
     ], 'highlighted')
@@ -855,7 +412,6 @@ $(document).ready(function(){
     );
 
     // some globals
-    ui.main_list = new MainList();
     page_struct.reload();
 
     // extend validator (forms)
@@ -869,13 +425,13 @@ $(document).ready(function(){
     // init keys
     // Some shortcuts
     keys.add('J', function() {
-        ui.selection.next();
+        ui.focus.next();
     });
     keys.add('K', function() {
-        ui.selection.prev();
+        ui.focus.prev();
     });
     keys.add('ENTER', function() {
-        var link = ui.selection.selected_link();
+        var link = ui.focus.selected_link();
         if(debug) console.log(link);
         if (typeof(link) == 'string') {
             m = link.match(/^js: *(.*?) *$/);
@@ -890,7 +446,7 @@ $(document).ready(function(){
         }
     });
     keys.add('DEL', function() {
-        ui.remove_entry( ui.selection.selected_item().data('item') );
+        ui.remove_entry( ui.focus.selected_item().data('item') );
     });
     keys.add('BACK', function() {
         ui.go_back();
@@ -901,7 +457,7 @@ $(document).ready(function(){
         $("input:text:visible:first").focus().center();
     });
     keys.add('ESC', function() {
-        ui.selection.clear();
+        ui.focus.clear();
     });
     keys.add('E', function() {
         ui.goto_object(undefined, 'edit');
