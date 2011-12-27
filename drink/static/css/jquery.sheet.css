@@ -11,6 +11,7 @@
 {
 	width: 99%;
     height: 17px;
+    min-height: 7px;
 }
 
 .jSheetControls_formulaParent 
