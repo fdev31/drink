@@ -194,7 +194,7 @@ MarkDown = function(uuid) {
             $.post(url).success(
                 function(data) {
                     var e = $('#'+me.uuid);
-                    e.html(data) ;
+                    e.html(data);
                     e.removeClass('markItUp');
                     if (is_blog) {
                         if (!$('.blog_entry:first').attr('id'))
@@ -213,6 +213,7 @@ MarkDown = function(uuid) {
                             new MarkDown(n).attach(e, base_path);
                         }
                     }
+                    dom_initialize(e);
                 }
             ).error(
                 function(){ui.dialog('data failed')}

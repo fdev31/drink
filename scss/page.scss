@@ -473,23 +473,22 @@ ul {
 li.selected:before {
     content: url(/static/checked.png) " ";
 }
-ul > li {
+div.toc ul > li {
     list-style-type: square;
     list-style-position: inside;
 }
+/*
 a {
    text-decoration: none;
    padding: 0;
     border-bottom: solid 1px rgba(0, 0, 0, 0.1);
     cursor: pointer;
    @include general_hover;
-   /*
-   @include border-radius($radius);
-   */
    img {
       border: none;
    }
 }
+*/
 .inline_form {
     display: inline !important;
     width: 15ex !important;

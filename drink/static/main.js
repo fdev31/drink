@@ -270,7 +270,7 @@ function call_hook_add_item(data) {
    for(i=0; i<add_item_hooks.length; i++) {
         add_item_hooks[i](data);
    }
-};
+}
 
 function dom_initialize(dom) {
 
