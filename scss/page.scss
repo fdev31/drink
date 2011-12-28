@@ -404,17 +404,20 @@ li.markItUpButton > a {
     color: #a55;
 }
 /* action icons */
-a > img.icon {
-    @include transition-duration($std_d);
-    opacity:0.5;
-    filter:progid:DXImageTransform.Microsoft.Alpha(opacity=50);
-    -moz-opacity:0.5;
-    -khtml-opacity:0.5;
-    &:hover {
-        opacity:1.0;
-        filter:progid:DXImageTransform.Microsoft.Alpha(opacity=100);
-        -moz-opacity:1.0;
-        -khtml-opacity:1;
+a.action {
+    cursor: pointer;
+    > img.icon {
+        @include transition-duration($std_d);
+        opacity:0.5;
+        filter:progid:DXImageTransform.Microsoft.Alpha(opacity=50);
+        -moz-opacity:0.5;
+        -khtml-opacity:0.5;
+        &:hover {
+            opacity:1.0;
+            filter:progid:DXImageTransform.Microsoft.Alpha(opacity=100);
+            -moz-opacity:1.0;
+            -khtml-opacity:1;
+        }
     }
 }
 .icon {
