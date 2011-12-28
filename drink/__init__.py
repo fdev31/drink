@@ -157,7 +157,7 @@ def init():
         root['users']['anonymous'] = anon
         root['users']['admin'] = admin
 
-        admin.password = 'admin'
+        admin.set_field('password', 'admin')
         admin.surname = "BOFH"
         admin.name = "Mr Admin"
         admin.owner = admin
