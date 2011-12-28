@@ -368,8 +368,18 @@ class Page(drink.Model):
         :arg val: value of the field
         :type val: depends on the :mod:`~drink.types`
         """
-
-        self.editable_fields[name].set(self, name, val)
+        if name in self.editable_fields:
+            if 'w' in drink.request.access(self):
+                self.editable_fields[name].set(self, name, val)
+            else:
+                return drink.unauthorized("You can't edit %r, ask for more permissions."%name)
+        elif name in self.owner_fields:
+            if 'o' in drink.request.access(self):
+                self.owner_fields[name].set(self, name, val)
+            else:
+                return drink.unauthorized("You can't edit %r, ask for more permissions."%name)
+        else:
+            return drink.unauthorized("%r is not editable."%name)
 
     def get_field(self, name):
         """ Get the value of field *name*
