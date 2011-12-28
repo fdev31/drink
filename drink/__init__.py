@@ -530,6 +530,7 @@ if DEBUG environment variable is set, it will start in debug mode.
             ('a wiki-like web page in markdown format', 'markdown'),
             ('a tool to find objects in database', 'finder'),
             ('a filesystem proxy, allow sharing of arbitrary folder or static websites', 'filesystem'),
+            ('a simple but powerful spreadsheet', 'spreadsheet'),
         ]
         objects = []
         for o in objs:
