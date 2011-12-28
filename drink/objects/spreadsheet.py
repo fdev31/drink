@@ -9,6 +9,7 @@ class SpreadSheet(drink.Page):
 
     mime = u"markdown"
 
+
     content = '''<table class="jSheet ui-widget-content" id="jSheet_0_0" border="1px" cellpadding="0" cellspacing="0" style="width: 1200px; "><colgroup><col style="width: 120px; " width="120px"><col style="width: 120px; " width="120px"><col style="width: 120px; " width="120px"><col style="width: 120px; " width="120px"><col style="width: 120px; " width="120px"><col style="width: 120px; " width="120px"><col style="width: 120px; " width="120px"><col style="width: 120px; " width="120px"><col style="width: 120px; " width="120px"><col style="width: 120px; " width="120px"></colgroup><tbody><tr style="height: 18px; " height="18px"><td id="0_table0_cell_c0_r0"></td><td id="0_table0_cell_c1_r0"></td><td id="0_table0_cell_c2_r0"></td><td id="0_table0_cell_c3_r0"></td><td id="0_table0_cell_c4_r0"></td><td id="0_table0_cell_c5_r0"></td><td id="0_table0_cell_c6_r0"></td><td id="0_table0_cell_c7_r0"></td><td id="0_table0_cell_c8_r0"></td><td id="0_table0_cell_c9_r0"></td></tr><tr style="height: 18px; " height="18px"><td id="0_table0_cell_c0_r1"></td><td id="0_table0_cell_c1_r1"></td><td id="0_table0_cell_c2_r1"></td><td id="0_table0_cell_c3_r1"></td><td id="0_table0_cell_c4_r1"></td><td id="0_table0_cell_c5_r1"></td><td id="0_table0_cell_c6_r1"></td><td id="0_table0_cell_c7_r1"></td><td id="0_table0_cell_c8_r1"></td><td id="0_table0_cell_c9_r1"></td></tr><tr style="height: 18px; " height="18px"><td id="0_table0_cell_c0_r2"></td><td id="0_table0_cell_c1_r2"></td><td id="0_table0_cell_c2_r2"></td><td id="0_table0_cell_c3_r2"></td><td id="0_table0_cell_c4_r2"></td><td id="0_table0_cell_c5_r2"></td><td id="0_table0_cell_c6_r2"></td><td id="0_table0_cell_c7_r2"></td><td id="0_table0_cell_c8_r2"></td><td id="0_table0_cell_c9_r2"></td></tr><tr style="height: 18px; " height="18px"><td id="0_table0_cell_c0_r3"></td><td id="0_table0_cell_c1_r3"></td><td id="0_table0_cell_c2_r3"></td><td id="0_table0_cell_c3_r3"></td><td id="0_table0_cell_c4_r3"></td><td id="0_table0_cell_c5_r3"></td><td id="0_table0_cell_c6_r3"></td><td id="0_table0_cell_c7_r3"></td><td id="0_table0_cell_c8_r3"></td><td id="0_table0_cell_c9_r3"></td></tr><tr style="height: 18px; " height="18px"><td id="0_table0_cell_c0_r4"></td><td id="0_table0_cell_c1_r4"></td><td id="0_table0_cell_c2_r4"></td><td id="0_table0_cell_c3_r4"></td><td id="0_table0_cell_c4_r4"></td><td id="0_table0_cell_c5_r4"></td><td id="0_table0_cell_c6_r4"></td><td id="0_table0_cell_c7_r4"></td><td id="0_table0_cell_c8_r4"></td><td id="0_table0_cell_c9_r4"></td></tr><tr style="height: 18px; " height="18px"><td id="0_table0_cell_c0_r5"></td><td id="0_table0_cell_c1_r5"></td><td id="0_table0_cell_c2_r5"></td><td id="0_table0_cell_c3_r5"></td><td id="0_table0_cell_c4_r5"></td><td id="0_table0_cell_c5_r5"></td><td id="0_table0_cell_c6_r5"></td><td id="0_table0_cell_c7_r5"></td><td id="0_table0_cell_c8_r5"></td><td id="0_table0_cell_c9_r5"></td></tr><tr style="height: 18px; " height="18px"><td id="0_table0_cell_c0_r6"></td><td id="0_table0_cell_c1_r6"></td><td id="0_table0_cell_c2_r6"></td><td id="0_table0_cell_c3_r6"></td><td id="0_table0_cell_c4_r6"></td><td id="0_table0_cell_c5_r6"></td><td id="0_table0_cell_c6_r6"></td><td id="0_table0_cell_c7_r6"></td><td id="0_table0_cell_c8_r6"></td><td id="0_table0_cell_c9_r6"></td></tr><tr style="height: 18px; " height="18px"><td id="0_table0_cell_c0_r7"></td><td id="0_table0_cell_c1_r7"></td><td id="0_table0_cell_c2_r7"></td><td id="0_table0_cell_c3_r7"></td><td id="0_table0_cell_c4_r7"></td><td id="0_table0_cell_c5_r7"></td><td id="0_table0_cell_c6_r7"></td><td id="0_table0_cell_c7_r7"></td><td id="0_table0_cell_c8_r7"></td><td id="0_table0_cell_c9_r7"></td></tr><tr style="height: 18px; " height="18px"><td id="0_table0_cell_c0_r8"></td><td id="0_table0_cell_c1_r8"></td><td id="0_table0_cell_c2_r8"></td><td id="0_table0_cell_c3_r8"></td><td id="0_table0_cell_c4_r8"></td><td id="0_table0_cell_c5_r8"></td><td id="0_table0_cell_c6_r8"></td><td id="0_table0_cell_c7_r8"></td><td id="0_table0_cell_c8_r8"></td><td id="0_table0_cell_c9_r8"></td></tr><tr style="height: 18px; " height="18px"><td id="0_table0_cell_c0_r9"></td><td id="0_table0_cell_c1_r9"></td><td id="0_table0_cell_c2_r9"></td><td id="0_table0_cell_c3_r9"></td><td id="0_table0_cell_c4_r9"></td><td id="0_table0_cell_c5_r9"></td><td id="0_table0_cell_c6_r9"></td><td id="0_table0_cell_c7_r9"></td><td id="0_table0_cell_c8_r9"></td><td id="0_table0_cell_c9_r9"></td></tr><tr style="height: 18px; "><td id="0_table0_cell_c0_r10"></td><td id="0_table0_cell_c1_r10"></td><td id="0_table0_cell_c2_r10"></td><td id="0_table0_cell_c3_r10"></td><td id="0_table0_cell_c4_r10"></td><td id="0_table0_cell_c5_r10"></td><td id="0_table0_cell_c6_r10"></td><td id="0_table0_cell_c7_r10"></td><td id="0_table0_cell_c8_r10"></td><td id="0_table0_cell_c9_r10"></td></tr><tr style="height: 18px; "><td id="0_table0_cell_c0_r11"></td><td id="0_table0_cell_c1_r11"></td><td id="0_table0_cell_c2_r11"></td><td id="0_table0_cell_c3_r11"></td><td id="0_table0_cell_c4_r11"></td><td id="0_table0_cell_c5_r11"></td><td id="0_table0_cell_c6_r11"></td><td id="0_table0_cell_c7_r11"></td><td id="0_table0_cell_c8_r11"></td><td id="0_table0_cell_c9_r11"></td></tr><tr style="height: 18px; "><td id="0_table0_cell_c0_r12"></td><td id="0_table0_cell_c1_r12"></td><td id="0_table0_cell_c2_r12"></td><td id="0_table0_cell_c3_r12"></td><td id="0_table0_cell_c4_r12"></td><td id="0_table0_cell_c5_r12"></td><td id="0_table0_cell_c6_r12"></td><td id="0_table0_cell_c7_r12"></td><td id="0_table0_cell_c8_r12"></td><td id="0_table0_cell_c9_r12"></td></tr><tr style="height: 18px; "><td id="0_table0_cell_c0_r13"></td><td id="0_table0_cell_c1_r13"></td><td id="0_table0_cell_c2_r13"></td><td id="0_table0_cell_c3_r13"></td><td id="0_table0_cell_c4_r13"></td><td id="0_table0_cell_c5_r13"></td><td id="0_table0_cell_c6_r13"></td><td id="0_table0_cell_c7_r13"></td><td id="0_table0_cell_c8_r13"></td><td id="0_table0_cell_c9_r13"></td></tr><tr style="height: 18px; "><td id="0_table0_cell_c0_r14"></td><td id="0_table0_cell_c1_r14"></td><td id="0_table0_cell_c2_r14"></td><td id="0_table0_cell_c3_r14"></td><td id="0_table0_cell_c4_r14"></td><td id="0_table0_cell_c5_r14"></td><td id="0_table0_cell_c6_r14"></td><td id="0_table0_cell_c7_r14"></td><td id="0_table0_cell_c8_r14"></td><td id="0_table0_cell_c9_r14"></td></tr></tbody></table>'''
 
     default_action = "view"
@@ -44,22 +45,44 @@ class SpreadSheet(drink.Page):
             return menu;
         }
 
-
     $(document).ready(function(){
         console.log('pwal');
-        $('.spreadsheet').sheet({
-            title: "foinfoin",
-//            urlGet: "/static/sheet.doc.html",
-            urlGet: "content",
-            urlMenu: "/static/sheet.menu.html",
-            inlineMenu: inlineMenu($.sheet.instance),
-//            urlSave: "save",
-            autoFiller: true,
-            });
+        setTimeout(function() {
+        if ($('#inlineMenu').length > 0) {
+            console.log('coing');
+            $('.spreadsheet').sheet({
+    //            title: "",
+    //            urlGet: "/static/sheet.doc.html",
+                editable: false,
+                urlGet: "content",
+                urlMenu: "/static/sheet.menu.html",
+                inlineMenu: inlineMenu($.sheet.instance),
+    //            urlSave: "save",
+                autoFiller: true,
+                });
+            }
+        }, 100);
     });
     ''']
 
-    html = ''' <a target="_blank" href="http://visop-dev.com/lib/jquery.sheet/jquery.sheet.html#">Online help</a>
+    css = [
+            '/static/css/jquery.sheet.css',
+            '/static/css/jquery.colorPicker.css',
+            ] + drink.Page.css
+
+    def save(self):
+        data = drink.request.params['data']
+        if data:
+            self.content = '<table class="jSheet ui-widget-content" id="jSheet_0_0" border="1px" cellpadding="0" cellspacing="0" style="width: 1200px; ">'+data+'</table>'
+
+    @property
+    def html(self):
+        return '''
+<h1>%s</h1>
+
+<a target="_blank" href="http://visop-dev.com/lib/jquery.sheet/jquery.sheet.html#">Online help</a>
+
+<a target="_blank" onclick="jQuery.sheet.instance[0].toggleState(); return false;" href="#">Edit this document</a>
 
     <div class="spreadsheet" />
 
@@ -123,15 +146,4 @@ class SpreadSheet(drink.Page):
                     <img alt="Web Link" src="/static/actions/spreadsheet/arrow_out.png"/></a><!--<a href="#" onclick="insertAt('jSheetControls_formula', '~np~text~'+'/np~');return false;" title="Non-parsed"><img alt="Non-parsed" src="/static/actions/spreadsheet/noparse.png"/></a>-->
             </span>
         </span>
-    '''
-
-    css = [
-            '/static/css/jquery.sheet.css',
-            '/static/css/jquery.colorPicker.css',
-            ] + drink.Page.css
-
-    def save(self):
-        data = drink.request.params['data']
-        if data:
-            self.content = '<table class="jSheet ui-widget-content" id="jSheet_0_0" border="1px" cellpadding="0" cellspacing="0" style="width: 1200px; ">'+data+'</table>'
-
+    '''%self.title

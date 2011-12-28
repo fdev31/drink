@@ -35,7 +35,7 @@ ui = new Object({
         if (!!!obj) {
             $.get(view).
                 success(function(data) {
-                    console.log('coin coin');
+                    console.log(data);
                     ui.load_html_content(data);
                 });
             //window.location = base_uri+view;

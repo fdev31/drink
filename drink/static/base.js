@@ -18,7 +18,7 @@ var Entry = function(data) {
                     me.elt.slideUp('slow', function() {$(this).remove();});
                 }).error(function(){
                     ui.dialog('<div title="Error occured">Sorry, something didn\'t work correctly</div>');
-                   });
+                });
             },
             Cancel: function() {
                 $( this ).dialog( "close" );
