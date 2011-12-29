@@ -4,7 +4,7 @@
 		<ul>
 			<li><a onclick="sheetInstance.newSheet(); return false;" title="Creates a new spreadsheet.">New</a></li>
 			<li><a onclick="sheetInstance.s.fnOpen(); return false;" title="Open a new spreadsheet.">Open</a></li>
-            <li><a onclick="$.post('save', {data:sheetInstance.exportSheet.html().html()}); return false;" title="Save the current spreadsheet.">Save</a></li>
+            <li><a onclick="$.post('save', {data:sheetInstance.exportSheet.html().html()}).success(function() {ui.dialog('<div>success</div>')}); return false;" title="Save the current spreadsheet.">Save</a></li>
 			<li><a onclick="sheetInstance.s.fnClose(); return false;" title="Close the current spreadsheet without saving.">Close</a></li>
 		</ul>
 	</li>
@@ -68,16 +68,11 @@
 			</li>
 			<li><a onclick="sheetInstance.cellUndoable.undoOrRedo(true); return false;">Undo</a></li>
 			<li><a onclick="sheetInstance.cellUndoable.undoOrRedo(); return false;">Redo</a></li>
-			<li><a onclick="sheetInstance.toggleState(); return false;">Toggle State</a></li>
 		</ul>
 	</li>
 	<li>
 		<a href="#">View</a>
 		<ul>
-			<li><a onclick="sheetInstance.viewSource(true); return false;" title="Shows the HTML that makes up the current spreadsheet.">Pretty Source</a></li>
-			<li><a onclick="sheetInstance.viewSource(false); return false;" title="Shows the compact HTML that makes up the current spreadsheet.">Compact Source</a></li>
-			<li><a onclick="sheetInstance.print(sheetInstance.HTMLtoPrettySource(jQuery(sheetInstance.exportSheet.xml(true))[0])); return false;">As XML</a></li>
-			<li><a onclick="sheetInstance.print(JSON.stringify(sheetInstance.exportSheet.json())); return false;">As JSON</a></li>
 			<li>
 				<a menu="menuViewFunctionReference_menuInstance">Function Reference</a>
 				<ul>
