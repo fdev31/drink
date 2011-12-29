@@ -237,10 +237,14 @@ var Page = function () {
     this.logged_in = false;
     this.title = "unk";
     this.merge = function (d) {
+        if (!!$('#main_list').html() && me.items.length === d.items.length) { // add path & id
+            return;
+        }
         me.id_idx_map = new Object();
         $.extend(me, d);
         me.items = [];
         me.entries = [];
+        $('#main_list').html('');
         if (d.items) {
             for (var i=0 ; i<d.items.length ; i++)
                 me.add_item(d.items[i]);
@@ -325,7 +329,6 @@ var Page = function () {
         }
         page_struct.i_like = ! page_struct.i_like;
         $('#dk_rate_btn').text(text);
-        console.log(text, d);
         $.post('rate', d);
     };
     this.validate_comment = function() {

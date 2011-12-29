@@ -46,10 +46,8 @@ class SpreadSheet(drink.Page):
         }
 
     $(document).ready(function(){
-        console.log('pwal');
         setTimeout(function() {
         if ($('#inlineMenu').length > 0) {
-            console.log('coing');
             $('.spreadsheet').sheet({
     //            title: "",
     //            urlGet: "/static/sheet.doc.html",
@@ -61,7 +59,7 @@ class SpreadSheet(drink.Page):
                 autoFiller: true,
                 });
             }
-        }, 100);
+        }, 1); // just to ensure we are not the first
     });
     ''']
 

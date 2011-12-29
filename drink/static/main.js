@@ -35,7 +35,6 @@ ui = new Object({
         if (!!!obj) {
             $.get(view).
                 success(function(data) {
-                    console.log(data);
                     ui.load_html_content(data);
                 });
             //window.location = base_uri+view;
@@ -273,6 +272,12 @@ function call_hook_add_item(data) {
 }
 
 function dom_initialize(dom) {
+    // find main list & redraw it
+    if ( !!dom.find('#main_list') ) {
+        var items = new Array();
+        $.extend(items, page_struct.items);
+        page_struct.merge({items: items});
+    }
 
     // hides some things by default
     dom.find('.starts_hidden').slideUp(0);
@@ -472,6 +477,5 @@ $(document).ready(function(){
         ui.dialog('<div title="Keyboard shortcuts"><ul><li>[E]dit</li><li>[S]earch / [S]elect first input field</li><li>[L]ist</li><li>[V]iew</li><li>BACKSPACE: one level up</li><li>UP/DOWN: change selection</li><li>[DEL]ete</li><li>[ENTER]</li><li>ESCAPE: close dialogs</li></ul></div>');
     });
 
-    dom_initialize($(document));
 // end of statup code
 });
