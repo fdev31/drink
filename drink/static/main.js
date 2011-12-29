@@ -85,85 +85,95 @@ ui = new Object({
     edit: function(what) {
         ui.dialog('<div title="Edit"><iframe style="height: 100%" src="'+what+'edit?embedded=1"></iframe></div>');
     },
-        dialog: function(body, buttons, style) {
-            var d = $(body);
-            d.dialog({
-                modal: true,
-                closeOnEscape: true,
-                buttons: buttons,
-                width: '50%'
+    success_dialog: function(title, message) {
+        return ui.dialog('<div title="'+title+'">'+message+'</div>', {
+                Ok: function() { $( this ).dialog( "close" ); }
             });
-            if (style == 'big') {
-                d.css('width', '100%');
-                d.css('padding', '0');
-                d.css('margin', 'auto');
-                d.css('height', '66%');
-            }
-            dom_initialize(d);
-            return d;
-        },
-        load_action_list: function(actions) {
+    },
+    failure_dialog: function(title, message) {
+        return ui.dialog('<div title="'+title+'">'+message+'</div>', {
+                Ok: function() { $( this ).dialog( "close" ); }
+            });
+    },
+    dialog: function(body, buttons, style) {
+        var d = $(body);
+        d.dialog({
+            modal: true,
+            closeOnEscape: true,
+            buttons: buttons,
+            width: '50%'
+        });
+        if (style == 'big') {
+            d.css('width', '100%');
+            d.css('padding', '0');
+            d.css('margin', 'auto');
+            d.css('height', '66%');
+        }
+        dom_initialize(d);
+        return d;
+    },
+    load_action_list: function(actions) {
 
-            if ( !!!actions  )  {
-                $('#header_bar').slideUp();
-                return;
-            }
-            var pa = $('#page_actions');
-            var html = [];
+        if ( !!!actions  )  {
+            $('#header_bar').slideUp();
+            return;
+        }
+        var pa = $('#page_actions');
+        var html = [];
 
-            for (i=0 ; i<actions.length ; i++) {
-                elt = actions[i];
-                if (typeof(elt) == "string") {
-                    var text=elt;
-                } else {
-                    // if condition validated & write operations allowed
-                    if (
-                        (!elt.condition || eval(elt.condition) )  && (page_struct._perm.match('w') || page_struct._perm.match(elt.perm)) ) {
-                        // if plain link
-                        if (elt.action.match(/^[^\(\)\[\] ;]+$/)) {
-                            if(!!elt.action.match(/\/$/)) {
-                                var text='<a class="action '+(elt.style || '')+'"  title="'+elt.title+'" href="'+elt.action+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
-                            } else {
-                                var text='<a class="action '+(elt.style || '')+'"  title="'+elt.title+'" href="'+base_uri+elt.action+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
-                            }
-                        } else { // javascript code
-                          var text='<a class="action '+(elt.style || '')+'" title="'+elt.title+'" onclick="'+elt.action+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
-                          if (elt.key)
-                            keys.add(elt.key, elt.action);
-                        }
-                    } else {
-                        var text=null;
-                    }
-                }
-                if ( text ) { html.push(text); }
-            }
-
-            pa.html(html.join(''));
-            dom_initialize( pa );
-
-            if (actions.length === 0) {
-                $('#header_bar').slideUp();
+        for (i=0 ; i<actions.length ; i++) {
+            elt = actions[i];
+            if (typeof(elt) == "string") {
+                var text=elt;
             } else {
-                setTimeout(function(){ $('#header_bar').slideDown('slow'); }, 1000 );
-            }
-        },
-        // Move
-        move_current_page: function() {
-            var win = ui.dialog('<div id="move-confirm" title="Do you really want to move this item ?">Please, type destination path:<input style="width: 90%" type="text" id="move-destination" class="completable" complete_type="objpath" value="/pages/"></input></div>', {
-                Move: function() {
-                    $.post($('#move-confirm #move-destination').val()+'/borrow',
-                        {'item': base_path},
-                        function() {
-                            document.location.href = $('#move-confirm #move-destination').val();
-                    }).error(function(){
-                        ui.dialog('<div title="Error occured">Sorry, something didn\'t work correctly</div>');
-                   });
-                },
-                Cancel: function() {
-                    $( this ).dialog( "close" );
+                // if condition validated & write operations allowed
+                if (
+                    (!elt.condition || eval(elt.condition) )  && (page_struct._perm.match('w') || page_struct._perm.match(elt.perm)) ) {
+                    // if plain link
+                    if (elt.action.match(/^[^\(\)\[\] ;]+$/)) {
+                        if(!!elt.action.match(/\/$/)) {
+                            var text='<a class="action '+(elt.style || '')+'"  title="'+elt.title+'" href="'+elt.action+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
+                        } else {
+                            var text='<a class="action '+(elt.style || '')+'"  title="'+elt.title+'" href="'+base_uri+elt.action+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
+                        }
+                    } else { // javascript code
+                      var text='<a class="action '+(elt.style || '')+'" title="'+elt.title+'" onclick="'+elt.action+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
+                      if (elt.key)
+                        keys.add(elt.key, elt.action);
+                    }
+                } else {
+                    var text=null;
                 }
-            });
-        },
+            }
+            if ( text ) { html.push(text); }
+        }
+
+        pa.html(html.join(''));
+        dom_initialize( pa );
+
+        if (actions.length === 0) {
+            $('#header_bar').slideUp();
+        } else {
+            setTimeout(function(){ $('#header_bar').slideDown('slow'); }, 1000 );
+        }
+    },
+    // Move
+    move_current_page: function() {
+        var win = ui.dialog('<div id="move-confirm" title="Do you really want to move this item ?">Please, type destination path:<input style="width: 90%" type="text" id="move-destination" class="completable" complete_type="objpath" value="/pages/"></input></div>', {
+            Move: function() {
+                $.post($('#move-confirm #move-destination').val()+'/borrow',
+                    {'item': base_path},
+                    function() {
+                        document.location.href = $('#move-confirm #move-destination').val();
+                }).error(function(){
+                    ui.dialog('<div title="Error occured">Sorry, something didn\'t work correctly</div>');
+               });
+            },
+            Cancel: function() {
+                $( this ).dialog( "close" );
+            }
+        });
+    },
     focus: new Position(-1, [
         ['items', '#main_body .entry'],
         ['actions',  '#commands a.action']
