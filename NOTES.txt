@@ -1,3 +1,5 @@
+- introduce reloading hooks for each view (a mapping ?)
+- fix add item refresh on markdown
 - Directory vs Pages
    - Page = little content, live edition, kind of "wiki" like (aggregation & so)
    - Directory = huge list of archives, with little friendlyness but possibility to make reports from its content easily
