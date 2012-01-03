@@ -6,14 +6,10 @@ page_struct = new Page();
 // UI Object
 ui = new Object({
   go_back: function() {
-    /*
-        if(!!document.location.pathname.match(/\/$/)) {document.location.href='../'} else{document.location.href='./'}
-      */
-
-        if (window.location.href != base_uri) {
-            window.location = base_uri;
+        if (document.location.pathname != base_path) {
+            document.location.href = base_path;
         } else {
-            window.location = base_uri+'../';
+            document.location.href = base_path+'../';
         }
   },
   load_html_content: function(data) {
@@ -36,15 +32,21 @@ ui = new Object({
         setTimeout(function() {
             if(!!!view)
                 view = '';
-            if (!!!obj) {
-                $.get(view).
-                    success(function(data) {
-                        ui.load_html_content(data);
-                        $('#main_body, #footers').fadeIn();
-                    });
+            if (!!obj) {
+                if (typeof(obj) == 'string') {
+                    var prefix = obj;
+                } else {
+                    var prefix = obj.path+obj.id+'/';
+                }
+                base_path = prefix;
             } else {
-                window.location = obj.path+obj.id+'/'+view;
+                var prefix = '';
             }
+            $.get(prefix+view).
+                success(function(data) {
+                    ui.load_html_content(data);
+                    $('#main_body, #footers').fadeIn();
+                });
         }, 300);
     },
     // ADD an entry Popup
@@ -71,7 +73,7 @@ ui = new Object({
                 'class': new_obj.find('.obj_class').val(),
                 'name': new_obj.find('input.obj_name').val()
             };
-            $.post('add', item).success(page_struct.add_item);
+            $.post(base_path+'add', item).success(page_struct.add_item);
         };
 
         new_obj.find('input.obj_name').keyup(check_fn);
@@ -147,7 +149,7 @@ ui = new Object({
                         if(!!elt.action.match(/\/$/)) {
                             var text='<a class="action '+(elt.style || '')+'"  title="'+elt.title+'" href="'+elt.action+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
                         } else {
-                            var text='<a class="action '+(elt.style || '')+'"  title="'+elt.title+'" href="'+base_uri+elt.action+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
+                            var text='<a class="action '+(elt.style || '')+'"  title="'+elt.title+'" href="'+base_path+elt.action+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
                         }
                     } else { // javascript code
                       var text='<a class="action '+(elt.style || '')+'" title="'+elt.title+'" onclick="'+elt.action+'"><img  class="icon" src="/static/actions/'+elt.icon+'.png" alt="'+elt.title+' icon" /></a>';
@@ -419,7 +421,7 @@ function get_matching_elts(path_elt, callback) {
         url = url.join('/');
     } else {
         pattern  = path_elt;
-        url = base_uri + "match?pattern=" + pattern;
+        url = base_path + "match?pattern=" + pattern;
     }
     var cur_path = path_elt;
     // AJAX URL

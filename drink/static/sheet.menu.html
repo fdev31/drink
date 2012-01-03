@@ -4,7 +4,7 @@
 		<ul>
 			<li><a onclick="sheetInstance.newSheet(); return false;" title="Creates a new spreadsheet.">New</a></li>
 			<li><a onclick="sheetInstance.s.fnOpen(); return false;" title="Open a new spreadsheet.">Open</a></li>
-            <li><a onclick="$.post('save', {data:sheetInstance.exportSheet.html().html()}).success(function() {ui.success_dialog('Information', 'Document saved.')}); return false;" title="Save the current spreadsheet.">Save</a></li>
+            <li><a onclick="$.post(base_path+'save', {data:sheetInstance.exportSheet.html().html()}).success(function() {ui.success_dialog('Information', 'Document saved.')}); return false;" title="Save the current spreadsheet.">Save</a></li>
 			<li><a onclick="sheetInstance.s.fnClose(); return false;" title="Close the current spreadsheet without saving.">Close</a></li>
 		</ul>
 	</li>

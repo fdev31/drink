@@ -680,7 +680,7 @@ class ListPage(Page):
 
     forced_order = None
 
-    _actions = Page._actions + [dict(perm='w', title="Reset items", action="$.ajax({url:base_uri+'reset_items'}).success(ui.reload)", icon="download")]
+    _actions = Page._actions + [dict(perm='w', title="Reset items", action="$.ajax({url:base_path+'reset_items'}).success(ui.reload)", icon="download")]
 
     def __init__(self, name, rootpath=None):
         self.forced_order = []

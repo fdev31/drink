@@ -66,7 +66,7 @@ class ObjectBrowser(drink.Page):
     js = drink.Page.js + [
     '''
     function browser_rebuild() {
-        $('<div title="Rebuilding search engine database""><iframe src="'+base_uri+'rebuild"></iframe></div>').dialog({modal:true, width: 'auto'});
+        $('<div title="Rebuilding search engine database""><iframe src="'+base_path+'rebuild"></iframe></div>').dialog({modal:true, width: 'auto'});
     }
     ''']
 

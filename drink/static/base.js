@@ -1,6 +1,6 @@
 url_regex = /^(\/|http).+/;
-base_uri = document.location.href.replace(RegExp('[^/]*$'), '');
-base_path = base_uri.replace(RegExp('http?://[^/]*'), '');
+base_path = document.location.href.replace(RegExp('[^/]*$'), '')
+    .replace(RegExp('http?://[^/]*'), ''); // only keep trailing path
 
 /* Entry Position & Page */
 
@@ -68,7 +68,7 @@ var Entry = function(data) {
         }
         // Html is element is prepared, now inject it
         e.data('item', me.id);
-        e.data('item_url', me.path+encodeURI(me.id));
+        e.data('item_url', base_path+encodeURI(me.id));
         if (page_struct.get_from_factory('items', 'hover')) {
             e.on('mouseenter mouseleave', eval(page_struct.get_from_factory('items', 'hover')));
         }
@@ -94,7 +94,7 @@ var Entry = function(data) {
         } else {
             mime = "/static/mime/page.png";
         }
-        return $('<li class="entry"><img width="32px" src="'+mime+'" /><a class="item_name" href="'+me.path+me.id+'/" title="'+me.description+'">'+(me.title || me.id)+'</a></li>');
+        return $('<li class="entry"><img width="32px" src="'+mime+'" /><a class="item_name" href="'+base_path+me.id+'/" title="'+me.description+'">'+(me.title || me.id)+'</a></li>');
     };
 
     this.image_factory = function() {
@@ -109,7 +109,7 @@ var Entry = function(data) {
         } else {
             mime = "/static/mime/page.png";
         }
-        return $('<li class="entry"><img width="32px" src="'+mime+'" /><a class="item_name" href="'+me.path+me.id+'/" title="'+me.description+'"><img src="'+me.path+me.id+'/raw" /><div class="caption">'+(me.title || me.id)+'</a></div></li>');
+        return $('<li class="entry"><img width="32px" src="'+mime+'" /><a class="item_name" href="'+base_path+me.id+'/" title="'+me.description+'"><img src="'+base_path+me.id+'/raw" /><div class="caption">'+(me.title || me.id)+'</a></div></li>');
     };
 
     $.extend(this, data);
@@ -290,7 +290,7 @@ var Page = function () {
                 foot.append( $('<span id="dk_rate_btn" class="button" onclick="page_struct.change_rate()">I like it!</span>') );
             }
             foot.append( $('<div id="comments" />') );
-            $.post('comment').success( function(data) {
+            $.post(base_path+'comment').success( function(data) {
                 page_struct.draw_comments(data.comments);
             });
         }
@@ -329,12 +329,12 @@ var Page = function () {
         }
         page_struct.i_like = ! page_struct.i_like;
         $('#dk_rate_btn').text(text);
-        $.post('rate', d);
+        $.post(base_path+'rate', d);
     };
     this.validate_comment = function() {
         var e = $('#comments textarea');
         var txt = e.attr('value');
-        $.post('comment', {text: txt}).
+        $.post(base_path+'comment', {text: txt}).
             success(function(d) {
                 page_struct.draw_comments(d.comments);
             });
@@ -361,7 +361,7 @@ var Page = function () {
         });
     };
     this.reload = function() {
-        $.post('struct', {'childs': true, 'full': true}).
+        $.post(base_path+'struct', {'childs': true, 'full': true}).
             success(me._fill).
             error(function() {
                 ui.dialog('<div title="Error occured">Listing can\'t be loaded :(</div>');
