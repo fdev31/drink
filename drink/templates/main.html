@@ -71,7 +71,7 @@
 	================================================== -->
     {% if not embed %}
         {% if not authenticated and req.path != '/login' %}
-        <a id="login_link" class="minitext" href="/login?from={{req.path}}">authenticate</a>
+        <a id="login_link" class="minitext" href="/login?from={{req.path}}">login</a>
         {% endif %}
         {% if authenticated %}
         <div id="header_bar" class="container" title="Double click to close">
@@ -79,7 +79,7 @@
             <div class="column alpha" id="page_actions" ></div>
             <div class="column omega" id="user_actions" >
                 <form class="autovalidate" name="search_form" method="post" action="/search/query">
-                    <a title="Account settings" href="/users/{{authenticated.id|e}}/edit"><img class="icon" src="/static/actions/personal.png" alt="your account icon" /></a>
+                    <a title="Connected as {{authenticated.user.title}}" href="/users/{{authenticated.id|e}}/edit"><img class="icon" src="/static/actions/personal.png" alt="your account icon" /></a>
                     <a title="Search" href="/search/"><img  alt="find icon" class="icon" src="/static/actions/find.png" /></a>
                     <input type="hidden" name="qtype" value="fast" />
                     <input type="text" class="inline_form required" name="pattern" />
