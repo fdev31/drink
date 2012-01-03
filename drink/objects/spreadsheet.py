@@ -138,7 +138,7 @@ class SpreadSheet(drink.Page):
                     <input title="Foreground color" class="colorPickerFont" style="background-image: url('/static/actions/spreadsheet/palette.png') ! important; width: 16px; height: 16px;"/>
                     <input title="Background Color" class="colorPickerCell" style="background-image: url('/static/actions/spreadsheet/palette_bg.png') ! important; width: 16px; height: 16px;"/>
                 </span>
-                <a href="#" onclick="sheetInstance.obj.formula().val('=HYPERLINK(\'' + prompt('Enter Web Address', 'http://www.visop-dev.com/') + '\')').keydown(); return false;" title="HyperLink">
+                <a href="#" onclick="var c=sheetInstance.cellLast.td; sheetInstance.evt.cellEditAbandon(); ui.ask_user('Enter address or path', 'Add link to:', function(val) { sheetInstance.cellEdit(c); sheetInstance.obj.formula().val('=HYPERLINK(\\''+val+'\\')'); sheetInstance.evt.cellEditDone(true)}); return false;" title="HyperLink">
                     <img alt="Web Link" src="/static/actions/spreadsheet/page_link.png"/></a>
                 <a href="#" onclick="sheetInstance.toggleFullScreen(); $('#lockedMenu').toggle(); return false;" title="Toggle Full Screen">
                     <img alt="Web Link" src="/static/actions/spreadsheet/arrow_out.png"/></a><!--<a href="#" onclick="insertAt('jSheetControls_formula', '~np~text~'+'/np~');return false;" title="Non-parsed"><img alt="Non-parsed" src="/static/actions/spreadsheet/noparse.png"/></a>-->

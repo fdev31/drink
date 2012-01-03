@@ -85,6 +85,14 @@ ui = new Object({
     edit: function(what) {
         ui.dialog('<div title="Edit"><iframe style="height: 100%" src="'+what+'edit?embedded=1"></iframe></div>');
     },
+    ask_user: function(title, message, callback) {
+        return ui.dialog('<div title="'+title+'">'+message+'<form id="drink_question" action="js: return false" onvalidate="return false;"><input type="text" id="drink_answer" name="question"></input></form></div>', {
+                Ok: function() {
+                    $( this ).dialog( "close" ); 
+                    callback($(this).find('input').val());
+                }
+                });
+    },
     success_dialog: function(title, message) {
         return ui.dialog('<div title="'+title+'">'+message+'</div>', {
                 Ok: function() { $( this ).dialog( "close" ); }
