@@ -300,7 +300,9 @@ class Page(drink.Model):
     def quoted_id(self):
         return quote(self.id.encode('utf-8'))
 
-    view = default_view
+    def view(self, *a, **k):
+        """ See :func:`default_view` """
+        return default_view(self, *a, **k)
 
     #: A map of <html/js event>: <js function>, used to hook items interactions
 
