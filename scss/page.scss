@@ -468,9 +468,24 @@ body {
 #header_bar {
     font-weight: bold;
     width: 100%;
+    position: fixed;
+    background: rgba(255, 255, 230, 0.8);
+    @include light_shadowed;
+    z-index: 5;
+    padding: 0;
+    margin: 0;
     > a {
         cursor: pointer;
-    }
+    };
+    #page_actions {
+        margin-left: 1ex;
+    };
+    #user_actions {
+        margin-right: 1ex;
+    };
+}
+#footers {
+    padding: 1ex;
 }
 #footers {
     padding: 1ex;
@@ -550,17 +565,16 @@ pre {
         padding: .5ex 1em .5ex 1em;
         @include inner_shadowed;
     }
-    padding: 1em;
-    margin-top: .5ex;
-    margin-bottom: 0;
     @include light_shadowed;
     background-color: $background;
+    margin: 0;
+    padding: 2em 0;
 }
 td.linenos {
     > div.linenodiv {
         > pre {
             margin: 0;
-            @include-radius(3px);
+            @include border-radius(3px);
             background: none;
             font-weight: bold;
         }

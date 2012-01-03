@@ -495,15 +495,26 @@ $(document).ready(function(){
         ui.dialog('<div title="Keyboard shortcuts"><ul><li>[E]dit</li><li>[S]earch / [S]elect first input field</li><li>[L]ist</li><li>[V]iew</li><li>BACKSPACE: one level up</li><li>J/K: change selection</li><li>[INS]ert</li><li>[DEL]ete</li><li>[ENTER]</li><li>ESCAPE: close dialogs</li></ul></div>');
     });
 
+    $('#header_bar').on('dblclick', function() { $('#header_bar').fadeOut('slow'); });
+
+    /*
     $(window).scroll(function() {
+        var hdr = $('#header_bar');
+        var main = $('#main_body');
         if( $(window).scrollTop() > 55) {
-            $('#header_bar').css({'top': '-2ex', 'position': 'fixed', 'width': '100%', 'z-index': '5', 'background': 'rgba(255, 255, 255, 0.7)'});
-            $('#main_body').css('margin-top', '55px');
+            if ( hdr.css('position') !== 'fixed') {
+                hdr.css({'top': '-2ex', 'position': 'fixed', 'width': '100%', 'z-index': '5', 'background': 'rgba(255, 255, 255, 0.7)'});
+                main.data('orig_margin', main.css('margin-top'));
+                main.css('margin-top', hdr.css('height'));
+            }
         } else {
-            $('#header_bar').css({'top': '0', 'position': 'relative', 'width': '100%', 'background': 'none'});
-            $('#main_body').css('margin-top', '4px');
+            if ( hdr.css('position') !== 'relative') {
+                hdr.css({'top': '0', 'position': 'relative', 'width': '100%', 'background': 'none'});
+                main.css('margin-top', main.data('orig_margin'));
+            }
         }
     });
+    */
 
 // end of statup code
 });
