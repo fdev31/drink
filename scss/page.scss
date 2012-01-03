@@ -137,6 +137,7 @@ li.entry {
     a {
         @include entryfont;
         @include general_hover;
+        text-decoration: none;
     }
     > img {
         vertical-align: bottom;
@@ -467,6 +468,9 @@ body {
 #header_bar {
     font-weight: bold;
     width: 100%;
+    > a {
+        cursor: pointer;
+    }
 }
 #footers {
     padding: 1ex;
