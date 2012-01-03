@@ -469,7 +469,7 @@ body {
     font-weight: bold;
     width: 100%;
     position: fixed;
-    background: rgba(255, 255, 230, 0.8);
+    background: rgba(255, 240, 240, 0.8);
     @include light_shadowed;
     z-index: 5;
     padding: 0;
@@ -568,7 +568,7 @@ pre {
     @include light_shadowed;
     background-color: $background;
     margin: 0;
-    padding: 2em 0;
+    padding: 2em 1ex;
 }
 td.linenos {
     > div.linenodiv {
