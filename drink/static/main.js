@@ -495,5 +495,15 @@ $(document).ready(function(){
         ui.dialog('<div title="Keyboard shortcuts"><ul><li>[E]dit</li><li>[S]earch / [S]elect first input field</li><li>[L]ist</li><li>[V]iew</li><li>BACKSPACE: one level up</li><li>J/K: change selection</li><li>[INS]ert</li><li>[DEL]ete</li><li>[ENTER]</li><li>ESCAPE: close dialogs</li></ul></div>');
     });
 
+    $(window).scroll(function() {
+        if( $(window).scrollTop() > 55) {
+            $('#header_bar').css({'top': '-2ex', 'position': 'fixed', 'width': '100%', 'z-index': '5', 'background': 'rgba(255, 255, 255, 0.7)'});
+            $('#main_body').css('margin-top', '55px');
+        } else {
+            $('#header_bar').css({'top': '0', 'position': 'relative', 'width': '100%', 'background': 'none'});
+            $('#main_body').css('margin-top', '4px');
+        }
+    });
+
 // end of statup code
 });
