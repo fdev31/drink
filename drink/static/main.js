@@ -30,17 +30,22 @@ ui = new Object({
     dom_initialize($('#main_body'));
   },
   goto_object: function(obj, view) {
-        if(!!!view)
-            view = '';
-        if (!!!obj) {
-            $.get(view).
-                success(function(data) {
-                    ui.load_html_content(data);
-                });
-            //window.location = base_uri+view;
-        } else {
-            window.location = obj.path+obj.id+'/'+view;
-        }
+        $('#main_body , #footers').fadeOut();
+        var obj = obj;
+        var view = view;
+        setTimeout(function() {
+            if(!!!view)
+                view = '';
+            if (!!!obj) {
+                $.get(view).
+                    success(function(data) {
+                        ui.load_html_content(data);
+                        $('#main_body, #footers').fadeIn();
+                    });
+            } else {
+                window.location = obj.path+obj.id+'/'+view;
+            }
+        }, 300);
     },
     // ADD an entry Popup
     add_entry: function() {
@@ -496,25 +501,6 @@ $(document).ready(function(){
     });
 
     $('#header_bar').on('dblclick', function() { $('#header_bar').fadeOut('slow'); });
-
-    /*
-    $(window).scroll(function() {
-        var hdr = $('#header_bar');
-        var main = $('#main_body');
-        if( $(window).scrollTop() > 55) {
-            if ( hdr.css('position') !== 'fixed') {
-                hdr.css({'top': '-2ex', 'position': 'fixed', 'width': '100%', 'z-index': '5', 'background': 'rgba(255, 255, 255, 0.7)'});
-                main.data('orig_margin', main.css('margin-top'));
-                main.css('margin-top', hdr.css('height'));
-            }
-        } else {
-            if ( hdr.css('position') !== 'relative') {
-                hdr.css({'top': '0', 'position': 'relative', 'width': '100%', 'background': 'none'});
-                main.css('margin-top', main.data('orig_margin'));
-            }
-        }
-    });
-    */
 
 // end of statup code
 });
