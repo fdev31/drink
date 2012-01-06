@@ -212,15 +212,17 @@ class ObjectBrowser(drink.Page):
             pat = ''
             items = None
 
-        form = ['<form class="query_form" id="query_form" action="query" method="post">',
+        form = [
+            u'<form class="query_form" id="query_form" action="query" method="post">',
             drink.types.Text('Look for').html('pattern', pat),
 #            drink.types.CheckboxSet("Search type", values=['fast']).html('qtype', ['fast']),
-            '<input class="submit" type="submit" value="GO!"/></form>']
-        form.append('<a href="http://packages.python.org/Whoosh/querylang.html">Overview of language (fields: path, title, content, tags)</a>')
-        if items:
-            form.append('<h2>Last search</h2>')
+            u'<input class="submit" type="submit" value="GO!"/></form>',
+            u'<a href="http://packages.python.org/Whoosh/querylang.html">Overview of language (fields: path, title, content, tags)</a>',
+            ]
 
-            form.extend('<li><a href="%(path)s">%(title)s</a></li>'%i for i in items)
+        if pat:
+            form.append(u'<p>Last search:<a href="query?pattern=%s">%s</a></p>'%(pat, pat))
+
         return '\n'.join(form)
 
 
