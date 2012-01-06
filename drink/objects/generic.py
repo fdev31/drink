@@ -503,9 +503,8 @@ class Page(drink.Model):
                     val = getattr(self, field, '')
                     form.append('<li class="entry"><div class="input">%s</div></li>'%factory.html(field, val))
                 form.append('''</li></div></ul>
-                <div class="buttons">
                 <input class="submit" type="submit" value="Save changes please"/>
-                </div></form>''')
+                </form>''')
                 form.insert(0, '''<form
                  class="auto_edit_form" id="auto_edit_form" action="edit" %s method="post"><ul class="editable_fields">'''%(' '.join(form_opts)))
             return drink.default_view(self, html='\n'.join(form))
