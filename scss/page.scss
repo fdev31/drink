@@ -359,7 +359,7 @@ button, input.submit, .button, span.page_nr {
 	border: 1px solid $butb !important;
     margin: 1ex auto 0 .5ex;
     position: relative;
-    padding: 0.5ex 1ex 0.5ex 1ex;
+    padding: 5px;
     cursor: pointer;
     top: 0.5ex;
     bottom: 0.5ex;
@@ -566,7 +566,7 @@ pre {
     }
     @include light_shadowed;
     background-color: $background;
-    margin: 0;
+    margin: 0 auto;
     padding: 2em 1ex;
 }
 td.linenos {
