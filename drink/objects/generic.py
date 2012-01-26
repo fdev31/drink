@@ -51,7 +51,8 @@ def get_struct_from_obj(obj, childs=None, full=None):
                     if not 'r' in a(v):
                         continue
                     v = v.struct(False)
-                    v['id'] = k
+                    if k != v['id']:
+                        log.error('children ID not consistant with parent (%r != %r) !', k, v['id'])
                 elif isinstance(v, datetime):
                     v = dt2str(v)
                 else:
