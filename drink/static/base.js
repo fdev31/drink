@@ -264,12 +264,12 @@ var Page = function () {
             val = "me."+val;
         return val;
     };
-    this.add_item = function(data) {
+    this.add_item = function(data, focus) {
         var e = new Entry(data);
         me.id_idx_map[data.id] = me.entries.length;
         me.entries.push( e );
         me.items.push( data );
-        e.elt.center();
+        if (!!focus) e.elt.center();
         call_hook_add_item(data);
     };
     this._fill = function (data, status, req) {

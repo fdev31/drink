@@ -73,7 +73,7 @@ ui = new Object({
                 'class': new_obj.find('.obj_class').val(),
                 'name': new_obj.find('input.obj_name').val()
             };
-            $.post(base_path+'add', item).success(page_struct.add_item);
+            $.post(base_path+'add', item).success(function(data) { page_struct.add_item(data, true); } );
         };
 
         new_obj.find('input.obj_name').keyup(check_fn);

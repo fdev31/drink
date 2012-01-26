@@ -35,25 +35,23 @@ def get_struct_from_obj(obj, childs=None, full=None):
 
     if 'r' in auth:
         d['id'] = quote(obj.id.encode('utf-8'))
-        d['title'] = obj.title
-        d['description'] = obj.description
         #d['logged_in'] = request.identity.success
         d['path'] = quote(obj.rootpath.encode('utf-8'))
-        d['mime'] = obj.mime
         d['_perm'] = auth
 
+        _fields = set(obj.editable_fields.keys())
+        _fields.update(('mime', 'title', 'description'))
+
         if full:
-            for k in obj.editable_fields.keys():
-                if k in d:
-                    continue
+            for k in _fields:
                 v = getattr(obj, k, None)
-                if isinstance(v, drink.Model):
+                if isinstance(v, (basestring, int, float)):
+                    pass # serializes well in json
+                elif isinstance(v, drink.Model):
                     if not 'r' in a(v):
                         continue
                     v = v.struct(False)
                     v['id'] = k
-                elif isinstance(v, (basestring, int, float)):
-                    pass # serializes well in json
                 elif isinstance(v, datetime):
                     v = dt2str(v)
                 else:
