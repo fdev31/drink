@@ -1,5 +1,9 @@
 - introduce reloading hooks for each view (a mapping ?)
-- fix add item refresh on markdown
+- Do Queue Job & use it when adding or editing an item
+    - use http://pypi.python.org/pypi/pycom/0.3.0 for communication
+    - use https://github.com/btimby/fulltext/ to extract content from binary files
+    - add possibility to extract thumbnails as well ? (using convert in a first step)
+- fix add item refresh on markdown & all
 - Directory vs Pages
    - Page = little content, live edition, kind of "wiki" like (aggregation & so)
    - Directory = huge list of archives, with little friendlyness but possibility to make reports from its content easily
