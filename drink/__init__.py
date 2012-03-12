@@ -379,6 +379,8 @@ def log_in():
         session = request.identity.session
         session['logged_in'] = sha1(request.forms.get('login_password', '')).hexdigest()
         session['login'] = request.forms.get('login_name', '')
+        log.debug('LOGGING-IN! session=%r', session)
+        session.save()
         return rdr(request.params.get('from', '/'))
     else:
         html='''
@@ -398,8 +400,10 @@ def log_in():
 
 @route("/logout", method=['GET', 'POST'])
 def log_out():
+    log.debug('LOGGING-OUT!')
     session = bottle.request.environ.get('beaker.session')
     session['logged_in'] = ''
+    session.save()
     return rdr('/')
 
 # generic dispatcher method
@@ -805,10 +809,13 @@ def make_app(full=False):
 
     app = bottle.app()
     session_opts = {
+        'session.auto': False,
         'session.type': 'file',
-        'session.cookie_expires': 300,
+        'session.key': 'drink_cookie',
+        'session.cookie_expires': False,
         'session.data_dir':  DB_PATH,
-        'session.auto': True
+        #'session.validate_key': 'drink-key-you-must-change-this-in-cookies',
+        #'session.encryption_key': ''.join(chr(randint(65, 122)) for x in xrange(100)
     }
     app = SessionMiddleware(app, session_opts)
 
