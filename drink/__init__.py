@@ -376,7 +376,6 @@ def login_actions():
 def log_in():
     request.identity = Authenticator()
     if request.forms.get('login_name', ''):
-        a = 15552000 # 6*30*24*60*60
         session = request.identity.session
         session['logged_in'] = sha1(request.forms.get('login_password', '')).hexdigest()
         session['login'] = request.forms.get('login_name', '')
@@ -735,7 +734,6 @@ For static files changes, no restart is needed.
         log.info("Exploring %s", base)
 
         all_obj = [ (db.db, '/') ]
-        old_cwd = os.getcwd()
         for obj, obj_path in all_obj:
             log.info("-"*80)
             nbase = os.path.join(base, (obj_path or obj.path).lstrip(os.path.sep))
