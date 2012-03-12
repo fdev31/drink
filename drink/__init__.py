@@ -708,7 +708,7 @@ For static files changes, no restart is needed.
                         o.set_field(name, v)
                         f_set.discard(name)
                     except AttributeError:
-                        log.error("Could not refresh %r on %r", field, o.id)
+                        log.error("Could not refresh %r on %r", name, o.id)
                     except (UnicodeError, TypeError), e:
                         import pdb; pdb.set_trace()
             for field in f_set:
