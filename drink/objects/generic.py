@@ -218,12 +218,12 @@ class Page(drink.Model):
     _actions = [
         dict(title="Help", action="/pages/help/", perm="r", icon="help"),
         dict(title="Back", action="ui.go_back()", perm="r", icon="undo"),
-        dict(title="View/Reload", action="ui.goto_object(undefined, 'view')", icon="view", perm='r'),
-        dict(title="Edit", style="edit_form", action="ui.goto_object(undefined, 'edit')", icon="edit", perm='w'),
-        dict(title="List content", action="ui.goto_object(undefined, 'list')", icon="open", perm='r'),
+        dict(title="View/Reload", action="drink.serve(undefined, 'view')", icon="view", perm='r'),
+        dict(title="Edit", style="edit_form", action="drink.serve(undefined, 'edit')", icon="edit", perm='w'),
+        dict(title="List content", action="drink.serve(undefined, 'list')", icon="open", perm='r'),
         dict(title="Add object", condition="drink.d.classes.length!=0", style="add_form", action="ui.add_entry()", key='INS', icon="new", perm='a'),
         dict(title="Move", style="move_form", action="ui.move_current_page()", icon="move", perm='o'),
-        dict(title="Image gallery", style="move_form", action="ui.goto_object(undefined, 'gallery')", icon="view", perm='r', key='G'),
+        dict(title="Image gallery", style="move_form", action="drink.serve(undefined, 'gallery')", icon="view", perm='r', key='G'),
     ]
 
     #: fields that are only editable by the admin (appear in edit panel)

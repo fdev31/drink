@@ -20,7 +20,7 @@ save_doc = function(h) {
             if (m) { // children entry
                 m.load_page(m.source);
             } else { /* main document edition */
-                ui.goto_object();
+                drink.serve();
             };
         })
     return false;

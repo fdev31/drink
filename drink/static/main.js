@@ -50,22 +50,19 @@ ui = new Object({
             tmp_css = '<style type="text/css">'+tmp_css+'</style>';
         }
         $('head').append($(tmp_css));
-    }
-    for (var n=0; n<data.js.length; n++) {
-        var tmp_js = data.js[n];
-        if ( tmp_js[0] == '/') {
-            tmp_js = '<script type="text/javascript" src="'+tmp_js+'"></script>';
-        } else {
-            tmp_js = '<script type="text/javascript" >'+tmp_js+'</script>';
         }
-        $('head').append($(tmp_js));
-    }
-    $('#main_body').html(data.html);
-    if(debug) console.log('load html content');
-    dom_initialize($('#main_body'));
-  },
-  goto_object: function(obj, view) {
-  		drink.serve(obj, view);
+        for (var n=0; n<data.js.length; n++) {
+            var tmp_js = data.js[n];
+            if ( tmp_js[0] == '/') {
+                tmp_js = '<script type="text/javascript" src="'+tmp_js+'"></script>';
+            } else {
+                tmp_js = '<script type="text/javascript" >'+tmp_js+'</script>';
+            }
+            $('head').append($(tmp_js));
+        }
+        $('#main_body').html(data.html);
+        if(debug) console.log('load html content');
+        dom_initialize($('#main_body'));
     },
     // ADD an entry Popup
     add_entry: function() {

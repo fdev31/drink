@@ -86,11 +86,6 @@ var Drink = function() {
 	// self factory shortcuts
 	this.write_footers = function() {
 		var foot = $('#footers');
-		if (foot.css('display') === 'none') {
-			foot.fadeOut();
-			foot.html();
-			foot.fadeIn(3000);
-		}
 		// add comments		
 		if (me.d._perm.match(/r/)) {
 			if(debug) console.log('comments & rates...');
