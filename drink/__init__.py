@@ -16,10 +16,8 @@ __all__ = ['get_object',
 import os
 import logging
 logging.basicConfig()
-
 import signal
 signal.signal(signal.SIGPIPE, signal.SIG_IGN)
-
 dbg_in_env = 'DEBUG' in os.environ
 if dbg_in_env:
     logging.getLogger().setLevel(logging.NOTSET)
@@ -30,6 +28,7 @@ log = logging.getLogger('core')
 
 from drink.config import config, BASE_DIR
 import bottle
+from hashlib import sha1
 
 #: All kind of drink objects as a ``{"name": Page_class}`` mapping.
 
@@ -156,7 +155,7 @@ def init():
         root['users']['anonymous'] = anon
         root['users']['admin'] = admin
 
-        admin.password = 'admin'
+        admin.set_field('password', 'admin')
         admin.surname = "BOFH"
         admin.name = "Mr Admin"
         admin.owner = admin
@@ -288,20 +287,21 @@ bottle.server_names['drink'] = DrinkServer
 class Authenticator(object):
     """ Authentication class, handles user's identity """
 
-    __slots__ = ['user', 'success', 'groups', 'admin', 'id']
+    __slots__ = ['user', 'success', 'session', 'groups', 'admin', 'id']
 
     def __init__(self):
-        login = request.get_cookie('login', 'drink')
-        # TODO: handle basic http auth digest
-        try:
-            #: current user object
-            self.user = db.db['users'][login]
-        except KeyError:
-            #: is the user authenticated ?
-            self.success = False
+        self.session = session = bottle.request.environ.get('beaker.session')
+        log.debug('session = %r', self.session)
+        logged_in = session.get('logged_in', '')
+        log.debug('logged_in = %r', logged_in)
+        if logged_in:
+            self.user = db.db['users'][session['login']]
+            ok = self.user.password == logged_in
+            if not ok:
+                self.user = None
+            self.success = ok
         else:
-            password = request.get_cookie('password', 'drink')
-            self.success = self.user.password == password
+            self.success = False
 
         if self.success:
             #: set of current user's groups
@@ -375,13 +375,13 @@ def login_actions():
 @route("/login", method=['GET', 'POST'])
 def log_in():
     request.identity = Authenticator()
-
     if request.forms.get('login_name', ''):
-        a = 15552000 # 6*30*24*60*60
-        response.set_cookie('password', request.forms.get('login_password', ''), 'drink', max_age=a)
-        response.set_cookie('login', request.forms.get('login_name', ''), 'drink', max_age=a)
-        url = request.params.get('from', '/')
-        rdr(url)
+        session = request.identity.session
+        session['logged_in'] = sha1(request.forms.get('login_password', '')).hexdigest()
+        session['login'] = request.forms.get('login_name', '')
+        log.debug('LOGGING-IN! session=%r', session)
+        session.save()
+        return rdr(request.params.get('from', '/'))
     else:
         html='''
         <h1>Connect to drink</h1>
@@ -400,8 +400,11 @@ def log_in():
 
 @route("/logout", method=['GET', 'POST'])
 def log_out():
-    response.set_cookie('password', '', 'drink')
-    rdr('/')
+    log.debug('LOGGING-OUT!')
+    session = bottle.request.environ.get('beaker.session')
+    session['logged_in'] = ''
+    session.save()
+    return rdr('/')
 
 # generic dispatcher method
 @route("/:objpath#.+#", method=['GET', 'POST'])
@@ -530,6 +533,7 @@ if DEBUG environment variable is set, it will start in debug mode.
             ('a wiki-like web page in markdown format', 'markdown'),
             ('a tool to find objects in database', 'finder'),
             ('a filesystem proxy, allow sharing of arbitrary folder or static websites', 'filesystem'),
+            ('a simple but powerful spreadsheet', 'spreadsheet'),
         ]
         objects = []
         for o in objs:
@@ -704,7 +708,7 @@ For static files changes, no restart is needed.
                         o.set_field(name, v)
                         f_set.discard(name)
                     except AttributeError:
-                        log.error("Could not refresh %r on %r", field, o.id)
+                        log.error("Could not refresh %r on %r", name, o.id)
                     except (UnicodeError, TypeError), e:
                         import pdb; pdb.set_trace()
             for field in f_set:
@@ -734,7 +738,6 @@ For static files changes, no restart is needed.
         log.info("Exploring %s", base)
 
         all_obj = [ (db.db, '/') ]
-        old_cwd = os.getcwd()
         for obj, obj_path in all_obj:
             log.info("-"*80)
             nbase = os.path.join(base, (obj_path or obj.path).lstrip(os.path.sep))
@@ -767,6 +770,8 @@ For static files changes, no restart is needed.
         from pdb import set_trace
         with db as root:
             set_trace()
+
+from beaker.middleware import SessionMiddleware
 
 def make_app(full=False):
     """ Returns Drink WSGI application """
@@ -803,6 +808,17 @@ def make_app(full=False):
     config.async = async
 
     app = bottle.app()
+    session_opts = {
+        'session.auto': False,
+        'session.type': 'file',
+        'session.key': 'drink_cookie',
+        'session.cookie_expires': False,
+        'session.data_dir':  DB_PATH,
+        #'session.validate_key': 'drink-key-you-must-change-this-in-cookies',
+        #'session.encryption_key': ''.join(chr(randint(65, 122)) for x in xrange(100)
+    }
+    app = SessionMiddleware(app, session_opts)
+
     if not full:
         return app
 

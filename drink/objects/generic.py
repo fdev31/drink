@@ -20,14 +20,13 @@ class _Mock(object): pass
 def get_type(filename):
     return guess_type(filename)[0] or 'application/octet-stream'
 
-def get_struct_from_obj(obj, childs, full):
+def get_struct_from_obj(obj, childs=None, full=None):
 
-    k = request.params.keys()
-    if None == full:
-        full = 'full' in k and childs
+    if full is None:
+        full = bool(request.params.get('full', childs or '').lower() != 'no')
 
-    if 'childs' in k:
-        childs = request.params['childs'].lower() in ('yes', 'true')
+    if childs is None:
+        childs = bool(request.params.get('childs', '').lower() != 'no')
 
     a = request.identity.access
 
@@ -36,41 +35,56 @@ def get_struct_from_obj(obj, childs, full):
 
     if 'r' in auth:
         d['id'] = quote(obj.id.encode('utf-8'))
-        d['title'] = obj.title
-        d['description'] = obj.description
-        d['logged_in'] = request.identity.success
+        #d['logged_in'] = request.identity.success
         d['path'] = quote(obj.rootpath.encode('utf-8'))
-        d['mime'] = obj.mime
         d['_perm'] = auth
 
+        _fields = set(obj.editable_fields.keys())
+        _child_fields = set(('title', 'description', 'default_action', 'mime'))
+        _fields.update(_child_fields)
+
+        def _getset(k):
+            v = getattr(obj, k, None)
+            if isinstance(v, (basestring, int, float)):
+                pass # serializes well in json
+            elif isinstance(v, drink.Model):
+                if not 'r' in a(v):
+                    return
+                v = v.struct(False)
+                if k != v['id']:
+                    log.error('children ID not consistant with parent (%r != %r) !', k, v['id'])
+            elif isinstance(v, datetime):
+                v = dt2str(v)
+            else:
+                v = "N/A"
+            d[k] = v
+
+        for k in _fields:
+            _getset(k)
+
         if full:
-            for k in obj.editable_fields.keys():
-                if k in d:
-                    continue
-                v = getattr(obj, k, None)
-                if isinstance(v, drink.Model):
-                    if not 'r' in a(v):
-                        continue
-                    v = v.struct(False)
-                    v['id'] = k
-                elif isinstance(v, (basestring, int, float)):
-                    pass # serializes well in json
-                elif isinstance(v, datetime):
-                    v = dt2str(v)
-                else:
-                    v = "N/A"
-                d[k] = v
+            for k in _child_fields:
+                _getset(k)
+
+            d['i_like'] = request.identity.id in obj._like if obj._like else False
+
+            try:
+                d['score'] = len(obj._like) - len(obj._unlike)
+            except TypeError:
+                d['score'] = 0
+
+            d['actions'] = obj._actions
+            d['loaders'] = obj.loaders
 
         if childs:
             items = []
             for v in obj.itervalues():
-                auth = a(v)
-                if 'r' in auth:
-                    c = v.struct(childs=False)
-                    c['_perm'] = auth
+                c = v.struct(childs=False, full=False)
+                if c:
                     items.append(c)
             d['items'] = items
             d['items_factory'] = obj.items_factory
+            d['classes'] = obj.classes.keys()
         else:
             d['_nb_items'] = len(obj)
 
@@ -113,6 +127,12 @@ def default_view(self, page='main.html', obj=None, css=None, js=None, html=None,
 
     drink.response.content_type = "text/html; charset=utf-8"
 
+    if request.is_ajax:
+        return {'html': html or self.html,
+            'js': js or self.js,
+            'css': css or self.css,
+            }
+
     return bottle.template(page,
             template_adapter=bottle.Jinja2Template,
             obj=obj or self,
@@ -132,6 +152,13 @@ def default_view(self, page='main.html', obj=None, css=None, js=None, html=None,
 class Page(drink.Model):
     """ A dict-like object, defining all properties required by a standard page """
 
+    loaders = {
+        'gallery': "$('#pikame').PikaChoose({transition:[0], showTooltips: true})",
+        'view': "",
+        'list': "var l=$('#main_list'); drink.entries.forEach( function(e) {l.append(e.elt) })",
+        'edit': "",
+    }
+
     #: fields that are editable (appear in edit panel)
 
     editable_fields = {
@@ -139,6 +166,17 @@ class Page(drink.Model):
         'description': drink.types.Text('Description'),
     }
 
+
+    """
+    def _p_resolveConflict(self, oldState, savedState, newState):
+
+        # Figure out how each state is different:
+        savedDiff= savedState['count'] - oldState['count']
+        newDiff= newState['count']- oldState['count']
+
+        # Apply both sets of changes to old state:
+        return oldState['count'] + savedDiff + newDiff
+"""
 
     #: fields that are only editable by the owner (appear in edit panel)
 
@@ -176,21 +214,16 @@ class Page(drink.Model):
                 c.append((child, self[child].serialize()))
         return d
 
-    @property
-    def actions(self):
-        return {'actions' : self._actions}
-
     #: actions
     _actions = [
         dict(title="Help", action="/pages/help/", perm="r", icon="help"),
-        dict(title="Back", action="if(!!document.location.pathname.match(/\/$/)) {document.location.href='../'} else{document.location.href='./'}", perm="r", icon="undo"),
-        dict(title="View/Reload", action="document.location.href = base_uri+'/view'", icon="view", perm='r'),
-        dict(title="Edit", style="edit_form", action="edit", icon="edit", perm='w'),
-        dict(title="List content", action="list", icon="open", perm='r'),
-        dict(title="Add object", condition="page_struct.classes.length!=0", style="add_form", action="ui.main_list.new_entry_dialog()", key='INS', icon="new", perm='a'),
+        dict(title="Back", action="ui.go_back()", perm="r", icon="undo"),
+        dict(title="View/Reload", action="drink.serve(undefined, 'view')", icon="view", perm='r'),
+        dict(title="Edit", style="edit_form", action="drink.serve(undefined, 'edit')", icon="edit", perm='w'),
+        dict(title="List content", action="drink.serve(undefined, 'list')", icon="open", perm='r'),
+        dict(title="Add object", condition="drink.d.classes.length!=0", style="add_form", action="ui.add_entry()", key='INS', icon="new", perm='a'),
         dict(title="Move", style="move_form", action="ui.move_current_page()", icon="move", perm='o'),
-        dict(title="Image gallery", style="move_form", action="gallery", icon="view", perm='r'),
-        #dict(title="Remove object", onclick="ui.main_list.remove_entry()", icon="delete", perm='w'),
+        dict(title="Image gallery", style="move_form", action="drink.serve(undefined, 'gallery')", icon="view", perm='r', key='G'),
     ]
 
     #: fields that are only editable by the admin (appear in edit panel)
@@ -282,23 +315,22 @@ class Page(drink.Model):
     def quoted_id(self):
         return quote(self.id.encode('utf-8'))
 
-    view = default_view
+    def view(self, *a, **k):
+        """ See :func:`default_view` """
+        return default_view(self, *a, **k)
 
     #: A map of <html/js event>: <js function>, used to hook items interactions
 
     items_factory = {
-        'dblclick': 'enter_edit_func',
-        'hover': 'popup_actions',
-        'build': 'make_std_item',
+            # TODO: make it really generic, not just look-a-like
+        'dblclick': "edit_title",
+        'hover': "popup_actions",
+        'entry': "default_factory",
     }
 
-    def struct(self, childs=True, full=None):
+    def struct(self, childs=None, full=None):
         """ returns this item as a json structure """
-
-        o =  get_struct_from_obj(self, childs, full)
-        if o:
-            o['classes'] = self.classes.keys()
-        return o
+        return get_struct_from_obj(self, childs, full)
 
     _like = None
     _unlike = None
@@ -336,7 +368,7 @@ class Page(drink.Model):
             if not self._comments:
                 self._comments = []
             self._comments.append( {'from': request.identity.id, 'message': txt} )
-        drink.transaction.commit()
+            drink.transaction.commit()
         return {'comments': self._comments or [], 'redirect': self.path}
 
     @property
@@ -353,8 +385,18 @@ class Page(drink.Model):
         :arg val: value of the field
         :type val: depends on the :mod:`~drink.types`
         """
-
-        self.editable_fields[name].set(self, name, val)
+        if name in self.editable_fields:
+            if 'w' in drink.request.access(self):
+                self.editable_fields[name].set(self, name, val)
+            else:
+                return drink.unauthorized("You can't edit %r, ask for more permissions."%name)
+        elif name in self.owner_fields:
+            if 'o' in drink.request.access(self):
+                self.owner_fields[name].set(self, name, val)
+            else:
+                return drink.unauthorized("You can't edit %r, ask for more permissions."%name)
+        else:
+            return drink.unauthorized("%r is not editable."%name)
 
     def get_field(self, name):
         """ Get the value of field *name*
@@ -476,9 +518,8 @@ class Page(drink.Model):
                     val = getattr(self, field, '')
                     form.append('<li class="entry"><div class="input">%s</div></li>'%factory.html(field, val))
                 form.append('''</li></div></ul>
-                <div class="buttons">
                 <input class="submit" type="submit" value="Save changes please"/>
-                </div></form>''')
+                </form>''')
                 form.insert(0, '''<form
                  class="auto_edit_form" id="auto_edit_form" action="edit" %s method="post"><ul class="editable_fields">'''%(' '.join(form_opts)))
             return drink.default_view(self, html='\n'.join(form))
@@ -631,9 +672,6 @@ class Page(drink.Model):
         <script>
         // Load the classic theme
 
-        // Initialize Galleria
-        $('#pikame').PikaChoose({transition:[0], showTooltips: true});
-
         </script>
         </div>
         '''%'\n'.join(_g())
@@ -653,7 +691,7 @@ class ListPage(Page):
 
     forced_order = None
 
-    _actions = Page._actions + [dict(perm='w', title="Reset items", action="$.ajax({url:base_uri+'reset_items'}).success(ui.reload)", icon="download")]
+    _actions = Page._actions + [dict(perm='w', title="Reset items", action="$.ajax({url:base_path+'reset_items'}).success(function(){drink.cur_action=null; drink.serve())", icon="download")]
 
     def __init__(self, name, rootpath=None):
         self.forced_order = []
@@ -676,7 +714,7 @@ class ListPage(Page):
         if request.is_ajax:
             self.forced_order = unquote(request.params.get('set')).decode('utf-8').split('/')
         else:
-            html = '<input class="completable" complete_type="objpath"></input>'
+            html = '<input type="text" class="completable" complete_type="objpath" value="/pages/"></input>'
             return self.view(html=html)
 
     def itervalues(self):

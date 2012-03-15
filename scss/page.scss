@@ -1,5 +1,5 @@
 /* opts */
-//@option compress: no;
+@option compress: yes;
 $experimental-support-for-mozilla: 1;
 $experimental-support-for-webkit: 1;
 
@@ -15,6 +15,9 @@ $hi2_color: #fa5;
 $hi3_color: #ffd;
 $contour: #eed;
 $main_color: #093E56;
+$fast_d: 180ms;
+$std_d: 350ms;
+$slow_d: 800ms;
 $background: #eed;
 
 /* mixins */
@@ -25,6 +28,7 @@ $background: #eed;
 @import "compass/utilities";
 @import "compass/css3/opacity";
 @import "compass/css3/images";
+@import "compass/css3/transition";
 
 @mixin editable {
     margin: 0 0 0.7ex 0;
@@ -33,6 +37,7 @@ $background: #eed;
     border: none;
     padding: 0 1ex 0 1ex;
     background: $hi3_color;
+    @include transition-duration($slow_d);
 
     &:hover {
         color: black;
@@ -40,9 +45,11 @@ $background: #eed;
     }
     &:focus {
         background: white;
+        @include transition-duration($slow_d);
     }
 }
 @mixin general_hover {
+    @include transition-duration($std_d);
     &:hover {
         border-bottom: solid 3px $hi2_color;
         color: black;
@@ -110,6 +117,8 @@ div#comment {
 li.entry {
     margin-bottom: 0.5ex;
     list-style-type: none;
+    @include transition-duration($fast_d);
+
     > span.actions {
       margin-left: 1em;
       vertical-align: 5px;
@@ -117,16 +126,18 @@ li.entry {
     span.infos {
         margin-left: 1ex;
     }
-    > input {
+    input.inline {
         @include border-radius($radius);
         @include entryfont;
         @include editable;
         margin: 0;
         width: 66%;
+        text-align: left;
     }
     a {
         @include entryfont;
         @include general_hover;
+        text-decoration: none;
     }
     > img {
         vertical-align: bottom;
@@ -136,14 +147,13 @@ li.entry {
 }
 .inline {
     display: inline;
-    vertical-align: 1ex;
+    vertical-align: -100%;
 }
-button {
-    @include light_shadowed;
-}
-.button {
-    vertical-align: 105%;
-    align: 105%;
+div.input {
+    > ul {
+        padding: 0;
+        margin: 1ex;
+    }
 }
 span.page_nr_cur {
     padding: 0.1ex 0.5ex 0.1ex 0.5ex;
@@ -197,16 +207,13 @@ b.match {
     }
 }
 div.togglable {
-    @include light_shadowed;
     padding: 0 1ex 0 1ex;
-    @include background-image(linear-gradient(#fff  5%, #ddd 30%, #eee 90%, $background 100%));
 }
 span.toggler {
     cursor: pointer;
     margin-right: 1ex;
     @include border-radius($radius);
     padding: 0 0.5ex 0 0.5ex;
-
 }
 span.selected {
     border: solid white 1px;
@@ -225,6 +232,7 @@ label.autoform {
     padding: 0 1ex 0 0;
 }
 .option {
+    @include transition-duration($std_d);
     cursor: pointer;
     margin: 0;
     &:hover {
@@ -263,10 +271,6 @@ div.codehilite {
     width: 20em;
     @include background-image(linear-gradient(#aca 0%, #575 100%));
     @include shadowed;
-}
-.buttons {
-    margin: 1ex auto;
-    text-align: left;
 }
 .auto_edit_form {
     width: 80%;
@@ -335,43 +339,61 @@ ul.tabs-content {
         border: solid 1px white;
     }
 }
-input.submit, .button, span.page_nr {
-    @include border-radius(5px);
-    border: none;
-    @include single-box-shadow($shadow_color, 0, 3px, 2px, 0px, false);
-    background-color: $hi3_color;
+$butb: #aaa;
+$but1: $butb*1.5;
+$but2: $butb*0.9;
+$butc: #EEE;
+
+button, input.submit, .button, span.page_nr {
+	display: inline-block;
+    @include border-radius(3px);
+    color: #555;
+    font-size: 11px;
+    font-weight: bold;
+    text-decoration: none;
+    @include single-text-shadow(rgba(255, 255, 255, .75), 0, 1px, 1px);
+    font-family: "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    background-color: $butc;
+    @include background( linear-gradient(top left, $but1, $but2));
+	@include box-shadow( inset 0 1px 1px white, 0 3px 3px rgba(0,0,0,0.6));
+	border: 1px solid $butb !important;
+    margin: 1ex auto 0 .5ex;
     position: relative;
-    padding: 0.5ex 1ex 0.5ex 1ex;
+    padding: 5px;
     cursor: pointer;
     top: 0.5ex;
     bottom: 0.5ex;
-    
-    @include background-image(linear-gradient(#fff  10%, #eda 30%, $background 100%));
-    &:hover {
-        top: .7ex;
-        border: none;
-        background-color: $hi3_color;
-        text-decoration: underline;
-        @include single-box-shadow($shadow_color, 0, 3px, 2px, 0px, true);
-    }
-}
+    @include transition-duration($fast_d);
+	&:hover {
+        color: black;
+	    @include box-shadow(inset 0 -6px 6px white, 0 3px 3px rgba(0,0,0,0.5));
+        @include background( linear-gradient(top left, $but1, $but2));
+	};
+	&:active {
+      @include box-shadow(inset 0 2px 6px white, 0 1px 1px rgba(0,0,0,0.6));
+	};
+};
 div.markItUpContainer {
     @include border-radius($radius);
+    @include transition-duration($std_d);
     &:hover {
         border: solid 1px $hi_color;
     }
 }
 div.markItUp {
+    @include transition-duration($std_d);
     @include light_shadowed;
     @include border-radius($radius);
     width: 100%;
 }
 textarea.markItUpEditor {
+    @include transition-duration($std_d);
     border: none !important;
     width: 95%;
 }
 li.markItUpButton > a {
     @include opacity(.5);
+    @include transition-duration($std_d);
     &:hover {
         border: none;
         @include opacity(1);
@@ -380,6 +402,23 @@ li.markItUpButton > a {
 .error_message {
     font-size: 300%;
     color: #a55;
+}
+/* action icons */
+a.action {
+    cursor: pointer;
+    > img.icon {
+        @include transition-duration($std_d);
+        opacity:0.5;
+        filter:progid:DXImageTransform.Microsoft.Alpha(opacity=50);
+        -moz-opacity:0.5;
+        -khtml-opacity:0.5;
+        &:hover {
+            opacity:1.0;
+            filter:progid:DXImageTransform.Microsoft.Alpha(opacity=100);
+            -moz-opacity:1.0;
+            -khtml-opacity:1;
+        }
+    }
 }
 .icon {
     width: 32px;
@@ -400,6 +439,7 @@ div.toc {
         padding: 0;
     }
     a {
+        @include transition-duration($std_d);
         color: #022;
         &:hover {
             font-weight: bold;
@@ -426,6 +466,28 @@ body {
 }
 #header_bar {
     font-weight: bold;
+    width: 100%;
+    position: fixed;
+    background: rgba(240, 240, 220, 0.8);
+    @include light_shadowed;
+    z-index: 5;
+    padding: 0;
+    margin: 0;
+    > a {
+        cursor: pointer;
+    };
+    #page_actions {
+        margin-left: 1ex;
+    };
+    #user_actions {
+        margin-right: 1ex;
+    };
+}
+#footers {
+    padding: 1ex;
+}
+#footers {
+    padding: 1ex;
 }
 ul {
     margin-left: 1em;
@@ -433,23 +495,22 @@ ul {
 li.selected:before {
     content: url(/static/checked.png) " ";
 }
-ul > li {
+div.toc ul > li {
     list-style-type: square;
     list-style-position: inside;
 }
+/*
 a {
    text-decoration: none;
    padding: 0;
     border-bottom: solid 1px rgba(0, 0, 0, 0.1);
     cursor: pointer;
    @include general_hover;
-   /*
-   @include border-radius($radius);
-   */
    img {
       border: none;
    }
 }
+*/
 .inline_form {
     display: inline !important;
     width: 15ex !important;
@@ -503,17 +564,16 @@ pre {
         padding: .5ex 1em .5ex 1em;
         @include inner_shadowed;
     }
-    padding: 1em;
-    margin-top: .5ex;
-    margin-bottom: 0;
     @include light_shadowed;
     background-color: $background;
+    margin: 0 auto;
+    padding: 2em 1ex;
 }
 td.linenos {
     > div.linenodiv {
         > pre {
             margin: 0;
-            @include-radius(3px);
+            @include border-radius(3px);
             background: none;
             font-weight: bold;
         }
@@ -551,6 +611,7 @@ fileuploader
 .qq-uploader { position:relative; width: 90%; padding: 0 1ex; margin: 0 auto;}
 .qq-upload-button {
     display:block; /* or inline-block */
+    @include transition-duration($slow_d);
     width: 100%;
     font-size: 20pt;
     font-weight: bold;
@@ -568,7 +629,7 @@ fileuploader
 .qq-upload-drop-area {
     position:absolute; top:0; left:0; width:100%; height:100%; min-height: 70px; z-index:2;
     @include inner_shadowed;
-    
+
     font-family: "helvetica";
     background: $background;
     color: black;

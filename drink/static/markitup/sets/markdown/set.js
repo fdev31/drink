@@ -12,15 +12,17 @@
 // -------------------------------------------------------------------
 save_doc = function(h) {
     // fixme: use somethin' else
-    console.log('plup');
     var url = $("#auto_edit_form").attr('action');
     var text = h.textarea.value;
     $.post(url, {'_dk_fields': 'content', 'content': text})
         .success(function() {
             var m = $('#auto_edit_form').parent().data('mdown');
-            m.load_page(m.source);
+            if (m) { // children entry
+                m.load_page(m.source);
+            } else { /* main document edition */
+                drink.serve();
+            };
         })
-    console.log(text);
     return false;
 }
 
@@ -123,30 +125,25 @@ MarkDown = function(uuid) {
             source = this.source;
         else
             this.source = source;
-        console.log('edit_html '+source);
         var o = {'cols': "80", 'rows': "25", 'data': ''}
         if (! opts)
             $.extend(o, opts)
         var apply_editor = function(data) {
-            console.log('apply');
             var html = $('<form id="auto_edit_form" action="'+source+'edit" method="post"><input type="hidden" name="_dk_fields" value="content" /><textarea id="md_'+me.uuid+'_editor" name="content" cols="'+o.cols+'" rows="'+o.rows+'">'+(data || o.data)+'</textarea></form>');
             $('#'+me.uuid).html(html);
 //            $('#'+me.uuid).addClass('markItUp');
             var settings = new Object();
             $.extend(settings, mySettings);
             settings.previewParserPath = source+'process';
-            console.log($('#'+me.uuid+' textarea'));
             $('#'+me.uuid+' textarea:first').markItUp(settings);
         }
         if (source) {
             $.post(source+'struct', {'full': '1'}).success(function(data) {apply_editor(data.content)});
         } else {
-            apply_editor(opts.data || page_struct.content);
+            apply_editor(opts.data || drink.d.content);
         }
 	}
     this.attach = function(obj, source) {
-        console.log('attaching following object to '+source);
-        console.log(obj);
         if (!source)
             source = this.source;
         else
@@ -160,7 +157,6 @@ MarkDown = function(uuid) {
         };
         var click = function() {
             $(this).unbind('click');
-            console.log('EDIT '+source);
             me.edit_html({}, source);
             new KeyHandler(obj, {forced: ['TEXTAREA']}).add('ESC', foc_out);
         };
@@ -173,7 +169,7 @@ MarkDown = function(uuid) {
         });
     }
     this.load_page = function(source) {
-        console.log('loadpage '+source);
+        if(debug) console.log('mdown load page!');
         if (!source) {
             source = this.source;
             me.remote_obj = false;
@@ -183,27 +179,23 @@ MarkDown = function(uuid) {
         }
 
         $.post(source+'struct', {'full': '1'}).success(function(data) {
-            if (!me.remote_obj) {
-                page_struct.merge(data);
+            if (!!me.remote_obj) {
+            	if(!drink.foreigners) drink.foreigners = new Object();
+                drink.foreigners[source] = data;
             }
-            else { if(!page_struct.foreigners) page_struct.foreigners = new Object();
-                page_struct.foreigners[source] = data;
-            };
             if (data.subpages_blog) {
                 url = source+'blog_content';
                 var is_blog = true;
             } else {
                 url = source+'process';
                 var is_blog = false;
-            };
+            }
             $.post(url).success(
                 function(data) {
-                    console.log(me);
                     var e = $('#'+me.uuid);
-                    e.html(data) ;
+                    e.html(data);
                     e.removeClass('markItUp');
                     if (is_blog) {
-                        console.log('new_blog_entry');
                         if (!$('.blog_entry:first').attr('id'))
                             $('.blog_entry').each( function(i, e) {
                             var e = $(e);
@@ -214,13 +206,13 @@ MarkDown = function(uuid) {
                             e.data('mdown', m);
                         });
                     } else {
-                        console.log('new_editable');
                         if (!$('#markdown.editable').attr('id')) {
                             var e = $('#markdown.editable');
                             var n = 'markdown.editable';
                             new MarkDown(n).attach(e, base_path);
                         }
                     }
+                    dom_initialize(e);
                 }
             ).error(
                 function(){ui.dialog('data failed')}

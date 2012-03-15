@@ -116,6 +116,9 @@ class TODOList(drink.Page):
         'description': drink.types.Text('Description'),
     }
 
+    loaders = drink.Page.loaders.copy()
+    loaders['view'] = 'init_calendar()'
+
     def events(self):
         l = [e.event() for e in self.itervalues()]
         try:

@@ -1,4 +1,24 @@
-JS: Refactor all id's & co with Element item attached to .entry elements
+- finish cleanup & start markdown cleanup
+- reset selection on view change
+- fix focus loss on messages() closing
+- make views dynamic with hooks returned in struct (finish)
+- introduce reloading hooks for each view (a mapping ?)
+- Do Queue Job & use it when adding or editing an item
+    - use http://pypi.python.org/pypi/pycom/0.3.0 for communication
+    - use https://github.com/btimby/fulltext/ to extract content from binary files
+    - add possibility to extract thumbnails as well ? (using convert in a first step)
+- fix add item refresh on markdown & all
+- Directory vs Pages
+   - Page = little content, live edition, kind of "wiki" like (aggregation & so)
+   - Directory = huge list of archives, with little friendlyness but possibility to make reports from its content easily
+- broken:
+    - editing some markdown in view mode
+    - ctrl+save in edit mode for markdown
+    - 'live' markdown preview in edit mode
+    - comments & ratings are partially broken and the behavior is horrible, switch to ajaj !!
+JS: finish Refactor all id's & co with Element item attached to .entry elements
+- tabs.js is conflicting query.ui
+- trouver bidouille pour avoir des classes en markdown (+ propre que blog)
 - HANDLE ITEMS RANGE /items?from=0&to=100
 - Prototype fsQueue usage for long-running tasks (try with a fake process)
 - See if types can be simplified when used from inside (ORM-like ?)
