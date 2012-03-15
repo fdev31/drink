@@ -136,11 +136,9 @@ var Drink = function() {
 			me.d = data;			
 		    if (!data._perm) return;
 			me.entries = $.map(me.d.items, function(i) { return new Entry(i); });
-			me.cur_action = undefined;
 			// load actions		
 		    ui.load_action_list(data.actions);
 	    	me.i_like = data.i_like;
-	    	//me.serve(undefined, me.d.default_action);
 	        setTimeout(me.write_footers, 300);
 			var loader = me.d.loaders[me.d.default_action];
 			if(!!loader)
