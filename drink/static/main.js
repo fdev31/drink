@@ -1,10 +1,39 @@
 // globals
 debug = false;
 
-page_struct = new Page();
+var drink = false;
 
 // UI Object
 ui = new Object({
+  draw_comments: function(comments) {
+        if(comments.length !== 0) {
+            $('#comments').append('<div>Comments:</div>');
+            for (i=0; i<comments.length; i++) {
+                var e = $('<div><strong>'+comments[i].from+':</strong>&nbsp;'+comments[i].message+'</div>');
+                e.hide();
+                e.fadeIn()
+                $('#comments').append(e);
+            }
+        }
+        $('#comments').append('<form id="dk_comment"  action="#" method="post" />');
+        var text = $('<textarea class="edited_comment">Your comment here...</textarea>');
+        $('#comments #dk_comment').append(text);
+        text.click(function(e) {
+            var txt = $(e.target);
+            txt.unbind();
+            txt.parent().append($('<span class="button" onclick="ui.validate_comment()">Send!</span>'));
+            txt.attr('value', '');
+        });
+  },
+  validate_comment : function() {
+        var e = $('#comments textarea');
+        var txt = e.attr('value');
+        $.post(base_path+'comment', {text: txt}).
+            success(function(d) {
+                ui.draw_comments(d.comments);
+            });
+        $('#comments').html('');
+    },
   go_back: function() {
         if (document.location.pathname != base_path) {
             document.location.href = base_path;
@@ -13,6 +42,15 @@ ui = new Object({
         }
   },
   load_html_content: function(data) {
+     for (var n=0; n<data.css.length; n++) {
+        var tmp_css = data.css[n];
+        if ( tmp_css[0] == '/') {
+            tmp_css = '<link type="text/css" rel="stylesheet" href="'+tmp_css+'"></link>';
+        } else {
+            tmp_css = '<style type="text/css">'+tmp_css+'</style>';
+        }
+        $('head').append($(tmp_css));
+    }
     for (var n=0; n<data.js.length; n++) {
         var tmp_js = data.js[n];
         if ( tmp_js[0] == '/') {
@@ -23,43 +61,24 @@ ui = new Object({
         $('head').append($(tmp_js));
     }
     $('#main_body').html(data.html);
+    if(debug) console.log('load html content');
     dom_initialize($('#main_body'));
   },
   goto_object: function(obj, view) {
-        $('#main_body , #footers').fadeOut();
-        var obj = obj;
-        var view = view;
-        setTimeout(function() {
-            if(!!!view)
-                view = '';
-            if (!!obj) {
-                if (typeof(obj) == 'string') {
-                    var prefix = obj;
-                } else {
-                    var prefix = obj.path+obj.id+'/';
-                }
-                base_path = prefix;
-            } else {
-                var prefix = '';
-            }
-            $.get(prefix+view).
-                success(function(data) {
-                    ui.load_html_content(data);
-                    $('#main_body, #footers').fadeIn();
-                });
-        }, 300);
+  		drink.serve(obj, view);
     },
     // ADD an entry Popup
     add_entry: function() {
-         if ( page_struct.classes.length < 1 ) {
+    	var k = drink.d.classes;
+         if ( k.length < 1 ) {
             w = $('<div title="Ooops!">Nothing can be added here, sorry</div>').dialog({closeOnEscape:true});
             setTimeout(function(){w.fadeOut(function(){w.dialog('close');});}, 2000);
             return;
         }
         var template = '<div id="new_obj_form"  title="New item informations"><select class="obj_class" class="required" name="class"><option value="" label="Select one item type">Select one item type</option>';
         var tpl_ftr = '</select><div class="obj_name"><label for="new_obj_name">Name</label><input id="new_obj_name" type="text" name="name" class="obj_name required identifier" minlength="2" /></div></div>';
-        for (t=0; t<page_struct.classes.length; t++) {
-            template += '<option value="{0}" label="{0}">{0}</option>'.replace(/\{0\}/g, page_struct.classes[t]);
+        for (t=0; t<k.length; t++) {
+            template += '<option value="{0}" label="{0}">{0}</option>'.replace(/\{0\}/g, k[t]);
         }
         var new_obj = $(template+tpl_ftr);
         var check_fn = function(e) {
@@ -73,19 +92,19 @@ ui = new Object({
                 'class': new_obj.find('.obj_class').val(),
                 'name': new_obj.find('input.obj_name').val()
             };
-            $.post(base_path+'add', item).success(function(data) { page_struct.add_item(data, true); } );
+            $.post(base_path+'add', item).success(function(data) { if(validate(data)) {drink.add_item(data, true);} } );
         };
 
         new_obj.find('input.obj_name').keyup(check_fn);
 
         new_obj.dialog({
-            closeOnEscape:true,
+            closeOnEscape: true,
             modal: true,
             buttons: [ {text: 'OK', click: validate_fn} ]
         });
 
-        if (page_struct.classes.length == 1) {
-            new_obj.find(".obj_class").val(page_struct.classes[0]).attr('disabled', true);
+        if (k.length == 1) {
+            new_obj.find(".obj_class").val(k[0]).attr('disabled', true);
             new_obj.find('input.obj_name').trigger('click').focus();
         }
     },
@@ -94,21 +113,21 @@ ui = new Object({
     },
     ask_user: function(title, message, callback) {
         return ui.dialog('<div title="'+title+'">'+message+'<form id="drink_question" action="js: return false" onvalidate="return false;"><input type="text" id="drink_answer" name="question"></input></form></div>', {
-                Ok: function() {
-                    $( this ).dialog( "close" ); 
-                    callback($(this).find('input').val());
-                }
-                });
+            Ok: function() {
+                $( this ).dialog( "close" ); 
+                callback($(this).find('input').val());
+            }
+        });
     },
     success_dialog: function(title, message) {
         return ui.dialog('<div title="'+title+'">'+message+'</div>', {
-                Ok: function() { $( this ).dialog( "close" ); }
-            });
+            Ok: function() { $( this ).dialog( "close" ); }
+        });
     },
     failure_dialog: function(title, message) {
         return ui.dialog('<div title="'+title+'">'+message+'</div>', {
-                Ok: function() { $( this ).dialog( "close" ); }
-            });
+            Ok: function() { $( this ).dialog( "close" ); }
+        });
     },
     dialog: function(body, buttons, style) {
         var d = $(body);
@@ -143,7 +162,7 @@ ui = new Object({
             } else {
                 // if condition validated & write operations allowed
                 if (
-                    (!elt.condition || eval(elt.condition) )  && (page_struct._perm.match('w') || page_struct._perm.match(elt.perm)) ) {
+                    (!elt.condition || eval(elt.condition) )  && (drink.d._perm.match('w') || drink.d._perm.match(elt.perm)) ) {
                     // if plain link
                     if (elt.action.match(/^[^\(\)\[\] ;]+$/)) {
                         if(!!elt.action.match(/\/$/)) {
@@ -297,12 +316,7 @@ function call_hook_add_item(data) {
 }
 
 function dom_initialize(dom) {
-    // find main list & redraw it
-    if ( !!dom.find('#main_list') ) {
-        var items = new Array();
-        $.extend(items, page_struct.items);
-        page_struct.merge({items: items});
-    }
+    // TODO: handle main-list population
 
     // hides some things by default
     dom.find('.starts_hidden').slideUp(0);
@@ -399,7 +413,29 @@ function dom_initialize(dom) {
     dom.find(".autovalidate").each(function(index, ob) { $(ob).validate(); } );
 
     dom.find('.auto_date').datepicker({dateFormat: "dd/mm/yy"});
-
+    
+    main_list = dom.find('#main_list');
+    if (!!!main_list) {
+        main_list = dom.find('.sortable');
+	} else {
+		main_list.sortable({
+		    cursor: 'move',
+		    distance: 50,
+		    accept: '.entry',
+		    //tolerence: 'pointer',
+		    helper: 'original',
+		    revert: true,
+		    stop: function(event, ui) {
+		        if ( event.ctrlKey ) {
+		            var pat = $('#'+this.id+' li').map( function() { return $(this).data('item'); } ).get().join('/');
+		            $.post('move', {'set': pat});
+		            return true;
+		        } else {
+		            return false;
+		        }
+		    }
+		});
+	}
 } // dom_initialize
 
 
@@ -425,6 +461,7 @@ function get_matching_elts(path_elt, callback) {
     }
     var cur_path = path_elt;
     // AJAX URL
+    
     $.get(url).success(function(data) { callback(data.items, cur_path); } );
 }
 
@@ -442,7 +479,6 @@ $(document).ready(function(){
     );
 
     // some globals
-    page_struct.reload();
 
     // extend validator (forms)
 
@@ -490,19 +526,20 @@ $(document).ready(function(){
         ui.focus.clear();
     });
     keys.add('E', function() {
-        ui.goto_object(undefined, 'edit');
+        drink.serve(undefined, 'edit');
     });
     keys.add('L', function() {
-        ui.goto_object(undefined, 'list');
+        drink.serve(undefined, 'list');
     });
     keys.add('V', function() {
-        ui.goto_object(undefined, 'view');
+        drink.serve(undefined, 'view');
     });
     keys.add('H', function() {
-        ui.dialog('<div title="Keyboard shortcuts"><ul><li>[E]dit</li><li>[S]earch / [S]elect first input field</li><li>[L]ist</li><li>[V]iew</li><li>BACKSPACE: one level up</li><li>J/K: change selection</li><li>[INS]ert</li><li>[DEL]ete</li><li>[ENTER]</li><li>ESCAPE: close dialogs</li></ul></div>');
+        ui.dialog('<div title="Keyboard shortcuts"><ul><li>[E]dit</li><li>[S]earch / [S]elect first input field</li><li>[L]ist</li><li>[V]iew</li><li>[BACKSPACE] : one level up</li><li>[J] and [K]: change selection</li><li>[INS]ert</li><li>[DEL]ete</li><li>[ENTER]</li><li>[ESC]APE current dialogs</li></ul></div>');
     });
 
     $('#header_bar').on('dblclick', function() { $('#header_bar').fadeOut('slow'); });
-
+	
+	drink = new Drink();
 // end of statup code
 });

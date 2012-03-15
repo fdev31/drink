@@ -11,7 +11,7 @@ var Editable = function(dom, tag, orig, type, opt_validator) {
         var me = me || $(this).data('editable');
 
         me.elt.off('dblclick');
-        if(!page_struct._perm.match(/w/)) { return; }
+        if(!drink.d._perm.match(/w/)) { return; }
 
         // set an input field up, with focus
         me.old_text = me.orig.text();
@@ -64,7 +64,7 @@ var Editable = function(dom, tag, orig, type, opt_validator) {
         me._init();
     };
     this.validate_fn = function(text) {
-        console.log(tag, me.field);
+        if(debug) console.log(tag, me.field);
         var o = {_dk_fields: tag}
         o[tag] = text;
         $.post(me.elt.data('item_url')+'/edit', o);

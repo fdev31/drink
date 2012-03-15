@@ -19,7 +19,8 @@ function add_item_hook(item) {
         {'title': item.title, 'url': item.id+'/', 'start': new Date() }
     );
 }
-$(document).ready(function() {
+
+init_calendar = function() {
 
     $('#calendar').fullCalendar({
         theme: true,
@@ -86,4 +87,4 @@ $(document).ready(function() {
             $.post(event.id+"/edit", form);
         }
     });
-});
+};

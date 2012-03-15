@@ -81,12 +81,9 @@ class MarkdownPage(drink.ListPage):
 
     js = drink.ListPage.js + ['/static/markitup/jquery.markitup.js',
         '/static/markitup/sets/markdown/set.js',
-    '''
-    $(document).ready(function(){
-        m = new MarkDown();
-        m.load_page();
-    });
-    ''']
+    ]
+    loaders = drink.ListPage.loaders.copy()
+    loaders['view'] = 'm = new MarkDown(); m.load_page();'
 
     css = drink.ListPage.css + ['/static/markitup/sets/markdown/style.css',
      '/static/markitup/skins/markitup/style.css']
@@ -128,7 +125,13 @@ class MarkdownPage(drink.ListPage):
             try:
                 g = generator.Generator(in_f, destination_file=out_f, embed=True)
                 g.execute()
-                self._v_slide_cooked = open(out_f).read()
+                self._v_slide_cooked = open(out_f).read().replace('case 27: // ESC', """
+                case 8: // BACKSPACE
+                    window.location.href = './';
+                    break;
+                case 27: // ESC
+                """)
+
             except Exception, e:
                 log.error("Slide Error: %r", e)
             finally:

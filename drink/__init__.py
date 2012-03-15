@@ -16,10 +16,8 @@ __all__ = ['get_object',
 import os
 import logging
 logging.basicConfig()
-
 import signal
 signal.signal(signal.SIGPIPE, signal.SIG_IGN)
-
 dbg_in_env = 'DEBUG' in os.environ
 if dbg_in_env:
     logging.getLogger().setLevel(logging.NOTSET)
@@ -293,7 +291,9 @@ class Authenticator(object):
 
     def __init__(self):
         self.session = session = bottle.request.environ.get('beaker.session')
+        log.debug('session = %r', self.session)
         logged_in = session.get('logged_in', '')
+        log.debug('logged_in = %r', logged_in)
         if logged_in:
             self.user = db.db['users'][session['login']]
             ok = self.user.password == logged_in

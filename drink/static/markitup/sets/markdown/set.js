@@ -140,7 +140,7 @@ MarkDown = function(uuid) {
         if (source) {
             $.post(source+'struct', {'full': '1'}).success(function(data) {apply_editor(data.content)});
         } else {
-            apply_editor(opts.data || page_struct.content);
+            apply_editor(opts.data || drink.d.content);
         }
 	}
     this.attach = function(obj, source) {
@@ -169,6 +169,7 @@ MarkDown = function(uuid) {
         });
     }
     this.load_page = function(source) {
+        if(debug) console.log('mdown load page!');
         if (!source) {
             source = this.source;
             me.remote_obj = false;
@@ -178,19 +179,17 @@ MarkDown = function(uuid) {
         }
 
         $.post(source+'struct', {'full': '1'}).success(function(data) {
-            if (!me.remote_obj) {
-                page_struct.merge(data);
+            if (!!me.remote_obj) {
+            	if(!drink.foreigners) drink.foreigners = new Object();
+                drink.foreigners[source] = data;
             }
-            else { if(!page_struct.foreigners) page_struct.foreigners = new Object();
-                page_struct.foreigners[source] = data;
-            };
             if (data.subpages_blog) {
                 url = source+'blog_content';
                 var is_blog = true;
             } else {
                 url = source+'process';
                 var is_blog = false;
-            };
+            }
             $.post(url).success(
                 function(data) {
                     var e = $('#'+me.uuid);

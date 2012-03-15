@@ -2,6 +2,158 @@ url_regex = /^(\/|http).+/;
 base_path = document.location.href.replace(RegExp('[^/]*$'), '')
     .replace(RegExp('http?://[^/]*'), ''); // only keep trailing path
 
+var Drink = function() {
+ 	this.change_rate = function() {
+        if (me.i_like) {
+            var text="I like it!";
+            var d={'unlike': 1};
+        } else {
+            var text="I don't like it !";
+            var d={'like': 1};
+        }
+        me.i_like = ! me.i_like;
+        $('#dk_rate_btn').text(text);
+        $.post(base_path+'rate', d);
+    };
+	// item getter
+	this.get_entry = function(id) {
+		return me.entries.filter(function(e) {return e.id === id})[0];
+	};
+	// page switcher
+	this.serve = function (obj, view) {
+		if(debug) console.log('------------ drink.serve ------------');
+        var action_to_take = view || me.d.default_action;
+        var obj = obj;
+        var view = view;
+		var loader = me.d.loaders[view];
+		
+		if (!!me.cur_action)
+	        $('#main_body , #footers').fadeOut();
+	     
+		if ( obj || action_to_take !== me.cur_action)
+			setTimeout(function() {
+			    if(!!!view)
+			        view = '';
+		        if (!!obj) {
+		            if (typeof(obj) == 'string') {
+		                var prefix = obj;
+		            } else {
+		                var prefix = obj.path+obj.id+'/';
+		            }
+		            base_path = prefix;
+		        } else {
+		            var prefix = '';
+		        }
+		        var fill_it = function() {
+				}
+		        if(debug) console.log("xxxxxxxxxxxxx=> "+view+" on "+obj);
+				$.get(prefix+view)
+		        .success(function(data) {
+		        	if(debug) console.log('success '+action_to_take);
+		            ui.load_html_content(data);
+		            if(debug) console.log('view='+view);
+		            me.cur_action = action_to_take;
+		            $('#main_body, #footers').fadeIn();
+		            if(debug) console.log('action '+me.cur_action);
+					if(debug) console.log('Loader: '+loader, me.d.loaders);
+					if (!!loader) {
+						eval(loader);
+					} else {
+						if(debug) console.log('No hook!')
+					}
+		        })
+		        .error(function(data, code) {
+		        	if(debug) console.log(data, code);
+			        $('#main_body , #footers').fadeOut();
+		    	});
+		    }, 300);
+    };
+        
+    // XXX: change this to another place, in Entry ?
+    this.get_from_factory = function(which, what) {
+        var val = me.d[which+'_factory'][what];
+        if (val && !!!val.match(/.*\./))
+            val = "me."+val;
+        return val;
+    };
+    this.add_item = function(data, focus) {
+        var e = new Entry(data);
+        me.entries.push( e );
+        me.d.items.push( data );
+        if (!!focus) e.elt.center();
+        call_hook_add_item(data);
+    };
+	// self factory shortcuts
+	this.write_footers = function() {
+		var foot = $('#footers');
+		if (foot.css('display') === 'none') {
+			foot.fadeOut();
+			foot.html();
+			foot.fadeIn(3000);
+		}
+		// add comments		
+		if (me.d._perm.match(/r/)) {
+			if(debug) console.log('comments & rates...');
+		    if (me.i_like) {
+		        me.i_like = true;
+		        foot.append( $('<span id="dk_rate_btn" class="button" onclick="drink.change_rate()">I don\'t like it!</span>') );
+		    } else {
+		    	me.i_like = false;
+		        foot.append( $('<span id="dk_rate_btn" class="button" onclick="drink.change_rate()">I like it!</span>') );
+		    }
+		    foot.append( $('<div id="comments" />') );
+		    $.post(base_path+'comment').success( function(data) {
+		        ui.draw_comments(data.comments);
+		    });
+		}
+		// add uploader
+		if ( me.d._perm.match(/a/) ) {
+		    foot.append( $('<div id="file-uploader" class="row"></div>') );
+
+		    // Integration of http://valums.com/ajax-upload/
+		    try {
+		        qq.UploadDropZone.prototype._isValidFileDrag = function(e){
+		            return true;
+		        };
+		        var uploader = new qq.FileUploader({
+		            element: $('#file-uploader')[0],
+		            action: 'upload',
+		            //debug: true,
+		            showMessage: function(message){ $('<div title="Drop zone">'+message+'</div>'); },
+		            onComplete: function(id, fileName, data){
+		                if ( data.id ) {
+		                    ui.add_item(data);
+		                }
+		                $('ul.qq-upload-list > li.qq-upload-success').fadeOut('slow',
+		                    function() { $(this).remove(); });
+		            }});
+		    } catch (ReferenceError) {
+		        //console.log('Uploader code not available');
+		    }
+		}
+	}
+	// constructor
+	var me = this;
+	if(debug) console.log('==============DRINK CREATION==============');
+	$.post(base_path+'struct', {'childs': true, 'full': true})
+		.success(function(data, status, req) {
+		    if(debug) console.log(data);
+			me.d = data;			
+		    if (!data._perm) return;
+			me.entries = $.map(me.d.items, function(i) { return new Entry(i); });
+			me.cur_action = undefined;
+			// load actions		
+		    ui.load_action_list(data.actions);
+	    	me.i_like = data.i_like;
+	    	me.serve(undefined, me.d.default_action);
+	        setTimeout(me.write_footers, 300);
+		})
+		.error(function() {
+			ui.dialog('<div title="Error occured">Listing can\'t be loaded :(</div>');
+		});
+	return me;
+}
+
 /* Entry Position & Page */
 
 
@@ -33,19 +185,18 @@ var Entry = function(data) {
                 return;
             }
 
-            var elt = page_struct.get_by_id(me.data('item'));
+            var elt = drink.get_entry(me.data('item'));
             if (!elt) return;
             if(!elt._perm.match(/w/)) { return; }
 
             $(this).data('edit_called', setTimeout(function() {
                 var item_name = me.data('item');
                 var edit_span = $('<span class="actions"></span>');
-                edit_span.append('<a title="Edit" onclick="page_struct.get_ent(\''+item_name+'\').popup_edit()"><img class="minicon" src="/static/actions/edit.png" /></a>');
-                edit_span.append('<a title="Delete" onclick="page_struct.get_ent(\''+item_name+'\').popup_remove()" ><img class="minicon" src="/static/actions/delete.png" /></a>');
+                edit_span.append('<a title="Edit" onclick="drink.get_entry(\''+item_name+'\').popup_edit()"><img class="minicon" src="/static/actions/edit.png" /></a>');
+                edit_span.append('<a title="Delete" onclick="drink.get_entry(\''+item_name+'\').popup_remove()" ><img class="minicon" src="/static/actions/delete.png" /></a>');
                 edit_span.fadeIn('slow');
                 me.append(edit_span);
-
-                }, 500));
+            }, 500));
         } else if (event.type == "mouseleave") {
             clearTimeout($(this).data('edit_called'));
             $(this).data('edit_called', false);
@@ -58,19 +209,20 @@ var Entry = function(data) {
     };
     this._get_html = function() {
         /* FIXME: ugly code */
-        var expr = page_struct.get_from_factory('items', 'entry');
+        if(debug) console.log("get_html");
+        var expr = drink.get_from_factory('items', 'entry');
         var e = eval(expr)(me);
         //ui.focus.main_list.list.append(e);
-        if (page_struct.get_from_factory('items', 'click')) {
-            e.on('click', page_struct.get_from_factory('items', 'click'));
-        } else if (page_struct.get_from_factory('items', 'dblclick')) {
-            e.on('dblclick', eval(page_struct.get_from_factory('items', 'dblclick')));
+        if (drink.get_from_factory('items', 'click')) {
+            e.on('click', drink.get_from_factory('items', 'click'));
+        } else if (drink.get_from_factory('items', 'dblclick')) {
+            e.on('dblclick', eval(drink.get_from_factory('items', 'dblclick')));
         }
         // Html is element is prepared, now inject it
         e.data('item', me.id);
         e.data('item_url', base_path+encodeURI(me.id));
-        if (page_struct.get_from_factory('items', 'hover')) {
-            e.on('mouseenter mouseleave', eval(page_struct.get_from_factory('items', 'hover')));
+        if (drink.get_from_factory('items', 'hover')) {
+            e.on('mouseenter mouseleave', eval(drink.get_from_factory('items', 'hover')));
         }
         if ( !! me._nb_items ) {
             if ( me._nb_items == 1 ) {
@@ -115,13 +267,12 @@ var Entry = function(data) {
     $.extend(this, data);
     // make html entry
     var e = me._get_html();
-    $('#main_list').append(e);
     me.elt = e;
     me.editable = new Editable(e, 'title', 'a', 'input_text');
     // add itself to main_list
-    e.disableSelection();
-    e.hide();
-    e.fadeIn('slow');
+//    e.disableSelection();
+//    e.hide();
+//    e.fadeIn('slow');
     return this;
 };
 var Position = function(default_pos, list_getter, selection_class) {
@@ -224,148 +375,10 @@ var Position = function(default_pos, list_getter, selection_class) {
     return this;
 };
 
-
-var Page = function () {
-    var me = this;
-    this.classes = [];
-    this._perm = 'r';
-    this.description = '';
-    this.id = '?';
-    this.items = [];
-    this.mime = "none";
-    this.path = "/";
-    this.logged_in = false;
-    this.title = "unk";
-    this.merge = function (d) {
-        if (!!$('#main_list').html() && me.items.length === d.items.length) { // add path & id
-            return;
-        }
-        me.id_idx_map = new Object();
-        $.extend(me, d);
-        me.items = [];
-        me.entries = [];
-        $('#main_list').html('');
-        if (d.items) {
-            for (var i=0 ; i<d.items.length ; i++)
-                me.add_item(d.items[i]);
-        } else {
-            me.items = me.entries = [];
-        }
-    };
-    this.get_ent = function(child_id) {
-        return this.entries[this.id_idx_map[child_id]];
-    };
-    this.get_by_id = function(child_id) {
-        return this.items[this.id_idx_map[child_id]];
-    };
-    this.get_from_factory = function(which, what) {
-        var val = me[which+'_factory'][what];
-        if (val && !!!val.match(/.*\./))
-            val = "me."+val;
-        return val;
-    };
-    this.add_item = function(data, focus) {
-        var e = new Entry(data);
-        me.id_idx_map[data.id] = me.entries.length;
-        me.entries.push( e );
-        me.items.push( data );
-        if (!!focus) e.elt.center();
-        call_hook_add_item(data);
-    };
-    this._fill = function (data, status, req) {
-        if(debug) console.log(data);
-        me.merge(data);
-        if (!data._perm) return;
-
-        //setTimeout(ui.load_action_list, 500, data.actions);
-        ui.load_action_list(data.actions);
-
-        // list-item creation fonction
-        var foot = $('#footers');
-
-        if (me._perm.match(/r/)) {
-            if (me.i_like) {
-                foot.append( $('<span id="dk_rate_btn" class="button" onclick="page_struct.change_rate()">I don\'t like it!</span>') );
-            } else {
-                foot.append( $('<span id="dk_rate_btn" class="button" onclick="page_struct.change_rate()">I like it!</span>') );
-            }
-            foot.append( $('<div id="comments" />') );
-            $.post(base_path+'comment').success( function(data) {
-                page_struct.draw_comments(data.comments);
-            });
-        }
-        if ( me._perm.match(/a/) ) {
-            foot.append( $('<div id="file-uploader" class="row"></div>') );
-
-            // Integration of http://valums.com/ajax-upload/
-            try {
-                qq.UploadDropZone.prototype._isValidFileDrag = function(e){
-                    return true;
-                };
-                var uploader = new qq.FileUploader({
-                    element: $('#file-uploader')[0],
-                    action: 'upload',
-                    //debug: true,
-                    showMessage: function(message){ $('<div title="Drop zone">'+message+'</div>'); },
-                    onComplete: function(id, fileName, data){
-                        if ( data.id ) {
-                            ui.add_item(data);
-                        }
-                        $('ul.qq-upload-list > li.qq-upload-success').fadeOut('slow',
-                            function() { $(this).remove(); });
-                    }});
-            } catch (ReferenceError) {
-                //console.log('Uploader code not available');
-            }
-        }
-    };
-    this.change_rate = function() {
-        if (page_struct.i_like) {
-            var text="I like it!";
-            var d={'unlike': 1};
-        } else {
-            var text="I don't like it !";
-            var d={'like': 1};
-        }
-        page_struct.i_like = ! page_struct.i_like;
-        $('#dk_rate_btn').text(text);
-        $.post(base_path+'rate', d);
-    };
-    this.validate_comment = function() {
-        var e = $('#comments textarea');
-        var txt = e.attr('value');
-        $.post(base_path+'comment', {text: txt}).
-            success(function(d) {
-                page_struct.draw_comments(d.comments);
-            });
-        $('#comments').html('');
-    };
-    this.draw_comments = function(comments) {
-        if(comments.length !== 0) {
-            $('#comments').append('<div>Comments:</div>');
-            for (i=0; i<comments.length; i++) {
-                var e = $('<div><strong>'+comments[i].from+':</strong>&nbsp;'+comments[i].message+'</div>');
-                e.hide();
-                e.fadeIn()
-                $('#comments').append(e);
-            }
-        }
-        $('#comments').append('<form id="dk_comment"  action="#" method="post" />');
-        var text = $('<textarea class="edited_comment">Your comment here...</textarea>');
-        $('#comments #dk_comment').append(text);
-        text.click(function(e) {
-            var txt = $(e.target);
-            txt.unbind();
-            txt.parent().append($('<span class="button" onclick="page_struct.validate_comment()">Send!</span>'));
-            txt.attr('value', '');
-        });
-    };
-    this.reload = function() {
-        $.post(base_path+'struct', {'childs': true, 'full': true}).
-            success(me._fill).
-            error(function() {
-                ui.dialog('<div title="Error occured">Listing can\'t be loaded :(</div>');
-        });
-    };
-    return this;
+var validate = function(data) {
+	if (!!data['error']) {
+		ui.failure_dialog('Error', data['message']);
+		return false;
+	}
+	return true;
 };

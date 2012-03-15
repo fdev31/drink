@@ -23,10 +23,10 @@ def get_type(filename):
 def get_struct_from_obj(obj, childs=None, full=None):
 
     if full is None:
-        full = 'full' in request.params and childs
+        full = bool(request.params.get('full', childs or '').lower() != 'no')
 
     if childs is None:
-        childs = request.params.get('childs', '').lower() in ('yes', 'true')
+        childs = bool(request.params.get('childs', '').lower() != 'no')
 
     a = request.identity.access
 
@@ -40,24 +40,31 @@ def get_struct_from_obj(obj, childs=None, full=None):
         d['_perm'] = auth
 
         _fields = set(obj.editable_fields.keys())
-        _fields.update(('mime', 'title', 'description'))
+        _child_fields = set(('title', 'description', 'default_action', 'mime'))
+        _fields.update(_child_fields)
+
+        def _getset(k):
+            v = getattr(obj, k, None)
+            if isinstance(v, (basestring, int, float)):
+                pass # serializes well in json
+            elif isinstance(v, drink.Model):
+                if not 'r' in a(v):
+                    return
+                v = v.struct(False)
+                if k != v['id']:
+                    log.error('children ID not consistant with parent (%r != %r) !', k, v['id'])
+            elif isinstance(v, datetime):
+                v = dt2str(v)
+            else:
+                v = "N/A"
+            d[k] = v
+
+        for k in _fields:
+            _getset(k)
 
         if full:
-            for k in _fields:
-                v = getattr(obj, k, None)
-                if isinstance(v, (basestring, int, float)):
-                    pass # serializes well in json
-                elif isinstance(v, drink.Model):
-                    if not 'r' in a(v):
-                        continue
-                    v = v.struct(False)
-                    if k != v['id']:
-                        log.error('children ID not consistant with parent (%r != %r) !', k, v['id'])
-                elif isinstance(v, datetime):
-                    v = dt2str(v)
-                else:
-                    v = "N/A"
-                d[k] = v
+            for k in _child_fields:
+                _getset(k)
 
             d['i_like'] = request.identity.id in obj._like if obj._like else False
 
@@ -67,6 +74,8 @@ def get_struct_from_obj(obj, childs=None, full=None):
                 d['score'] = 0
 
             d['actions'] = obj._actions
+            d['loaders'] = obj.loaders
+
         if childs:
             items = []
             for v in obj.itervalues():
@@ -143,6 +152,13 @@ def default_view(self, page='main.html', obj=None, css=None, js=None, html=None,
 class Page(drink.Model):
     """ A dict-like object, defining all properties required by a standard page """
 
+    loaders = {
+        'gallery': "$('#pikame').PikaChoose({transition:[0], showTooltips: true})",
+        'view': "",
+        'list': "var l=$('#main_list'); drink.entries.forEach( function(e) {l.append(e.elt) })",
+        'edit': "",
+    }
+
     #: fields that are editable (appear in edit panel)
 
     editable_fields = {
@@ -205,9 +221,9 @@ class Page(drink.Model):
         dict(title="View/Reload", action="ui.goto_object(undefined, 'view')", icon="view", perm='r'),
         dict(title="Edit", style="edit_form", action="ui.goto_object(undefined, 'edit')", icon="edit", perm='w'),
         dict(title="List content", action="ui.goto_object(undefined, 'list')", icon="open", perm='r'),
-        dict(title="Add object", condition="page_struct.classes.length!=0", style="add_form", action="ui.add_entry()", key='INS', icon="new", perm='a'),
+        dict(title="Add object", condition="drink.d.classes.length!=0", style="add_form", action="ui.add_entry()", key='INS', icon="new", perm='a'),
         dict(title="Move", style="move_form", action="ui.move_current_page()", icon="move", perm='o'),
-        dict(title="Image gallery", style="move_form", action="gallery", icon="view", perm='r'),
+        dict(title="Image gallery", style="move_form", action="ui.goto_object(undefined, 'gallery')", icon="view", perm='r', key='G'),
     ]
 
     #: fields that are only editable by the admin (appear in edit panel)
@@ -312,7 +328,7 @@ class Page(drink.Model):
         'entry': "default_factory",
     }
 
-    def struct(self, childs=True, full=None):
+    def struct(self, childs=None, full=None):
         """ returns this item as a json structure """
         return get_struct_from_obj(self, childs, full)
 
@@ -656,9 +672,6 @@ class Page(drink.Model):
         <script>
         // Load the classic theme
 
-        // Initialize Galleria
-        $('#pikame').PikaChoose({transition:[0], showTooltips: true});
-
         </script>
         </div>
         '''%'\n'.join(_g())
@@ -678,7 +691,7 @@ class ListPage(Page):
 
     forced_order = None
 
-    _actions = Page._actions + [dict(perm='w', title="Reset items", action="$.ajax({url:base_path+'reset_items'}).success(ui.reload)", icon="download")]
+    _actions = Page._actions + [dict(perm='w', title="Reset items", action="$.ajax({url:base_path+'reset_items'}).success(function(){drink.cur_action=null; drink.serve())", icon="download")]
 
     def __init__(self, name, rootpath=None):
         self.forced_order = []
