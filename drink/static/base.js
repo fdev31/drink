@@ -140,8 +140,12 @@ var Drink = function() {
 			// load actions		
 		    ui.load_action_list(data.actions);
 	    	me.i_like = data.i_like;
-	    	me.serve(undefined, me.d.default_action);
+	    	//me.serve(undefined, me.d.default_action);
 	        setTimeout(me.write_footers, 300);
+			var loader = me.d.loaders[me.d.default_action];
+			if(!!loader)
+				eval(loader);
+			me.cur_action = me.d.default_action; 
 		})
 		.error(function() {
 			ui.dialog('<div title="Error occured">Listing can\'t be loaded :(</div>');

@@ -9,7 +9,6 @@ class SpreadSheet(drink.Page):
 
     mime = u"markdown"
 
-
     content = ''
 
     default_action = "view"
@@ -44,10 +43,8 @@ class SpreadSheet(drink.Page):
 
             return menu;
         }
-
-    $(document).ready(function(){
-        setTimeout(function() {
-        if ($('#inlineMenu').length > 0) {
+        function init_spreasheet() {
+          if ($('#inlineMenu').length > 0) {
             $('.spreadsheet').sheet({
     //            title: "",
     //            urlGet: "/static/sheet.doc.html",
@@ -59,9 +56,11 @@ class SpreadSheet(drink.Page):
                 autoFiller: true,
                 });
             }
-        }, 1); // just to ensure we are not the first
-    });
+        };
     ''']
+
+    loaders = drink.Page.loaders.copy()
+    loaders['view'] = 'init_spreasheet()'
 
     css = [
             '/static/css/jquery.sheet.css',
