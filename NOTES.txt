@@ -1,7 +1,7 @@
+- re-fix add_item_hook (refactor ?)
 - finish cleanup & start markdown cleanup
 - reset selection on view change
 - fix focus loss on messages() closing
-- make views dynamic with hooks returned in struct (finish)
 - introduce reloading hooks for each view (a mapping ?)
 - Do Queue Job & use it when adding or editing an item
     - use http://pypi.python.org/pypi/pycom/0.3.0 for communication
