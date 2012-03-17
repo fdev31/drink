@@ -139,7 +139,7 @@ def default_view(self, page='main.html', obj=None, css=None, js=None, html=None,
             css=css or self.css,
             js=js or self.js,
             html=html or self.html,
-            embed=bool(drink.request.params.get('embedded', False)) if embed is None else embed,
+            embed=bool(request.params.get('embedded', False)) if embed is None else embed,
             classes=self.classes if classes is None else classes,
             isattr=lambda x, name: hasattr(x, name),
             isstring=lambda x: isinstance(x, basestring),
@@ -386,12 +386,12 @@ class Page(drink.Model):
         :type val: depends on the :mod:`~drink.types`
         """
         if name in self.editable_fields:
-            if 'w' in drink.request.access(self):
+            if 'w' in request.identity.access(self):
                 self.editable_fields[name].set(self, name, val)
             else:
                 return drink.unauthorized("You can't edit %r, ask for more permissions."%name)
         elif name in self.owner_fields:
-            if 'o' in drink.request.access(self):
+            if 'o' in request.identity.access(self):
                 self.owner_fields[name].set(self, name, val)
             else:
                 return drink.unauthorized("You can't edit %r, ask for more permissions."%name)
