@@ -1,11 +1,12 @@
 // globals
 debug = false;
-
-var drink = false;
+drink = false;
 
 // UI Object
 ui = new Object({
   draw_comments: function(comments) {
+        if(!!!comments)
+            comments = [];
         if(comments.length !== 0) {
             $('#comments').append('<div>Comments:</div>');
             for (i=0; i<comments.length; i++) {
