@@ -256,7 +256,7 @@ var KeyHandler = function(o, options) {
                 if (debug) console.log('handled '+e.which);
                 return false;
             } else {
-                if (debug) ui.message("Don't know how to handle"+e);
+                if (debug) console.log("Don't know how to handle", e, "with", options);
             }
         }
         return true;
