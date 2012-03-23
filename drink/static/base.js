@@ -17,6 +17,10 @@ var Drink = function() {
     };
 	// item getter
 	this.get_entry = function(id) {
+		if ( typeof(id) !== "string") {
+			// assume it's a jquery <li> entry
+			var id = id.data('item');
+		} 
 		return me.entries.filter(function(e) {return e.id === id})[0];
 	};
 	// page switcher
