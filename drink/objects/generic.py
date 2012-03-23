@@ -22,11 +22,12 @@ def get_type(filename):
 
 def get_struct_from_obj(obj, childs=None, full=None):
 
-    if full is None:
-        full = bool(request.params.get('full', childs or '').lower() != 'no')
 
     if childs is None:
-        childs = bool(request.params.get('childs', '').lower() != 'no')
+        childs = bool(request.params.get('childs', '').lower() not in ('no', ''))
+
+    if full is None:
+        full = childs or bool(request.params.get('full', '').lower() not in ('no', ''))
 
     a = request.identity.access
 
@@ -50,7 +51,7 @@ def get_struct_from_obj(obj, childs=None, full=None):
             elif isinstance(v, drink.Model):
                 if not 'r' in a(v):
                     return
-                v = v.struct(False)
+                v = v.struct(False, full)
                 if k != v['id']:
                     log.error('children ID not consistant with parent (%r != %r) !', k, v['id'])
             elif isinstance(v, datetime):
