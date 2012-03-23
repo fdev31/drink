@@ -645,6 +645,9 @@ class Page(drink.Model):
         else:
             return drink.rdr(o.quoted_path+'edit')
 
+    def get_parent(self):
+        return drink.get_object(drink.db.db, self.rootpath)
+
     def borrow(self, item=None):
         """ Borrow an external item """
         if not item:
