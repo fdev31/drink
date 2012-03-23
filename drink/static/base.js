@@ -174,7 +174,7 @@ var Entry = function(data) {
                 }).success(function() {
     				me.remove();
                 }).error(function(){
-                    ui.dialog('<div title="Error occured">Sorry, something didn\'t work correctly</div>');
+                    ui.failure_dialog("Error occured", "Sorry, something didn't work correctly");
                 });
             },
             Cancel: function() {

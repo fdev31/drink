@@ -109,21 +109,21 @@ ui = new Object({
     edit: function(what) {
         ui.dialog('<div title="Edit"><iframe style="height: 100%" src="'+what+'edit?embedded=1"></iframe></div>');
     },
-    ask_user: function(title, message, callback) {
-        return ui.dialog('<div title="'+title+'">'+message+'<form id="drink_question" action="js: return false" onvalidate="return false;"><input type="text" id="drink_answer" name="question"></input></form></div>', {
+    ask_user: function(title, msg, callback) {
+        return ui.dialog('<div title="'+title+'">'+msg+'<form id="drink_question" action="js: return false" onvalidate="return false;"><input type="text" id="drink_answer" name="question"></input></form></div>', {
             Ok: function() {
                 $( this ).dialog( "close" ); 
                 callback($(this).find('input').val());
             }
         });
     },
-    success_dialog: function(title, message) {
-        return ui.dialog('<div title="'+title+'">'+message+'</div>', {
+    success_dialog: function(title, msg) {
+        return ui.dialog('<div title="'+title+'">'+msg+'</div>', {
             Ok: function() { $( this ).dialog( "close" ); }
         });
     },
-    failure_dialog: function(title, message) {
-        return ui.dialog('<div title="'+title+'">'+message+'</div>', {
+    failure_dialog: function(title, msg) {
+        return ui.dialog('<div title="'+title+'">'+msg+'</div>', {
             Ok: function() { $( this ).dialog( "close" ); }
         });
     },
