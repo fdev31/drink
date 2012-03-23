@@ -116,8 +116,6 @@ class TODOList(drink.Page):
         'description': drink.types.Text('Description'),
     }
 
-    loaders = drink.Page.loaders.copy()
-    loaders['view'] = 'init_calendar()'
 
     def events(self):
         l = [e.event() for e in self.itervalues()]
@@ -201,3 +199,5 @@ class TODOList(drink.Page):
             start.isoformat() if start else None,
             end.isoformat() if end else None)
             for feed in all_feeds))
+
+drink.update_property(drink.Page, TODOList, 'loaders', {'view': 'init_calendar()'})

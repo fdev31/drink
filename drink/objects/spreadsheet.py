@@ -59,9 +59,6 @@ class SpreadSheet(drink.Page):
         };
     ''']
 
-    loaders = drink.Page.loaders.copy()
-    loaders['view'] = 'init_spreasheet()'
-
     css = [
             '/static/css/jquery.sheet.css',
             '/static/css/jquery.colorPicker.css',
@@ -145,6 +142,7 @@ class SpreadSheet(drink.Page):
         </span>
     '''%self.title
 
+drink.update_property(drink.Page, SpreadSheet, 'loaders', {'view': 'init_spreadsheet()'})
 
 # Override property for convenience
 

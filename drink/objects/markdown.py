@@ -82,9 +82,6 @@ class MarkdownPage(drink.ListPage):
     js = drink.ListPage.js + ['/static/markitup/jquery.markitup.js',
         '/static/markitup/sets/markdown/set.js',
     ]
-    loaders = drink.ListPage.loaders.copy()
-    loaders['view'] = 'm = new MarkDown(); m.load_page();'
-
     css = drink.ListPage.css + ['/static/markitup/sets/markdown/style.css',
      '/static/markitup/skins/markitup/style.css']
 
@@ -229,3 +226,4 @@ class MarkdownPage(drink.ListPage):
         self.content = drink.omni(obj.file.read())
 
 drink.add_upload_handler(['md', 'txt'], MarkdownPage.drink_name)
+drink.update_property(drink.ListPage, Markdown, 'loaders', {'view': 'm = new MarkDown(); m.load_page()'})

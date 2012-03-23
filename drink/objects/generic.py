@@ -74,8 +74,18 @@ def get_struct_from_obj(obj, childs=None, full=None):
             except TypeError:
                 d['score'] = 0
 
-            d['actions'] = obj._actions
-            d['loaders'] = obj.loaders
+            _cache = getattr(obj, '_v_actions_cache', False)
+
+            if not _cache:
+                _cache = {
+                    'actions': obj._actions,
+                    'loaders': obj._loaders,
+                    'add_hooks': obj._add_hooks,
+                    'remove_hooks': obj._remove_hooks,
+                }
+                obj._v_actions_cache = _cache
+
+            d.update(_cache)
 
         if childs:
             items = []
@@ -152,7 +162,8 @@ def default_view(self, page='main.html', obj=None, css=None, js=None, html=None,
 class Page(drink.Model):
     """ A dict-like object, defining all properties required by a standard page """
 
-    loaders = {
+    #: hooks that will be evaluated when a view is loaded (view: js_code)
+    _loaders = {
         'gallery': "$('#pikame').PikaChoose({transition:[0], showTooltips: true})",
         'view': "",
         'list': "var l=$('#main_list'); drink.entries.forEach( function(e) {l.append(e.elt) })",
@@ -178,7 +189,6 @@ class Page(drink.Model):
 """
 
     #: fields that are only editable by the owner (appear in edit panel)
-
     owner_fields = {
         'default_action':
             drink.types.Text("Default action (ex: view, list, edit, ...)", group="w"),
