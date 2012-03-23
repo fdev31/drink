@@ -94,7 +94,7 @@ def get_struct_from_obj(obj, childs=None, full=None):
                 if c:
                     items.append(c)
             d['items'] = items
-            d['items_factory'] = obj.items_factory
+            d['items_factory'] = obj._items_factory
             d['classes'] = obj.classes.keys()
         else:
             d['_nb_items'] = len(obj)
@@ -169,24 +169,41 @@ class Page(drink.Model):
         'list': "var l=$('#main_list'); drink.entries.forEach( function(e) {l.append(e.elt) })",
         'edit': "",
     }
+    #: hooks that will be evaluated when an item is added (view: js_code)
+    _add_hooks = {
+        'list': "$('#main_list').append(entry.elt)",
+    }
+    #: hooks that will be evaluated when an item is removed (view: js_code)
+    _remove_hooks = {
+        'list': 'entry.remove()',
+    }
+    #: A map of <html/js event>: <js function>, used to hook items interactions
+    _items_factory = {
+        # TODO: make it really generic, not just look-a-like
+        'dblclick': "edit_title",
+        'hover': "popup_actions",
+        'entry': "default_factory",
+    }
+
+    #: actions
+    _actions = [
+        dict(title="Help", action="/pages/help/", perm="r", icon="help"),
+        dict(title="Back", action="ui.go_back()", perm="r", icon="undo"),
+        dict(title="View/Reload", action="drink.serve(undefined, 'view')", icon="view", perm='r'),
+        dict(title="Edit", style="edit_form", action="drink.serve(undefined, 'edit')", icon="edit", perm='w'),
+        dict(title="List content", action="drink.serve(undefined, 'list')", icon="open", perm='r'),
+        dict(title="Add object", condition="drink.d.classes.length!=0", style="add_form", action="ui.add_entry()", key='INS', icon="new", perm='a'),
+        dict(title="Move", style="move_form", action="ui.move_current_page()", icon="move", perm='o'),
+        dict(title="Image gallery", style="move_form", action="drink.serve(undefined, 'gallery')", icon="view", perm='r', key='G'),
+    ]
 
     #: fields that are editable (appear in edit panel)
     editable_fields = {
         'title': drink.types.Text('Title'),
         'description': drink.types.Text('Description'),
     }
-
-
-    """
-    def _p_resolveConflict(self, oldState, savedState, newState):
-
-        # Figure out how each state is different:
-        savedDiff= savedState['count'] - oldState['count']
-        newDiff= newState['count']- oldState['count']
-
-        # Apply both sets of changes to old state:
-        return oldState['count'] + savedDiff + newDiff
-"""
+    #: fields that are only editable by the admin (appear in edit panel)
+    admin_fields = {}
 
     #: fields that are only editable by the owner (appear in edit panel)
     owner_fields = {
@@ -203,41 +220,6 @@ class Page(drink.Model):
         'write_groups':
             drink.types.GroupCheckBoxes("Users allowed to edit the document", group="starts_hidden x_permissions"),
     }
-
-
-    def serialize(self, recurse=True):
-        d = {'drink__class': self.__class__.__name__}
-        for field in self.owner_fields.keys() + self.admin_fields.keys() + self.editable_fields.keys():
-            try:
-                v = getattr(self, field)
-                if isinstance(v, set):
-                    v = list(v)
-
-                d[field] = v
-            except AttributeError:
-                pass
-
-        if recurse:
-            c = d['drink__children'] = []
-            for child in self.keys():
-                c.append((child, self[child].serialize()))
-        return d
-
-    #: actions
-    _actions = [
-        dict(title="Help", action="/pages/help/", perm="r", icon="help"),
-        dict(title="Back", action="ui.go_back()", perm="r", icon="undo"),
-        dict(title="View/Reload", action="drink.serve(undefined, 'view')", icon="view", perm='r'),
-        dict(title="Edit", style="edit_form", action="drink.serve(undefined, 'edit')", icon="edit", perm='w'),
-        dict(title="List content", action="drink.serve(undefined, 'list')", icon="open", perm='r'),
-        dict(title="Add object", condition="drink.d.classes.length!=0", style="add_form", action="ui.add_entry()", key='INS', icon="new", perm='a'),
-        dict(title="Move", style="move_form", action="ui.move_current_page()", icon="move", perm='o'),
-        dict(title="Image gallery", style="move_form", action="drink.serve(undefined, 'gallery')", icon="view", perm='r', key='G'),
-    ]
-
-    #: fields that are only editable by the admin (appear in edit panel)
-
-    admin_fields = {}
 
     #: permissions to apply for comments (permissions required, nothing to disable comments & rating)
     allow_comments = ''
@@ -272,10 +254,18 @@ class Page(drink.Model):
 
     # Model methods
 
-    def _lock(self):
-        if not getattr(self, '_v_lock', None):
-            self._v_lock = Lock()
-        return self._v_lock
+    """
+    def _p_resolveConflict(self, oldState, savedState, newState):
+
+        # Figure out how each state is different:
+        savedDiff= savedState['count'] - oldState['count']
+        newDiff= newState['count']- oldState['count']
+
+        # Apply both sets of changes to old state:
+        return oldState['count'] + savedDiff + newDiff
+"""
+
+
 
     def __init__(self, name, rootpath=None):
         drink.Model.__init__(self)
@@ -309,6 +299,29 @@ class Page(drink.Model):
     def __hash__(self):
         return hash(self.id)
 
+    def _lock(self):
+        if not getattr(self, '_v_lock', None):
+            self._v_lock = Lock()
+        return self._v_lock
+
+    def serialize(self, recurse=True):
+        d = {'drink__class': self.__class__.__name__}
+        for field in self.owner_fields.keys() + self.admin_fields.keys() + self.editable_fields.keys():
+            try:
+                v = getattr(self, field)
+                if isinstance(v, set):
+                    v = list(v)
+
+                d[field] = v
+            except AttributeError:
+                pass
+
+        if recurse:
+            c = d['drink__children'] = []
+            for child in self.keys():
+                c.append((child, self[child].serialize()))
+        return d
+
     @property
     def indexable(self):
         if isinstance(self.description, unicode):
@@ -328,22 +341,12 @@ class Page(drink.Model):
         """ See :func:`default_view` """
         return default_view(self, *a, **k)
 
-    #: A map of <html/js event>: <js function>, used to hook items interactions
-
-    items_factory = {
-            # TODO: make it really generic, not just look-a-like
-        'dblclick': "edit_title",
-        'hover': "popup_actions",
-        'entry': "default_factory",
-    }
-
     def struct(self, childs=None, full=None):
         """ returns this item as a json structure """
         return get_struct_from_obj(self, childs, full)
 
     _like = None
     _unlike = None
-
     def rate(self):
         rate = 0
         if request.params.get('like'):
@@ -492,6 +495,7 @@ class Page(drink.Model):
                     caster.set(self, attr, v.decode('utf-8') if v else u'')
 
             self._update_lookup_engine()
+
             if recursive:
                 # apply permissions recursively
                 childs = list(self.values())
