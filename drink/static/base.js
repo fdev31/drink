@@ -160,7 +160,11 @@ var Drink = function() {
 
 var Entry = function(data) {
     var me = this;
-    // remove_entry
+    // remove method (removes from screen)
+    this.remove = function() {
+    	me.elt.slideUp('slow', function() {$(this).remove();});
+    };
+    // remove_entry (action will remove on server + then from screen)
     this.popup_remove = function(item) {
         ui.dialog('<div id="remove-confirm" title="Do you really want to remove this item ?">Please, confirm removal.</div>', {
             Accept: function() {
@@ -168,7 +172,7 @@ var Entry = function(data) {
                 $.ajax({
                     url: me.path+'rm?name='+me.id
                 }).success(function() {
-                    me.elt.slideUp('slow', function() {$(this).remove();});
+    				me.remove();
                 }).error(function(){
                     ui.dialog('<div title="Error occured">Sorry, something didn\'t work correctly</div>');
                 });
