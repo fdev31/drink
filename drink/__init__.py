@@ -5,6 +5,7 @@ Drink!
 """
 __all__ = ['get_object',
  'classes',
+ 'update_property',
  'add_upload_handler',
  'request', 'response',
  'Page', 'ListPage'
@@ -46,6 +47,13 @@ DB_PATH = config.get('server', 'database') or ORIG_DB_PATH
 if not DB_PATH.endswith(os.sep):
     DB_PATH += os.sep
 
+#: update some property
+def update_property(pklass, klass, name, value):
+    """ Update one page property (dicts) """
+    name = '_'+name
+    d = getattr(pklass, name).copy()
+    d.update(value)
+    setattr(klass, name, d)
 
 # auto-guess & set datadir in case of inchanged default
 log.debug("Using DB informations from %s", DB_PATH)
@@ -438,7 +446,6 @@ def glob_index(objpath="/"):
         response.content_type = "application/json"
         return dumps(o)
     return o
-
 
 def startup():
     """ Starts drink application """

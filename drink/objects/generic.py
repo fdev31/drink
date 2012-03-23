@@ -87,7 +87,6 @@ def get_struct_from_obj(obj, childs=None, full=None):
             d['classes'] = obj.classes.keys()
         else:
             d['_nb_items'] = len(obj)
-
     return d
 
 
@@ -160,7 +159,6 @@ class Page(drink.Model):
     }
 
     #: fields that are editable (appear in edit panel)
-
     editable_fields = {
         'title': drink.types.Text('Title'),
         'description': drink.types.Text('Description'),
