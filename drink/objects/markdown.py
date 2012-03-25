@@ -226,4 +226,5 @@ class MarkdownPage(drink.ListPage):
         self.content = drink.omni(obj.file.read())
 
 drink.add_upload_handler(['md', 'txt'], MarkdownPage.drink_name)
-drink.update_property(drink.ListPage, Markdown, 'loaders', {'view': 'm = new MarkDown(); m.load_page()'})
+
+drink.update_property(drink.ListPage, MarkdownPage, 'loaders', {'view': 'm = new MarkDown(); m.load_page()'})
