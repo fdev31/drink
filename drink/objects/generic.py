@@ -21,8 +21,7 @@ def get_type(filename):
     return guess_type(filename)[0] or 'application/octet-stream'
 
 def get_struct_from_obj(obj, childs=None, full=None):
-
-
+    """ Returns a dictionary suitable for serialization from an object """
     if childs is None:
         childs = bool(request.params.get('childs', '').lower() not in ('no', ''))
 
