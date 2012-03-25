@@ -191,7 +191,7 @@ ui = new Object({
     },
     // Move
     move_current_page: function() {
-        var win = ui.dialog('<div id="move-confirm" title="Do you really want to move this item ?">Please, type destination path:<input style="width: 90%" type="text" id="move-destination" class="completable" complete_type="objpath" value="/pages/"></input></div>', {
+        var win = ui.dialog('<div id="move-confirm" title="Do you really want to move this item ?">Please, type destination path:<input style="width: 90%" type="text" id="move-destination" class="completable" complete_type="objpath" value="'+base_path+'"></input></div>', {
             Move: function() {
                 $.post($('#move-confirm #move-destination').val()+'/borrow',
                     {'item': base_path},
