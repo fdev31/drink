@@ -80,12 +80,19 @@ var Drink = function() {
             val = "me."+val;
         return val;
     };
+    this.call_hook = function(hname, entry) {
+    	var hook = me.d[hname+'_hooks'][me.cur_action];
+    	if (!!hook) {
+    		eval(hook);
+    	}
+    };
     this.add_item = function(data, focus) {
         var e = new Entry(data);
         me.entries.push( e );
         me.d.items.push( data );
+        
         if (!!focus) e.elt.center();
-        call_hook_add_item(data);
+        me.call_hook('add', e);
     };
 	// self factory shortcuts
 	this.write_footers = function() {
@@ -274,10 +281,6 @@ var Entry = function(data) {
     var e = me._get_html();
     me.elt = e;
     me.editable = new Editable(e, 'title', 'a', 'input_text');
-    // add itself to main_list
-//    e.disableSelection();
-//    e.hide();
-//    e.fadeIn('slow');
     return this;
 };
 var Position = function(default_pos, list_getter, selection_class) {

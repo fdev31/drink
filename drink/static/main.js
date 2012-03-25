@@ -302,20 +302,7 @@ function call_hook_remove_item(o) {
    }
 }
 
-// ADD ITEM THINGS
-
-add_item_hooks = [];
-
-
-function call_hook_add_item(data) {
-   for(i=0; i<add_item_hooks.length; i++) {
-        add_item_hooks[i](data);
-   }
-}
-
 function dom_initialize(dom) {
-    // TODO: handle main-list population
-
     // hides some things by default
     dom.find('.starts_hidden').slideUp(0);
 
