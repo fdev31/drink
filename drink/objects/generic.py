@@ -170,7 +170,7 @@ class Page(drink.Model):
     }
     #: hooks that will be evaluated when an item is added (view: js_code)
     _add_hooks = {
-        'list': "$('#main_list').append(entry.elt)",
+        'list': "entry.elt.hide(); $('#main_list').append(entry.elt); entry.elt.fadeIn('slow');",
     }
     #: hooks that will be evaluated when an item is removed (view: js_code)
     _remove_hooks = {
