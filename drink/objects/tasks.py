@@ -38,7 +38,7 @@ class TODO(drink.Page):
         #'description': drink.types.Text('Short description', group="a"),
     }
 
-    def __init__(self, name, rootpath):
+    def __init__(self, name, rootpath=None):
         drink.Page.__init__(self, name, rootpath)
         self.date = date.today()
 

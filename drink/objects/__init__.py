@@ -31,7 +31,6 @@ def get_object(current, objpath, no_raise=False):
     :arg no_raise: (optional) don't raise exceptions
     :type no_raise: `bool`
     """
-
     path_list = [drink.omni(p) for p in objpath.split('/') if p]
     last_idx = len(path_list) - 1
     for i, elt in enumerate(path_list):

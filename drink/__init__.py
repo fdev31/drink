@@ -447,6 +447,17 @@ def glob_index(objpath="/"):
         return dumps(o)
     return o
 
+def fake_authentication():
+    def unauthorized(message='Action NOT allowed', code=401):
+        print("UNAUTHORIZED: %r [%d]"%(message, code))
+    globals()['unauthorized'] = unauthorized
+    bottle.request.environ = dict()
+    bottle.request.environ['beaker.session'] = s = os.environ.copy()
+    s['password'] = s['login'] = s['logged_in'] = 'admin'
+    admin = db.db['users']['admin']
+    request.identity = Authenticator()
+    request.identity.user = admin
+
 def startup():
     """ Starts drink application """
     import sys
@@ -640,15 +651,14 @@ For static files changes, no restart is needed.
         finder.indexer.optimize()
         db.pack()
         print "packed."
+
     elif len(sys.argv) == 2 and sys.argv[1] == "rebuild":
 
         from .zdb import Blob
 
         if not 'settings' in db.db:
             # TODO: request.identity.user = admin
-            admin = db.db['users']['admin']
-            request.identity = Authenticator()
-            request.identity.user = admin
+            fake_authentication()
             settings = Settings('settings', '/')
             settings.server_backend = config.get('server', 'backend')
             db.db['settings'] = settings
@@ -737,10 +747,53 @@ For static files changes, no restart is needed.
         for x in db.db['search'].rebuild():
             log.info(x.strip())
 
+    elif len(sys.argv) == 3 and sys.argv[1] == "import":
+        fake_authentication()
+        try:
+            from json import loads
+        except ImportError:
+            from simplejson import loads
+        base = sys.argv[2]
+        c_map = {}
+        all_objs = []
+        log.info("Importing %s", base)
+        for root, dirs, files in os.walk(base):
+            content = [f for f in files if f.startswith('!content_')]
+            if len(content) == 1:
+                data = loads(open(os.path.join(root, content[0])).read())
+                if data:
+                    rp = data['rootpath']
+                    klass = content[0][9:] # skip !content_ prefix
+                    if klass not in c_map:
+                        mod, nspace = klass.split('.', 1)
+                        mod = __import__(mod)
+                        for submod in nspace.split('.'):
+                            mod = getattr(mod, submod)
+                        c_map[klass] = mod
+                    klass = c_map[klass]
+                    obj = klass(data['id'])
+                    obj.__dict__.update(data)
+                    root = db.db
+                    print "creating %r in %r"%(obj.id, rp)
+                    for p in rp.split('/')[1:-1]:
+                        root = root[p]
+                    root[obj.id] = obj
+                    all_objs.append(obj)
+                else:
+                    print "WARN: empty content for", root
+            else:
+                print "Incorrect content files: %r"%', '.join(content)
+
+        users = db.db['users']
+        for obj in all_objs:
+            if isinstance(obj.owner, basestring):
+                obj.owner =   users[obj.owner]
+                obj.repair()
+
+        transaction.commit()
+        db.pack()
     elif len(sys.argv) == 3 and sys.argv[1] == "export":
         import datetime
-        from pprint import pprint
-
         base = sys.argv[2]
         log.info("Exploring %s", base)
 
@@ -755,6 +808,8 @@ For static files changes, no restart is needed.
             log.debug("%s %s", nbase, type(obj)) #.id if hasattr(obj, 'id') else 'ROOT'
             data = obj.__dict__.copy()
             for k, v in data.iteritems():
+                if k.startswith('_v_'):
+                    continue
                 if isinstance(v, datetime.date):
                     data[k] = "%s/%s/%s"%(v.day, v.month, v.year)
                 elif isinstance(v, DataBlob):
@@ -766,8 +821,13 @@ For static files changes, no restart is needed.
                     data[k] = v.id
             if 'data' in data:
                 del data['data']
-            file( os.path.join(nbase, '!content_%s'%obj.__class__.__name__), 'w').write(
-                dumps(data)
+            if obj.__class__.__module__:
+                name = "%s.%s"%(obj.__class__.__module__, obj.__class__.__name__)
+            else:
+                name = obj.__class__.__name___
+
+            file( os.path.join(nbase, '!content_%s'%name), 'w').write(
+                dumps(data, indent=2)
             )
             # recurse
             if len(obj):

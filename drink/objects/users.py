@@ -42,7 +42,8 @@ class User(drink.Page):
     del admin_fields['default_action']
     admin_fields['description'] = drink.Page.editable_fields['description']
 
-    def __init__(self, name, rootpath):
+    def __init__(self, name, rootpath=None):
+
         drink.Page.__init__(self, name, rootpath)
         name = self.id
         self.phones = {}
@@ -55,6 +56,10 @@ class User(drink.Page):
         self.owner = self
         new_grp.owner = self
         drink.transaction.commit()
+
+    def repair(self):
+        drink.Page.repair(self)
+        self.groups = set(self.groups)
 
     @property
     def html(self):

@@ -277,14 +277,13 @@ class Page(drink.Model):
             if name is not None:
                 self.data.update(name)
             name = u'/'
-            #: Unique id
-            self.id = u'.'
         else:
             if not name or name[0] in r'/.$%_':
-                return drink.unauthorized('Wrong identifier: %r'%name)
+                raise ValueError('Wrong identifier: %r'%name)
             # minor sanity check
-            self.id = name.replace(u' ', u'-').replace(u'\t', u'_').replace(u'/', u'.').replace(u'?', u'')
+            name = name.replace(u' ', u'-').replace(u'\t', u'_').replace(u'/', u'.').replace(u'?', u'')
 
+        self.id = name
         self.rootpath = rootpath
 
         if not hasattr(self, 'title'):
@@ -302,6 +301,10 @@ class Page(drink.Model):
         if not getattr(self, '_v_lock', None):
             self._v_lock = Lock()
         return self._v_lock
+
+    def repair(self):
+        self.read_groups = set(self.read_groups)
+        self.write_groups = set(self.write_groups)
 
     def serialize(self, recurse=True):
         d = {'drink__class': self.__class__.__name__}
@@ -612,8 +615,11 @@ class Page(drink.Model):
             new_obj.read_groups = set(read_groups)
         if not new_obj.write_groups:
             new_obj.write_groups = set(write_groups)
+        try:
+            self[new_obj.id] = new_obj
+        except:
+            import pdb; pdb.set_trace()
 
-        self[new_obj.id] = new_obj
         new_obj._update_lookup_engine(add=True)
         drink.transaction.commit()
         return new_obj

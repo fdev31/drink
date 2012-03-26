@@ -76,7 +76,7 @@ class ObjectBrowser(drink.Page):
                         # like the old "Dumb" indexer, with local (but recursive) lookup
                         # OR : "find" method on any page, with optional recursive attr
 
-    def __init__(self, name, rootpath):
+    def __init__(self, name, rootpath=None):
         drink.Page.__init__(self, name, rootpath)
         self.lastlog = {}
 
