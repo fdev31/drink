@@ -813,8 +813,16 @@ For static files changes, no restart is needed.
                 if isinstance(v, datetime.date):
                     data[k] = "%s/%s/%s"%(v.day, v.month, v.year)
                 elif isinstance(v, DataBlob):
-                    data[k] = v.filename
-                    os.link(v.filename, os.path.join(nbase, data['content_name']))
+                    try:
+                        data[k] = v.filename
+                    except Exception: # unreadable
+                        data[k] = None
+                        log.warning('Unable to recover %s...'%k)
+                    else:
+                        try:
+                            os.link(v.filename, os.path.join(nbase, data['content_name']))
+                        except OSError, e:
+                            log.info('%r : %r', v.filename, e)
                 elif isinstance(v, set):
                     data[k] = list(v)
                 elif k == 'owner':
@@ -826,9 +834,19 @@ For static files changes, no restart is needed.
             else:
                 name = obj.__class__.__name___
 
-            file( os.path.join(nbase, '!content_%s'%name), 'w').write(
-                dumps(data, indent=2)
-            )
+            try:
+                file( os.path.join(nbase, '!content_%s'%obj.__class__.__name__), 'w').write(
+                    dumps(data)
+                )
+            except IOError:
+                log.error('Unable to dump %r !'%(obj.rootpath+obj.id))
+            except TypeError:
+                log.warning('Forcing serialization')
+                for k, v in data.items():
+                    if not isinstance(v, (tuple, list, basestring, dict, set)):
+                        log.debug('removing %r'%k)
+                        del data[k]
+
             # recurse
             if len(obj):
                 for k in obj:
