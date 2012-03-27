@@ -33,10 +33,13 @@ def get_object(current, objpath, no_raise=False):
     """
     path_list = [drink.omni(p) for p in objpath.split('/') if p]
     last_idx = len(path_list) - 1
+    pending_path = False
     for i, elt in enumerate(path_list):
         if elt[0] in '._' and  elt != '_static':
             return drink.unauthorized('Not authorized (forbidden character)')
-        if i == last_idx:
+        if False != pending_path:
+            pending_path.append(elt)
+        elif i == last_idx:
             # getting
             try:
                 current = current[elt]
@@ -48,8 +51,11 @@ def get_object(current, objpath, no_raise=False):
                 try:
                     current = getattr(current, elt)
                 except AttributeError:
-                    if not no_raise:
-                        raise AttributeError(elt)
+                    if callable(current):
+                        pending_path = [elt]
+                    else:
+                        if not no_raise:
+                            raise AttributeError(elt)
                     return
             break # found a matching object
         else:
@@ -61,9 +67,14 @@ def get_object(current, objpath, no_raise=False):
                         return drink.unauthorized('Not authorized')
                     return
             except (KeyError, AttributeError):
-                if no_raise:
-                    return
-                raise AttributeError(elt)
+                if hasattr(current, elt) and callable(getattr(current, elt)):
+                    current = getattr(current, elt)
+                    pending_path = []
+                else:
+                    if no_raise:
+                        return
+                    raise AttributeError(elt)
+    request.pending_path = pending_path
     return current
 
 def init():
