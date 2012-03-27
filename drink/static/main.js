@@ -63,7 +63,6 @@ ui = new Object({
         }
         $('#main_body').html(data.html);
         if(debug) console.log('load html content');
-        dom_initialize($('#main_body'));
     },
     // ADD an entry Popup
     add_entry: function() {
@@ -305,7 +304,16 @@ function call_hook_remove_item(o) {
 function dom_initialize(dom) {
     // hides some things by default
     dom.find('.starts_hidden').slideUp(0);
-
+	console.log('init', dom);
+	if (dom.attr('id') === 'main_body' && !!!dom.data('annotator')) {
+		
+		var a = $('#main_body').annotator();
+		a.annotator('addPlugin', 'Tags');
+		a.annotator('addPlugin', 'Store', {
+			prefix: '/pages/store',
+			annotationData: {'uri': base_path},
+		});
+	}
     // sumbit forms on Ctrl+Enter press
     dom.find('#auto_edit_form').keypress( function(ev, elt) {
         if ( ev.ctrlKey && ev.charCode == 10 ) {
@@ -526,5 +534,6 @@ $(document).ready(function(){
     $('#header_bar').on('dblclick', function() { $('#header_bar').fadeOut('slow'); });
 	
 	drink = new Drink();
+
 // end of statup code
 });

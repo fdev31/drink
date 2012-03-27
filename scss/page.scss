@@ -467,12 +467,12 @@ body {
 #header_bar {
     font-weight: bold;
     width: 100%;
-    position: fixed;
+    position: fixed !important;
     background: rgba(240, 240, 220, 0.8);
     @include light_shadowed;
     z-index: 5;
     padding: 0;
-    margin: auto 0 0 0;
+    margin: 0 0 0 0;
     bottom: 0;
     > a {
         cursor: pointer;

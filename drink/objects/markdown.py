@@ -228,3 +228,58 @@ class MarkdownPage(drink.ListPage):
 drink.add_upload_handler(['md', 'txt'], MarkdownPage.drink_name)
 
 drink.update_property(drink.ListPage, MarkdownPage, 'loaders', {'view': 'm = new MarkDown(); m.load_page()'})
+
+"""
+class Annotation(object):
+    def __init__(self):
+        self.annotator_schema_version = '1.0'
+        self.created = '' # date
+        self.updated = '' # date
+        self.quote = ''
+        self.tags = ''
+        self.text = ''
+        #self.uri = ''
+        #self.user = ''
+        #self.consumer = ''
+        self.ranges = [] # {start: str, end: str, startOffset: int, endOffset: int}
+        self.permissions = {} # {read: str, update: str, delete: str, admin:str}
+
+    def serialize(self):
+        return self.__dict__
+"""
+
+class Annotator(drink.ListPage):
+
+    drink_name = 'Annotator'
+
+    def view(self):
+        return {
+          "name": "Annotator Store API",
+          "version": "2.0.0"
+        }
+
+    def annotations(self):
+        drink.response['Content-Type'] = 'application/json'
+        apply_on = None
+        if drink.request.pending_path:
+            apply_on = int(drink.request.pending_path[0])
+
+        if drink.request.method == 'POST':
+            d = drink.loads(drink.request.body.read())
+            for i, slot in enumerate(self):
+                if slot is None:
+                    break
+            else:
+                i = d['id'] = len(self)
+            self[i] = d
+            drink.transaction.commit()
+            return drink.dumps(d)
+        elif drink.request.method == 'PUT':
+            d = drink.loads(drink.request.body.read())
+            self[apply_on].update(d)
+            drink.transaction.commit()
+            return drink.dumps(self[apply_on])
+        elif drink.request.method == 'DELETE':
+            self[apply_on] = None
+        else: # GET
+            return drink.dumps([n for n in self.itervalues() if n])
