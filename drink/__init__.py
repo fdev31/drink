@@ -419,7 +419,7 @@ def log_out():
     return rdr('/')
 
 # generic dispatcher method
-@route("/:objpath#.+#", method=['GET', 'POST'])
+@route("/:objpath#.+#", method=['GET', 'POST', 'PUT', 'DELETE'])
 def glob_index(objpath="/"):
     request.identity = Authenticator()
     try:
