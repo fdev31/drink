@@ -62,10 +62,14 @@ var Drink = function() {
 					if(debug) console.log('Loader: '+loader, me.d.loaders);
 					if (!!loader) {
 						eval(loader);
+						var _delayed = function() {
+						      dom_initialize($('#main_body'));
+  						}
+						setTimeout(_delayed, 500);
 					} else {
 						if(debug) console.log('No hook!')
 					}
-		        })
+			    })
 		        .error(function(data, code) {
 		        	if(debug) console.log(data, code);
 			        $('#main_body , #footers').fadeOut();
@@ -151,10 +155,8 @@ var Drink = function() {
 		    ui.load_action_list(data.actions);
 	    	me.i_like = data.i_like;
 	        setTimeout(me.write_footers, 300);
-			var loader = me.d.loaders[me.d.default_action];
-			if(!!loader)
-				eval(loader);
-			me.cur_action = me.d.default_action; 
+			me.cur_action = undefined;
+	        me.serve(undefined, me.d.default_action);
 		})
 		.error(function() {
 			ui.dialog('<div title="Error occured">Listing can\'t be loaded :(</div>');
