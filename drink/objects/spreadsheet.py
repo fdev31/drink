@@ -43,7 +43,7 @@ class SpreadSheet(drink.Page):
 
             return menu;
         }
-        function init_spreasheet() {
+        function init_spreadsheet() {
           if ($('#inlineMenu').length > 0) {
             $('.spreadsheet').sheet({
     //            title: "",
