@@ -472,7 +472,8 @@ body {
     @include light_shadowed;
     z-index: 5;
     padding: 0;
-    margin: 0;
+    margin: auto 0 0 0;
+    bottom: 0;
     > a {
         cursor: pointer;
     };
@@ -569,7 +570,7 @@ pre {
     @include light_shadowed;
     background-color: $background;
     margin: 0 auto;
-    padding: 2em 1ex;
+    padding: 1ex;
 }
 td.linenos {
     > div.linenodiv {
