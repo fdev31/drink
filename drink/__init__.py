@@ -30,6 +30,10 @@ log = logging.getLogger('core')
 from drink.config import config, BASE_DIR
 import bottle
 from hashlib import sha1
+try:
+    from json import loads
+except ImportError:
+    from simplejson import loads
 
 #: All kind of drink objects as a ``{"name": Page_class}`` mapping.
 
@@ -749,10 +753,6 @@ For static files changes, no restart is needed.
 
     elif len(sys.argv) == 3 and sys.argv[1] == "import":
         fake_authentication()
-        try:
-            from json import loads
-        except ImportError:
-            from simplejson import loads
         base = sys.argv[2]
         c_map = {}
         all_objs = []
