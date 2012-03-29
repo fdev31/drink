@@ -155,8 +155,10 @@ var Drink = function() {
 		    ui.load_action_list(data.actions);
 	    	me.i_like = data.i_like;
 	        setTimeout(me.write_footers, 300);
-			me.cur_action = undefined;
-	        me.serve(undefined, me.d.default_action);
+			me.cur_action = window.document.location.pathname.slice(base_path.length);
+            if (!!!me.cur_action) {
+                me.serve(undefined, me.d.default_action);
+            }
 		})
 		.error(function() {
 			ui.dialog('<div title="Error occured">Listing can\'t be loaded :(</div>');
