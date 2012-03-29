@@ -1,4 +1,5 @@
 - re-fix add_item_hook (refactor ?)
+- Add ability to retrieve partial content as "path" ex: /pages/foo/not/exist will set same as foo?path=/not/exist
 - finish cleanup & start markdown cleanup
 - reset selection on view change
 - fix focus loss on messages() closing
