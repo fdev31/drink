@@ -510,7 +510,6 @@ if DEBUG environment variable is set, it will start in debug mode.
             host = config.get('server', 'host')
             port = int(config.get('server', 'port'))
             app = make_app(full=True)
-            debug = (app != bottle.app())
             bottle.run(app=app, host=host, port=port, reloader=debug, server='wsgiref' if debug else config.get('server', 'backend'))
     elif len(sys.argv) == 2 and sys.argv[1] == "stopdb":
         cmd = "zeoctl -C %s stop"%os.path.join(DB_PATH, 'zeo.conf')
@@ -860,7 +859,7 @@ from beaker.middleware import SessionMiddleware
 
 def make_app(full=False):
     """ Returns Drink WSGI application """
-    global reset_required
+    global reset_required, debug
     if not PERSISTENT_STORAGE or 'BOTTLE_CHILD' not in os.environ:
         with db as c:
             if len(c) < 3:
@@ -947,6 +946,7 @@ def make_app(full=False):
             except ImportError:
                 continue
         else:
+            debug = False
             log.error("Unable to install the debugging middleware, current setting: %s", dbg_backend)
     # /end dbg_in_env
 
