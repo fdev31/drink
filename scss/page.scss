@@ -609,6 +609,13 @@ blockquote {
     margin: 0;
 }
 /*
+annotator
+*/
+div.annotator-adder button {
+    border: none !important;
+    box-shadow: none !important;
+}
+/*
 fileuploader
 */
 .qq-uploader { position:relative; width: 90%; padding: 0 1ex; margin: 0 auto;}
