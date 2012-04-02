@@ -305,10 +305,10 @@ function dom_initialize(dom) {
     // hides some things by default
     dom.find('.starts_hidden').slideUp(0);
 	console.log('init', dom);
-	if (dom.attr('id') === 'main_body' && !!!dom.data('annotator')) {
-		var a = $('#main_body').annotator();
-		a.annotator('addPlugin', 'Tags');
-		a.annotator('addPlugin', 'Store', {
+	if (dom.attr('id') === 'main_body' && drink.cur_action === "view" && !!! dom.parent().data('annotator')) {
+		annotator = $('#main_body').parent().annotator();
+		annotator.annotator('addPlugin', 'Tags');
+		annotator.annotator('addPlugin', 'Store', {
 			prefix: base_path,
 			annotationData: {'uri': base_path},
 		});
