@@ -306,6 +306,43 @@ class Page(drink.Model):
         self.read_groups = set(self.read_groups)
         self.write_groups = set(self.write_groups)
 
+    def annotations(self):
+        drink.response['Content-Type'] = 'application/json'
+        try:
+            annotations = self._annotations
+        except AttributeError:
+            annotations = self._annotations = drink.List()
+
+        apply_on = None
+        if drink.request.pending_path:
+            apply_on = int(drink.request.pending_path[0])
+
+        if drink.request.method == 'POST':
+            d = drink.loads(drink.request.body.read())
+            for i, slot in enumerate(annotations):
+                if slot is None:
+                    break
+            else:
+                i = None
+
+            if i:
+                d['id'] = i
+                annotations[i] = d
+            else:
+                d['id'] = len(annotations)
+                annotations.append(d)
+            drink.transaction.commit()
+            return drink.dumps(d)
+        elif drink.request.method == 'PUT':
+            d = drink.loads(drink.request.body.read())
+            annotations[apply_on].update(d)
+            drink.transaction.commit()
+            return drink.dumps(annotations[apply_on])
+        elif drink.request.method == 'DELETE':
+            annotations[apply_on] = None
+        else: # GET
+            return drink.dumps([n for n in annotations if n])
+
     def serialize(self, recurse=True):
         d = {'drink__class': self.__class__.__name__}
         for field in self.owner_fields.keys() + self.admin_fields.keys() + self.editable_fields.keys():

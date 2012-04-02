@@ -209,13 +209,13 @@ def init():
 # Setup db
 reset_required = False
 try:
-    from .zdb import Database, DataBlob, Model, transaction
+    from .zdb import Database, DataBlob, Model, transaction, PersistentList as List
     PERSISTENT_STORAGE = True
     log.info("Enabling persistent storage, using ZODB")
 except ImportError:
     log.warning("Not enabling persistent storage, using dumb db")
     PERSISTENT_STORAGE = False
-    from .dumbdb import Database, DataBlob, Model, transaction
+    from .dumbdb import Database, DataBlob, Model, transaction, PersistentList as List
 
 #: The database object, prefer using :func:`drink.get_object` instead
 

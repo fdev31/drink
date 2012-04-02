@@ -306,11 +306,10 @@ function dom_initialize(dom) {
     dom.find('.starts_hidden').slideUp(0);
 	console.log('init', dom);
 	if (dom.attr('id') === 'main_body' && !!!dom.data('annotator')) {
-		
 		var a = $('#main_body').annotator();
 		a.annotator('addPlugin', 'Tags');
 		a.annotator('addPlugin', 'Store', {
-			prefix: '/pages/store',
+			prefix: base_path,
 			annotationData: {'uri': base_path},
 		});
 	}
