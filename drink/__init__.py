@@ -35,6 +35,18 @@ try:
 except ImportError:
     from simplejson import loads
 
+try:
+    import pyjaco
+except ImportError:
+    log.warning("Can't find pyjaco ( http://pyjaco.org/ )")
+else:
+    #: compile python to javascript using `Pyjaco <http://pyjaco.org/>`_
+    def js(text):
+        c = pyjaco.Compiler()
+        c.append_string(text)
+        return str(c)
+
+
 #: All kind of drink objects as a ``{"name": Page_class}`` mapping.
 
 classes = {}
