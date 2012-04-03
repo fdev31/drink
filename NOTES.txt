@@ -1,4 +1,6 @@
 - re-fix add_item_hook (refactor ?)
+- DETECT BROWSER: http://pypi.python.org/pypi/raclette.gbs/0.2
+- ADD SCHEDULING: http://pypi.python.org/pypi/pulse/0.1.2
 - finish cleanup & start markdown cleanup
 - reset selection on view change
 - fix focus loss on messages() closing
