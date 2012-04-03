@@ -863,9 +863,16 @@ For static files changes, no restart is needed.
                 for k in obj:
                     all_obj.append((obj[k], None))
     elif len(sys.argv) == 2 and sys.argv[1] == "debug":
-        from pdb import set_trace
+        try:
+            import readline
+            import rlcompleter
+            readline.parse_and_bind('tab: complete')
+        except ImportError:
+            print "Disabling completion..."
+        import code
+        import drink
         with db as root:
-            set_trace()
+            code.interact('Drink developper shell !', local={'db': root, 'drink': drink})
 
 from beaker.middleware import SessionMiddleware
 
