@@ -99,7 +99,6 @@ def get_struct_from_obj(obj, childs=None, full=None):
             d['_nb_items'] = len(obj)
     return d
 
-
 def default_view(self, page='main.html', obj=None, css=None, js=None, html=None, embed=None, classes=None, no_auth=None, **kw):
     """ Renders the :class:`~drink.Page` as HTML using a template
 
@@ -632,7 +631,8 @@ class Page(drink.Model):
     def _match(self, pattern=None):
         if pattern is None:
             pattern = ''
-        return {'items': [k for k in self.iterkeys() if pattern in k]}
+        p = self.path
+        return {'items': [{'label': v.title, 'value': p+k} for k, v in self.iteritems() if pattern in k or pattern in v.title]}
 
     def match(self, pattern=None):
         if 'r' not in request.identity.access(self):

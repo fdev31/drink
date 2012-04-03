@@ -321,34 +321,8 @@ function dom_initialize(dom) {
         }
     });
     // autocomplete paths
-    dom.find('input.completable[complete_type=objpath]').keyup(function(e) {
-        if (debug) { console.log('match'); console.log(e); }
-        var o = $(this);
-        if (e.which == 13) {
-            o.parent().parent().find('button:first').trigger('click');
-        }
-        if (e.which < 64 && e.which != 17 && e.which != 32 && e.which != 16) return;
-        get_matching_elts(o.val(), function(items, path) {
-                    o.parent().find('.completed').remove();
-                    if (items.length > 1) {
-                        var list = items.join('</li><li>');
-                        $('<ul class="completed"><li>' + list + '</li></ul>').insertAfter(o);
-                    } else {
-                        if (items.length == 1 ) {
-                            var best_match = items[0];
-                            var components = path.split(RegExp('/'));
-                            if ( components && components[components.length-1] !== '' ) {
-                                components.pop();
-                            }
-                            components.push(best_match);
-                            components.push('');
-                            o.val(components.join('/'));
-                        }
-                    }
-            }
-        );
-    });
-
+    dom.find('input.completable[complete_type=objpath]').autocomplete({source:get_matching_elts});
+    
     // change style of checkboxes titles in editable spans form
     dom.find('.editable span').click( function() {
         var o = $(this).prev();
@@ -433,7 +407,8 @@ function dom_initialize(dom) {
 
 // Helper function to complete valid object path's
 
-function get_matching_elts(path_elt, callback) {
+function get_matching_elts(req, callback) {
+	var path_elt = req.term;
     if (path_elt.match('/')) {
         var _elts = path_elt.split('/');
         _elts.filter(function(e) { if (!!e) return true; });
@@ -454,7 +429,7 @@ function get_matching_elts(path_elt, callback) {
     var cur_path = path_elt;
     // AJAX URL
     
-    $.get(url).success(function(data) { callback(data.items, cur_path); } );
+    $.get(url).success(function(data) { callback(data.items); } );
 }
 
 /////// INIT/STARTUP STUFF
