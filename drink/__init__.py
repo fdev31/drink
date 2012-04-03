@@ -38,7 +38,7 @@ except ImportError:
 try:
     import pyjaco
 except ImportError:
-    log.warning("Can't find pyjaco ( http://pyjaco.org/ )")
+    log.info("Can't find pyjaco ( http://pyjaco.org/ )")
 else:
     #: compile python to javascript using `Pyjaco <http://pyjaco.org/>`_
     def js(text):
