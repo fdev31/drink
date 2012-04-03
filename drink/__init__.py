@@ -872,7 +872,8 @@ For static files changes, no restart is needed.
         import code
         import drink
         with db as root:
-            code.interact('Drink developper shell !', local={'db': root, 'drink': drink})
+            l = {'db': root, 'drink': drink}
+            code.interact('Shell variables: %s'%', '.join(l.keys()), local=l)
 
 from beaker.middleware import SessionMiddleware
 
