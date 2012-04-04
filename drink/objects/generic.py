@@ -670,7 +670,7 @@ class Page(drink.Model):
         name = name or request.params.get('name').decode('utf-8')
 
         if name in self:
-            return drink.unauthorized("%r is already defined!")
+            return drink.unauthorized("%r is already defined!"%name)
 
         if None == cls:
             cls = request.params.get('class')
