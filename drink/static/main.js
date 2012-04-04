@@ -111,7 +111,7 @@ ui = new Object({
     ask_user: function(title, msg, callback) {
         return ui.dialog('<div title="'+title+'">'+msg+'<form id="drink_question" action="js: return false" onvalidate="return false;"><input type="text" id="drink_answer" name="question"></input></form></div>', {
             Ok: function() {
-                $( this ).dialog( "close" ); 
+                $( this ).dialog( "close" );
                 callback($(this).find('input').val());
             }
         });
@@ -322,7 +322,7 @@ function dom_initialize(dom) {
     });
     // autocomplete paths
     dom.find('input.completable[complete_type=objpath]').autocomplete({source:get_matching_elts});
-    
+
     // change style of checkboxes titles in editable spans form
     dom.find('.editable span').click( function() {
         var o = $(this).prev();
@@ -379,7 +379,7 @@ function dom_initialize(dom) {
     dom.find(".autovalidate").each(function(index, ob) { $(ob).validate(); } );
 
     dom.find('.auto_date').datepicker({dateFormat: "dd/mm/yy"});
-    
+
     main_list = dom.find('#main_list');
     if (!!!main_list) {
         main_list = dom.find('.sortable');
@@ -428,7 +428,7 @@ function get_matching_elts(req, callback) {
     }
     var cur_path = path_elt;
     // AJAX URL
-    
+
     $.get(url).success(function(data) { callback(data.items); } );
 }
 
@@ -506,7 +506,7 @@ $(document).ready(function(){
     });
 
     $('#header_bar').on('dblclick', function() { $('#header_bar').fadeOut('slow'); });
-	
+
 	drink = new Drink();
 
 // end of statup code

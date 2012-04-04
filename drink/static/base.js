@@ -20,7 +20,7 @@ var Drink = function() {
 		if ( typeof(id) !== "string") {
 			// assume it's a jquery <li> entry
 			var id = id.data('item');
-		} 
+		}
 		return me.entries.filter(function(e) {return e.id === id})[0];
 	};
 	// page switcher
@@ -30,10 +30,10 @@ var Drink = function() {
         var obj = obj;
         var view = view;
 		var loader = me.d.loaders[view];
-		
+
 		if (!!me.cur_action)
 	        $('#main_body , #footers').fadeOut();
-	     
+
 		if ( obj || action_to_take !== me.cur_action)
 			setTimeout(function() {
 			    if(!!!view)
@@ -76,7 +76,7 @@ var Drink = function() {
 		    	});
 		    }, 300);
     };
-        
+
     // XXX: change this to another place, in Entry ?
     this.get_from_factory = function(which, what) {
         var val = me.d[which+'_factory'][what];
@@ -94,14 +94,14 @@ var Drink = function() {
         var e = new Entry(data);
         me.entries.push( e );
         me.d.items.push( data );
-        
+
         if (!!focus) e.elt.center();
         me.call_hook('add', e);
     };
 	// self factory shortcuts
 	this.write_footers = function() {
 		var foot = $('#footers');
-		// add comments		
+		// add comments
 		if (me.d._perm.match(/r/)) {
 			if(debug) console.log('comments & rates...');
 		    if (me.i_like) {
@@ -148,10 +148,10 @@ var Drink = function() {
 	$.post(base_path+'struct', {'childs': true, 'full': true})
 		.success(function(data, status, req) {
 		    if(debug) console.log(data);
-			me.d = data;			
+			me.d = data;
 		    if (!data._perm) return;
 			me.entries = $.map(me.d.items, function(i) { return new Entry(i); });
-			// load actions		
+			// load actions
 		    ui.load_action_list(data.actions);
 	    	me.i_like = data.i_like;
 	        setTimeout(me.write_footers, 300);
