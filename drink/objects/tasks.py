@@ -201,3 +201,4 @@ class TODOList(drink.Page):
             for feed in all_feeds))
 
 drink.update_property(drink.Page, TODOList, 'loaders', {'view': 'init_calendar()'})
+drink.update_property(drink.Page, TODOList, 'add_hooks', {'view': 'task_added(entry)'})
