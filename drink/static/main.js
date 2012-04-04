@@ -18,12 +18,15 @@ ui = new Object({
         }
         $('#comments').append('<form id="dk_comment"  action="#" method="post" />');
         var text = $('<textarea class="edited_comment">Your comment here...</textarea>');
+        text.css('min-height', '1em');
+        text.css('height', '1em');
         $('#comments #dk_comment').append(text);
         text.click(function(e) {
             var txt = $(e.target);
             txt.unbind();
             txt.parent().append($('<span class="button" onclick="ui.validate_comment()">Send!</span>'));
             txt.attr('value', '');
+            text.animate({'height': '5em'});
         });
   },
   validate_comment : function() {
