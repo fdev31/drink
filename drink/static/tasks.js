@@ -14,7 +14,7 @@ function deleteEvent(eventId) {
     });
 }
 
-function add_item_hook(item) {
+function task_added(item) {
     $('#calendar').fullCalendar('renderEvent',
         {'title': item.title, 'url': item.id+'/', 'start': new Date() }
     );
