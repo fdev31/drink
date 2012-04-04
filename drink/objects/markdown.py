@@ -228,3 +228,4 @@ class MarkdownPage(drink.ListPage):
 drink.add_upload_handler(['md', 'txt'], MarkdownPage.drink_name)
 
 drink.update_property(drink.ListPage, MarkdownPage, 'loaders', {'view': 'm = new MarkDown(); m.load_page()'})
+drink.update_property(drink.ListPage, MarkdownPage, 'add_hooks', {'view': 'm.load_page()'})
