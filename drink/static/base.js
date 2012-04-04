@@ -132,7 +132,7 @@ var Drink = function() {
 		            showMessage: function(message){ $('<div title="Drop zone">'+message+'</div>'); },
 		            onComplete: function(id, fileName, data){
 		                if ( data.id ) {
-		                    ui.add_item(data);
+		                    me.add_item(data);
 		                }
 		                $('ul.qq-upload-list > li.qq-upload-success').fadeOut('slow',
 		                    function() { $(this).remove(); });
