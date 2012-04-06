@@ -405,7 +405,7 @@ class EasyPermissions(_Editable):
         <span class="button" id="apply_permissions_recursively" onclick="apply_perms(this)">Save and Apply permissions on children</span>
         </div>
 
-        <span class="button" id="show_hide_permissions" onclick="var o=$('#show_hide_permissions'); var g=$('.x_permissions_grp'); if(g.css('display') == 'none') {o.html('Hide detailed permissions')} else {o.html('Show detailed permissions')}; g.slideToggle('slow');">
+        <span class="button" id="show_hide_permissions" onclick="var o=$('#show_hide_permissions'); var g=$('.x_permissions_grp'); if(g.css('display') === 'none') {o.html('Hide detailed permissions');  g.fadeIn('slow');} else { g.hide(); o.html('Show detailed permissions')};">
         Show detailed permissions</span>
 
         """%dict(id=drink.request.identity.id)
