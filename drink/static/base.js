@@ -31,8 +31,10 @@ var Drink = function() {
         var view = view;
 		var loader = me.d.loaders[view];
 		
-		if (!!me.cur_action && me.cur_action !== action_to_take)
+		if (!!me.cur_action && me.cur_action !== action_to_take) {
 	        $('#main_body , #footers').fadeOut();
+	        ui.focus.clear();
+        }
 	     
 		if ( obj || action_to_take !== me.cur_action)
 			setTimeout(function() {
