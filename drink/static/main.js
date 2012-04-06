@@ -68,7 +68,7 @@ ui = new Object({
     add_entry: function() {
     	var k = drink.d.classes;
          if ( k.length < 1 ) {
-            w = $('<div title="Ooops!">Nothing can be added here, sorry</div>').dialog({closeOnEscape:true});
+         	ui.failure_dialog('Ooops!', 'Nothing can be added here, sorry'); 
             setTimeout(function(){w.fadeOut(function(){w.dialog('close');});}, 2000);
             return;
         }
@@ -90,15 +90,12 @@ ui = new Object({
                 'name': new_obj.find('input.obj_name').val()
             };
             $.post(base_path+'add', item).success(function(data) { if(validate(data)) {drink.add_item(data, true);} } );
+        	new_obj.remove();
         };
 
         new_obj.find('input.obj_name').keyup(check_fn);
 
-        new_obj.dialog({
-            closeOnEscape: true,
-            modal: true,
-            buttons: [ {text: 'OK', click: validate_fn} ]
-        });
+		ui.dialog(new_obj, [ {text: 'OK', click: validate_fn} ] );
 
         if (k.length == 1) {
             new_obj.find(".obj_class").val(k[0]).attr('disabled', true);
@@ -127,13 +124,23 @@ ui = new Object({
         });
     },
     dialog: function(body, buttons, style) {
-        var d = $(body);
+        if (!!body.bind) 
+        	var d = body;
+    	else
+    		var d = $(body);
+
         d.dialog({
             modal: true,
-            closeOnEscape: true,
+            closeOnEscape: false,
             buttons: buttons,
             width: '50%'
         });
+        d.keyup( function(e) {
+        	if(e.which == 27) {
+        		d.dialog('close');
+        		d.remove();
+        	}
+        })
         if (style == 'big') {
             d.css('width', '100%');
             d.css('padding', '0');
