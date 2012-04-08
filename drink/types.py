@@ -2,8 +2,8 @@ __all__ = ['_Editable',
     'Text', 'TextArea', 'GroupListArea', 'GroupCheckBoxes',
     'CheckboxSet', 'BoolOption',
     'Mime', 'Choice', 'Link',
-    'Date',
-    'Id', 'Int', 'Password', 'File']
+    'Date', 'Duration', 'EasyPermissions',
+    'Id', 'Float', 'Int', 'Password', 'File']
 
 import os
 import drink
@@ -12,6 +12,7 @@ from drink import omni
 from time import mktime, strptime
 
 class _Editable(object):
+    """ Abstract class for any editable type """
 
     form_attr = None
 

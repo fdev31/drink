@@ -231,5 +231,5 @@ man_pages = [
 autosummary_generate = True
 autoclass_content = "both"
 autodoc_member_order = "bysource"
-autodoc_default_flags = ('members', 'undoc-members', 'show-inheritance', 'inherited')
+autodoc_default_flags = ('members', 'undoc-members', 'show-inheritance') #, 'inherited')
 

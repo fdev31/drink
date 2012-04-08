@@ -125,3 +125,4 @@ Builtin object types
    finder.ObjectBrowser
    filesystem.Filesystem
    sonic.SonicHome
+

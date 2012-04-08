@@ -17,8 +17,11 @@ drink.types
    
    .. rubric:: Classes
 
+   .. autoclass:: _Editable
+
    .. autosummary::
    
+      _Editable
       BoolOption
       CheckboxSet
       Choice
