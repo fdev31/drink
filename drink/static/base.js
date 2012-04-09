@@ -31,9 +31,10 @@ var Drink = function() {
         var view = view;
 		var loader = me.d.loaders[view];
 
-		if (!!me.cur_action)
+		if (!!me.cur_action && me.cur_action !== action_to_take) {
 	        $('#main_body , #footers').fadeOut();
-
+	        ui.focus.clear();
+        }
 		if ( obj || action_to_take !== me.cur_action)
 			setTimeout(function() {
 			    if(!!!view)
@@ -62,13 +63,10 @@ var Drink = function() {
 					if(debug) console.log('Loader: '+loader, me.d.loaders);
 					if (!!loader) {
 						eval(loader);
-						var _delayed = function() {
-						      dom_initialize($('#main_body'));
-  						}
-						setTimeout(_delayed, 500);
 					} else {
 						if(debug) console.log('No hook!')
 					}
+					setTimeout(function() {dom_initialize($('#main_body'));}, 500);
 			    })
 		        .error(function(data, code) {
 		        	if(debug) console.log(data, code);

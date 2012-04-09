@@ -7,6 +7,7 @@ drink.Page
 
    
    .. automethod:: __init__
+   .. automethod:: _edit
 
    
    .. rubric:: Methods
@@ -19,6 +20,7 @@ drink.Page
       ~Page.clear
       ~Page.copy
       ~Page.edit
+      ~Page._edit
       ~Page.fromkeys
       ~Page.gallery
       ~Page.get
@@ -49,23 +51,32 @@ drink.Page
    
    .. rubric:: Attributes
 
+   .. autoattribute:: _items_factory
+   .. autoattribute:: _loaders
+   .. autoattribute:: _actions
+   .. autoattribute:: _add_hooks
+   .. autoattribute:: _remove_hooks
+
    .. autosummary::
    
-      ~Page.actions
+      ~Page.editable_fields
       ~Page.admin_fields
+      ~Page.owner_fields
       ~Page.classes
       ~Page.css
-      ~Page.default_action
-      ~Page.description
-      ~Page.editable_fields
-      ~Page.hidden_class
       ~Page.html
-      ~Page.indexable
-      ~Page.items_factory
       ~Page.js
+      ~Page.description
+      ~Page.hidden_class
+      ~Page.indexable
+      ~Page._items_factory
+      ~Page._add_hooks
+      ~Page._remove_hooks
+      ~Page._loaders
+      ~Page.default_action
+      ~Page._actions
       ~Page.mime
       ~Page.min_rights
-      ~Page.owner_fields
       ~Page.path
       ~Page.quoted_id
       ~Page.quoted_path

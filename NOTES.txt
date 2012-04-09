@@ -2,8 +2,6 @@
 - DETECT BROWSER: http://pypi.python.org/pypi/raclette.gbs/0.2
 - ADD SCHEDULING: http://pypi.python.org/pypi/pulse/0.1.2
 - finish cleanup & start markdown cleanup
-- reset selection on view change
-- fix focus loss on messages() closing
 - Do Queue Job & use it when adding or editing an item
     - use http://pypi.python.org/pypi/pycom/0.3.0 for communication
     - use https://github.com/btimby/fulltext/ to extract content from binary files
