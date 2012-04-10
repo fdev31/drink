@@ -129,7 +129,7 @@ MarkDown = function(uuid) {
         if (! opts)
             $.extend(o, opts)
         var apply_editor = function(data) {
-            var html = $('<form id="auto_edit_form" action="'+source+'edit" method="post"><input type="hidden" name="_dk_fields" value="content" /><textarea id="md_'+me.uuid+'_editor" name="content" cols="'+o.cols+'" rows="'+o.rows+'">'+(data || o.data)+'</textarea></form>');
+            var html = $('<form id="auto_edit_form" action="'+source+'edit" method="post"><input type="hidden" name="_dk_fields" value="content" /><textarea id="md_'+me.uuid+'_editor" name="content" rows="'+o.rows+'" cols="'+o.cols+'">'+(data || o.data)+'</textarea></form>');
             $('#'+me.uuid).html(html);
 //            $('#'+me.uuid).addClass('markItUp');
             var settings = new Object();

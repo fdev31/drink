@@ -38,7 +38,7 @@ class MarkdownEditor(drink.types._Editable):
       $("#%(id)s").markItUp(mySettings);
    });
 </script>
-<textarea id="%(id)s" name="%(name)s" cols="80" rows="25">%(value)s</textarea>
+<textarea id="%(id)s" name="%(name)s" rows="25" cols="80">%(value)s</textarea>
     ''')
 
 
