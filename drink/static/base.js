@@ -33,7 +33,7 @@ var Drink = function() {
 
 		if (!!me.cur_action && me.cur_action !== action_to_take) {
 	        $('#main_body , #footers').fadeOut();
-	        ui.focus.clear();
+            ui.focus.clear({no_focus: true});
         }
 		if ( obj || action_to_take !== me.cur_action)
 			setTimeout(function() {
@@ -66,6 +66,7 @@ var Drink = function() {
 					} else {
 						if(debug) console.log('No hook!')
 					}
+                    ui.focus.clear();
 					setTimeout(function() {dom_initialize($('#main_body'));}, 500);
 			    })
 		        .error(function(data, code) {
@@ -302,13 +303,15 @@ var Position = function(default_pos, list_getter, selection_class) {
         }
         return l;
     };
-    this.clear = function() {
+    this.clear = function(opts) {
         var i = this.selected_item();
         i.removeClass(this.selection_class);
         this.current_list_pos = 0;
         this.current_list = this.lists[0];
         this.position = -1;
-        this.highlight( this._select()[0] );
+
+        if (opts.no_focus !== true)
+            this.highlight( this._select()[0] );
     };
     this.selected_link = function() {
         var m = this.selected_item();
