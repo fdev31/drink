@@ -1,7 +1,7 @@
-- re-fix add_item_hook (refactor ?)
+- finish cleanup & start markdown cleanup
+    - trouver moyen d'avoir des propriétés en markdown (+ propre que blog)
 - DETECT BROWSER: http://pypi.python.org/pypi/raclette.gbs/0.2
 - ADD SCHEDULING: http://pypi.python.org/pypi/pulse/0.1.2
-- finish cleanup & start markdown cleanup
 - Do Queue Job & use it when adding or editing an item
     - use http://pypi.python.org/pypi/pycom/0.3.0 for communication
     - use https://github.com/btimby/fulltext/ to extract content from binary files
@@ -11,33 +11,28 @@
    - Directory = huge list of archives, with little friendlyness but possibility to make reports from its content easily
 - broken:
     - editing some markdown in view mode
-    - ctrl+save in edit mode for markdown
+    - ctrl+save in edit mode for markdown doesn't save the form
     - 'live' markdown preview in edit mode
     - comments & ratings are partially broken and the behavior is horrible, switch to ajaj !!
 JS: finish Refactor all id's & co with Element item attached to .entry elements
 - tabs.js is conflicting query.ui
-- trouver bidouille pour avoir des classes en markdown (+ propre que blog)
 - HANDLE ITEMS RANGE /items?from=0&to=100
 - Prototype fsQueue usage for long-running tasks (try with a fake process)
 - See if types can be simplified when used from inside (ORM-like ?)
+  - unify with js widgets
 - for css not starting with '/' or 'http://' just compile it:
      scss.Scss().compile(css)
-   and allow it inclusion in template
 - make most of the javascript stuff generic, automated via special classes
-- Use repoze.who for authentication (not a so good idea, see if authkit have a nicer integration)
 - Rewrite & rename:
     PyRat[atouille] - Cooking The Web
         pyrat-init , pyrat-manage
-- refactor actions
 - First choice is misaka instead of markdown: http://misaka.61924.nl/
 - pdf indexed via pyPdf or slate
 - html indexed via html2text / html2rest (two new actions)
-- export presentations via landslide
 - Includes an automatic image gallery in listing mode with a div id=image_gallery : http://nivo.dev7studios.com/#usage
-- possibility to select docs to move them or remove them (listing mode)
+  - refactor with current image slideshow mode
+- possibility to select multiple docs to move them or remove them (listing mode)
 - output complex pdfs from multiple documents (xhtml2pdf + pypdf ?)
   => pdf compilation (pypdf, http://pypi.python.org/pypi/xhtml2pdf/0.0.3)
 - add login icon when not logged-in, that asks for login & password
 - add ad-hoc password by object, which asks for password if authorized (in all cases but admin & owner)
-- add option to apply permissions on all sub-directories
-- add possibility to edit partial content of markdown from view page
