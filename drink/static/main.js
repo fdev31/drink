@@ -18,15 +18,16 @@ ui = new Object({
         }
         $('#comments').append('<form id="dk_comment"  action="#" method="post" />');
         var text = $('<textarea class="edited_comment">Your comment here...</textarea>');
-        text.css('min-height', '1em');
-        text.css('height', '1em');
+        text.css({'min-height': '1em', 'height': '1em', 'borderWidth': '0px', 'padding': '0', 'cursor': 'pointer'});
         $('#comments #dk_comment').append(text);
         text.click(function(e) {
             var txt = $(e.target);
+            text.animate({'min-height': '1em', 'height': '1em', 'padding': '0'});
             txt.unbind();
             txt.parent().append($('<span class="button" onclick="ui.validate_comment()">Send!</span>'));
             txt.attr('value', '');
-            text.animate({'height': '5em'});
+            text.css({cursor: 'auto', borderWidth: '1px'})
+            text.animate({'height': '5em', 'width': '50%', 'padding': '1ex'});
         });
   },
   validate_comment : function() {
