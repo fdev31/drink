@@ -40,10 +40,10 @@ ui = new Object({
         $('#comments').html('');
     },
   go_back: function() {
-        if (document.location.pathname != base_path) {
-            document.location.href = base_path;
-        } else {
+        if (drink.cur_action === drink.d.default_action) {
             document.location.href = base_path+'../';
+        } else {
+            drink.serve(undefined, drink.d.default_action);
         }
   },
   load_html_content: function(data) {
