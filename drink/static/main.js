@@ -205,7 +205,7 @@ ui = new Object({
                 $.post($('#move-confirm #move-destination').val()+'/borrow',
                     {'item': base_path},
                     function() {
-                        document.location.href = $('#move-confirm #move-destination').val();
+                        document.location.href = $('#move-confirm #move-destination').val() + '/';
                 }).error(function(){
                     ui.dialog('<div title="Error occured">Sorry, something didn\'t work correctly</div>');
                });
@@ -422,18 +422,14 @@ function get_matching_elts(req, callback) {
         var _elts = path_elt.split('/');
         _elts.filter(function(e) { if (!!e) return true; });
         url = [document.location.origin];
-        for (n=0;n<_elts.length;n++) {
-            if (n == _elts.length-1) {
-                pattern = _elts[n];
-            } else {
+        for (n=0;n+1<_elts.length;n++) {
+            if (!!_elts[n])
                 url.push(_elts[n]);
-            }
         }
-        url.push("/match?pattern=" + pattern);
+        url.push("/match?pattern=" + _elts[_elts.length-1]);
         url = url.join('/');
     } else {
-        pattern  = path_elt;
-        url = base_path + "match?pattern=" + pattern;
+        url = base_path + "match?pattern=" + path_elt;
     }
     var cur_path = path_elt;
     // AJAX URL
