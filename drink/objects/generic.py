@@ -99,6 +99,7 @@ def get_struct_from_obj(obj, childs=None, full=None):
             d['_nb_items'] = len(obj)
     return d
 
+
 def default_view(self, page='main.html', obj=None, css=None, js=None, html=None, embed=None, classes=None, no_auth=None, **kw):
     """ Renders the :class:`~drink.Page` as HTML using a template
 

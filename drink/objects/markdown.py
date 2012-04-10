@@ -114,11 +114,11 @@ class MarkdownPage(drink.ListPage):
         return (l for l in self.content.split('\n') if l.strip()).next()
 
     def slide(self):
-        if not self._v_slide_cooked:
+        if not self._v_slide_cooked or self.subpages_blog: # Do not cache blogs (there is no parent-notification right now)
             workdir = tempfile.mkdtemp(suffix=".drink-mdown")
             in_f = os.path.join(workdir, 'in.md')
             out_f = os.path.join(workdir, 'out.html')
-            open(in_f, 'w').write(self.content.encode('utf-8'))
+            open(in_f, 'w').write((self.blog_content(sources=True) if self.subpages_blog else self.content).encode('utf-8'))
             try:
                 g = generator.Generator(in_f, destination_file=out_f, embed=True)
                 g.execute()
@@ -162,7 +162,7 @@ class MarkdownPage(drink.ListPage):
 
     html = '''<div id="markdown" class="editable" edit_type="process"></div>'''
 
-    def blog_content(self):
+    def blog_content(self, sources=False):
         dn = self.drink_name
         items = [i for i in self.itervalues() if i.drink_name == dn]
         if self.sort_order == 'date':
@@ -176,6 +176,9 @@ class MarkdownPage(drink.ListPage):
 
         if sort_key:
             items.sort(key=sort_key)
+
+        if sources:
+            return u'\n\n----\n\n'.join(u'# %s\n\n%s\n'%(i.title, i.content) for i in items)
 
         htmls = [ u'<h1>%s</h1><div class="blog_entries">'%self.title ]
         htmls.extend(u'<div class="blog_entry entry row" entry_id="%s">%s</div>'%(i.id, i.process()) for i in reversed(items))
