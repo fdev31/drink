@@ -13,12 +13,12 @@ $radius: 8px;
 $hi_color: #be8;
 $hi2_color: #fa5;
 $hi3_color: #ffd;
-$contour: #eed;
 $main_color: #093E56;
 $fast_d: 180ms;
 $std_d: 350ms;
 $slow_d: 800ms;
 $background: #eed;
+$contour: darken($background, 10%);
 
 /* mixins */
 
@@ -174,7 +174,7 @@ span.page_nr {
     z-index: 2;
 }
 .minipage {
-    background: $contour;
+    background-color: $contour;
     padding: 1em;
     font-size: 65%;
     width: 98%;
