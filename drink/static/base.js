@@ -304,6 +304,7 @@ var Position = function(default_pos, list_getter, selection_class) {
         return l;
     };
     this.clear = function(opts) {
+        var opts = opts || {};
         var i = this.selected_item();
         i.removeClass(this.selection_class);
         this.current_list_pos = 0;
