@@ -184,7 +184,7 @@ class MarkdownPage(drink.ListPage):
             return u'\n\n----\n\n'.join(u'# %s\n\n%s\n'%(i.title, i.content) for i in items)
 
         htmls = [ u'<h1>%s</h1><div class="blog_entries">'%self.title ]
-        htmls.extend(u'<div class="blog_entry entry row" entry_id="%s">%s</div>'%(i.id, i.process()) for i in reversed(items))
+        htmls.extend(u'<div class="blog_entry entry row" entry_id="%s"><h1>%s</h1>%s</div>'%(i.id, i.title, i.process()) for i in reversed(items))
         htmls.append(u'</div>')
         return u'\n'.join(htmls)
 
