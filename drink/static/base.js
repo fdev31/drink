@@ -154,9 +154,10 @@ var Drink = function() {
 		    ui.load_action_list(data.actions);
 	    	me.i_like = data.i_like;
 	        setTimeout(me.write_footers, 300);
-			me.cur_action = window.document.location.pathname.slice(base_path.length);
+			var desired_action = window.document.location.pathname.slice(base_path.length) || me.d.default_action;
+            console.log('switch to action', desired_action);
             if (!!!me.cur_action) {
-                me.serve(undefined, me.d.default_action);
+                me.serve(undefined, desired_action);
             }
 		})
 		.error(function() {
