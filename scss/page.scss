@@ -84,7 +84,7 @@ div.blog_entry {
     }
 }
 @mixin inner_shadowed {
-    @include single-box-shadow($shadow_color, $shadow_right, $shadow_down, $shadow_weight, 0, true);
+    @include single-box-shadow($shadow_color, 1px, 1px, 10px, 0, true);
     @include border-radius($radius);
 }
 @mixin entryfont {
@@ -516,6 +516,16 @@ a {
     display: inline !important;
     width: 15ex !important;
     vertical-align: 50%;
+}
+select {
+    @include border-radius($radius);
+    @include editable;
+    @include inner_shadowed;
+    &:hover {
+        border: none;
+        @include light_shadowed;
+    }
+    width: auto;
 }
 input[type="file"] {
     border: none !important;
