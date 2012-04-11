@@ -111,7 +111,10 @@ class MarkdownPage(drink.ListPage):
 
     @property
     def description(self):
-        return (l for l in self.content.split('\n') if l.strip()).next()
+        try:
+            return (l for l in self.content.split('\n') if l.strip()).next()
+        except Exception:
+            return self.content
 
     def slide(self):
         if not self._v_slide_cooked or self.subpages_blog: # Do not cache blogs (there is no parent-notification right now)
