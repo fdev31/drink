@@ -1,3 +1,4 @@
+- fix markdown's creation date
 - finish cleanup & start markdown cleanup
     - trouver moyen d'avoir des propriétés en markdown (+ propre que blog)
 - DETECT BROWSER: http://pypi.python.org/pypi/raclette.gbs/0.2
