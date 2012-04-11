@@ -873,6 +873,7 @@ For static files changes, no restart is needed.
         import drink
         with db as root:
             l = {'db': root, 'drink': drink}
+            request.identity = FakeId()
             code.interact('Shell variables: %s'%', '.join(l.keys()), local=l)
 
 from beaker.middleware import SessionMiddleware
