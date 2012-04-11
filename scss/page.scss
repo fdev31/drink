@@ -84,7 +84,7 @@ div.blog_entry {
     }
 }
 @mixin inner_shadowed {
-    @include single-box-shadow($shadow_color, 1px, 1px, 10px, 0, true);
+    @include single-box-shadow($shadow_color, 1px, 1px, 5px, 0, true);
     @include border-radius($radius);
 }
 @mixin entryfont {
