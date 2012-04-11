@@ -382,7 +382,7 @@ function dom_initialize(dom) {
     });
 
     // automatic settings for some special classes
-    dom.find('.editable span').addClass('toggler');
+    dom.find('div.input .editable span.label').addClass('toggler');
 
     // setup some behaviors
 
