@@ -2,6 +2,13 @@ url_regex = /^(\/|http).+/;
 base_path = document.location.href.replace(RegExp('[^/]*$'), '')
     .replace(RegExp('http?://[^/]*'), ''); // only keep trailing path
 
+function HTQ(text) {
+    return $('<div />').text(text).html();
+}
+function ATQ(text) {
+    return $('<div />').text(text).html().replace(/"/g, '%22');
+}
+
 var Drink = function() {
  	this.change_rate = function() {
         if (me.i_like) {
@@ -262,7 +269,7 @@ var Entry = function(data) {
         } else {
             mime = "/static/mime/page.png";
         }
-        return $('<li class="entry"><img width="32px" src="'+mime+'" /><a class="item_name" href="'+base_path+me.id+'/" title="'+me.description+'">'+(me.title || me.id)+'</a></li>');
+        return $('<li class="entry"><img width="32px" src="'+mime+'" /><a class="item_name" href="'+base_path+me.id+'/" title="'+ATQ(me.description)+'">'+HTQ(me.title || me.id)+'</a></li>');
     };
 
     this.image_factory = function() {
