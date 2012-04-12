@@ -157,7 +157,7 @@ class Filesystem(drink.ListPage, PyFile):
         if self.fd:
             try:
                 return self.fd.listdir()
-            except fs.errors.ResourceNotFoundError:
+            except (fs.errors.ResourceNotFoundError, fs.errors.PermissionDeniedError):
                 return []
         else:
             return []
