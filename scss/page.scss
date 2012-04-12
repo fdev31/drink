@@ -448,6 +448,8 @@ div.toc {
 }
 table.codehilitetable {
     margin: 1em;
+    display: block;
+    overflow: auto;
 }
 /*
 STANDARD HTML SET
