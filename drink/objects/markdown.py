@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 import os
+import re
 import drink
 import shutil
 import logging
@@ -9,6 +10,11 @@ from markdown import Markdown
 log = logging.getLogger('markdown')
 try:
     import landslide.main
+    from landslide.macro import CodeHighlightingMacro
+    CodeHighlightingMacro.code_blocks_re = re.compile(
+                    r'(<pre.+?>(<code>)?\s?#?!(\w+?)\n(.*?)(</code>)?</pre>)',
+                            re.UNICODE | re.MULTILINE | re.DOTALL)
+
     from landslide import generator
     landslide = True
 except ImportError:
