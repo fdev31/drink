@@ -141,6 +141,12 @@ def omni(txt):
         except UnicodeError:
             return txt.decode('latin1')
 
+class FakeId(object):
+    user = None
+
+    def access(self, obj):
+        return 'rowat'
+
 def init():
     """ Re-initialize drink's database """
     from drink.objects.finder import reset
@@ -151,11 +157,6 @@ def init():
 
         from .objects import users as obj
 
-        class FakeId(object):
-            user = None
-
-            def access(self, obj):
-                return 'rowat'
 
         request.identity = FakeId()
         groups = root['groups'] = obj.GroupList('groups', '/')
