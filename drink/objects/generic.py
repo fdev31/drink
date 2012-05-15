@@ -249,6 +249,7 @@ class Page(drink.Model):
     #: map used for upload action, to bind extensions to factories
     upload_map = {
         '*': 'WebFile',
+        'pdf': 'PdfFile',
     }
 
     # Model methods
@@ -910,6 +911,7 @@ class WebFile(Page):
             except Exception, e:
                 log.error(repr(e))
                 sz = 0
+            # TODO: handle factory here
             if not sz:
                 r.append(u'<h1>No content :(</h1>')
             else:
@@ -927,6 +929,45 @@ class WebFile(Page):
             r.append(u'<h1>No content :(</h1>')
 
         return u''.join(r)
+
+class PdfFile(WebFile):
+
+    drink_name = 'PdfFile'
+
+    @property
+    def html(self):
+        if 'r' not in request.identity.access(self):
+            return drink.unauthorized()
+
+        drink.response.content_type = "text/html; charset=utf-8"
+        if self.content:
+            return u'''
+<script type="text/javascript" src="/static/js/pdf.js"></script>
+<script type="text/javascript">
+  // This specifies the location of the pdf.js file.
+  PDFJS.workerSrc = "/static/js/pdf.js";
+</script>
+<script type="text/javascript" src="/static/js/pdf_viewer.js"></script>
+<div><a class="button" href="raw">Get file</a> <button onclick="pdf_doc.prev()">&nbsp;&lt;&nbsp;</button> <button onclick="pdf_doc.next()">&nbsp;&gt;&nbsp;</button> <button onclick="pdf_doc.zoom_in()">&nbsp;+&nbsp;</button> <button onclick="pdf_doc.zoom_out()">&nbsp;-&nbsp;</button></div>
+<canvas id="pdf-canvas" />'''
+
+    @property
+    def indexable(self):
+        import pyPdf
+        contents = []
+        if self.content:
+            pdf = pyPdf.PdfFileReader(open(self.content.filename))
+            for n in xrange(pdf.getNumPages()):
+                contents.append(pdf.getPage(n))
+        if isinstance(self.description, unicode):
+            desc = self.description
+        else:
+            desc = self.description.decode('utf-8')
+        if isinstance(self.content, unicode):
+            cont = self.description
+        else:
+            cont = u''
+        return desc + cont + u''.join(p.extractText() for p in contents)
 
 
 class Settings(Page):

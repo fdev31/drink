@@ -2,6 +2,7 @@ jinja2
 markdown
 Beaker>=1.6.0
 ZODB3
+pyPdf>=1.13
 whoosh>=2.2
 fs>=0.4
 bottle>=0.10.3
@@ -9,4 +10,3 @@ setproctitle
 repoze.debug
 weberror
 Paste
-
