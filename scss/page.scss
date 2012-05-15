@@ -257,8 +257,12 @@ div.objects_forms {
 }
 div.codehilite {
     padding: 1ex;
+    border: solid 2px #eee;
     background: $contour;
     @include inner_shadowed;
+    &:hover {
+        @include single-box-shadow($shadow_color, 0, 0, 5px, 0, true);
+    }
     > pre {
         background: none;
     }
