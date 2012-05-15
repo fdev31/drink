@@ -1,3 +1,5 @@
+- broken indexer ! (try some pdf)
+- replace all isajax() with an ajax=1 GET argument
 - fix markdown's creation date
 - finish cleanup & start markdown cleanup
     - trouver moyen d'avoir des propriétés en markdown (+ propre que blog)
